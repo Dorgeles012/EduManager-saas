@@ -12,10 +12,19 @@ class SadminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'nom' => 'Admin',
-            'email' => 'dorgeles@mail.com',
-            'password' => bcrypt('password'),
-        ])->assignRole('SADMIN');
+        User::updateOrCreate(
+            ['email' => 'dorgeles@mail.com'],
+            [
+                'tenant_id' => 1,
+                'nom' => 'Admin',
+                'prenom' => 'System',
+                'telephone' => null,
+                'image' => null,
+                'password' => bcrypt('12345678'),
+                'role' => 'SADMIN',
+                'statut' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

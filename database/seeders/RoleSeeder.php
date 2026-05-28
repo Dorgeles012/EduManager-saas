@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -12,10 +11,9 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::create(['name' => 'SADMIN']);
-        Role::create(['name' => 'CLIENT']);
-        Role::create(['name' => 'PERSONNEL']);
-        Role::create(['name' => 'ENSEIGNANT']);
-        Role::create(['name' => 'PARENT']);
+        // Désactivé : rôles basés uniquement sur `users.role`.
+        // Aucun seeding Spatie (tables roles/permissions) n'est nécessaire.
     }
 }
+
+

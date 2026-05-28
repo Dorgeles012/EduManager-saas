@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. TABLES SANS DÉPENDANCES
-        
+
         // Tenants (clients)
         Schema::create('tenants', function (Blueprint $table) {
             $table->id();
@@ -23,19 +23,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Sadmins
-        Schema::create('sadmins', function (Blueprint $table) {
-            $table->id();
-            $table->string('nom');
-            $table->string('prenom');
-            $table->string('username')->unique();
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->string('telephone', 50)->nullable();
-            $table->text('image')->nullable();
-            $table->enum('statut', ['active', 'inactive'])->default('active');
-            $table->timestamps();
-        });
+
 
         // Plans
         Schema::create('plans', function (Blueprint $table) {
@@ -52,18 +40,20 @@ return new class extends Migration
         
         // Users
         Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->unsignedBigInteger('tenant_id')->default(1);
-        $table->string('nom');
-        $table->string('prenom')->nullable();
-        $table->string('email')->unique();
-        $table->string('telephone', 50)->nullable();
-        $table->string('password');
-        $table->text('image')->nullable();
-        $table->enum('role', ['SADMIN', 'CLIENT', 'PERSONNEL', 'ENSEIGNANT', 'PARENT']);
-        $table->enum('statut', ['active', 'inactive', 'blocked'])->default('active');
-        $table->timestamps();
-});
+            $table->id();
+            $table->unsignedBigInteger('tenant_id')->default(1);
+            $table->string('nom');
+            $table->string('prenom')->nullable();
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('telephone', 50)->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->text('image')->nullable();
+            $table->enum('role', ['SADMIN', 'CLIENT', 'PERSONNEL', 'ENSEIGNANT', 'PARENT']);
+            $table->enum('statut', ['active', 'inactive', 'blocked'])->default('active');
+            $table->timestamps();
+        });
 
         // Etablissements
         Schema::create('etablissements', function (Blueprint $table) {
@@ -322,24 +312,22 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->id();
-            $table->string('email');
-            $table->string('code', 10);
-            $table->dateTime('expires_at');
-            $table->timestamps();
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
     }
 
     public function down(): void
     {
         $tables = [
-            'password_resets', 'annee_academique', 'notifications', 'messages',
+            'password_reset_tokens', 'annee_academique', 'notifications', 'messages',
             'transactions', 'emploi_temps', 'versements', 'scolarites',
             'bulletins', 'notes', 'eleves', 'parents', 'personnel',
             'enseignant_matiere', 'enseignants', 'classes', 'filieres',
             'niveaux', 'matieres', 'payments', 'subscriptions',
-            'etablissements', 'users', 'plans', 'sadmins', 'tenants'
+            'etablissements', 'users', 'plans', 'tenants'
         ];
         
         foreach ($tables as $table) {
