@@ -2,51 +2,70 @@
 
 @section('content')
 
+@php
+    $user = auth()->user();
+
+    // photo: stockée en disk public sous le chemin relatif (ex: profile-images/xxx.jpg)
+    $avatarUrl = $user?->image
+        ? (Storage::disk('public')->exists($user->image) ? Storage::url($user->image) : null)
+        : null;
+@endphp
+
 <!-- Section 1: Bento Grid Layout for Primary Settings -->
 <div class="grid grid-cols-12 gap-6">
     <!-- Account Settings (Large Bento) -->
     <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl p-5 card-shadow border border-surface-subtle/50">
-        <a href="{{ route('sadmin.compte') }}" class="block" aria-label="Ouvrir la page Compte">
-            <div class="flex items-center justify-between mb-5">
-                <div class="flex items-center gap-3">
-                    <div class="bg-gradient-to-br from-primary/10 to-primary-container/10 p-2 rounded-xl">
-                        <span class="material-symbols-outlined text-primary text-xl">person_outline</span>
-                    </div>
-                    <div>
-                        <h3 class="font-headline-lg text-[18px] text-on-surface">Paramètres du Compte</h3>
-                        <p class="text-[12px] text-text-muted mt-0.5">Gérez vos informations personnelles et votre identité publique.</p>
-                    </div>
-                </div>
-                <div>
-                    <button type="button" class="px-3 py-1.5 text-primary hover:bg-primary/5 rounded-lg text-[12px] font-medium">Modifier</button>
-                </div>
+        <div class="flex items-center gap-3 mb-5">
+            <div class="h-12 w-12 rounded-full overflow-hidden border-4 border-primary/20 shadow-md bg-white">
+                <img
+                    class="h-full w-full object-cover"
+                    alt="User Avatar"
+                    src="{{ $avatarUrl ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBroeuZog9qGMBKH4_biRoVzXCnj6ZRLBUdtv2F-PQs8DV5qIq8_PHt90j6DrWVLEMD7EZkZWimKNyTIZ8-BZXwEvZaZQ8AYjprIU0Jf7GZ8sfpgFxZBMG4LQBwJCZMf7wWIEtQMcLxlVZC64U2-9s9PEzg9HlI1WRnu1k_UhC19pRIzwEOPrjUpaFKC-_5I77rtb7IgKsfSo2oiEGrLKfVgTuKinhRjxDKwfs_iSNu9roQ8e_-PtA58w4OluECuyrYE5-g2u9ScUwb' }}"
+                >
             </div>
-        </a>
+
+            <div class="flex-1">
+                <h3 class="font-headline-lg text-[18px] text-on-surface">Paramètres du Compte</h3>
+                <p class="text-[12px] text-text-muted mt-0.5">Gérez vos informations personnelles et votre identité publique.</p>
+            </div>
+
+            <a href="{{ route('sadmin.compte') }}" class="px-3 py-1.5 text-primary hover:bg-primary/5 rounded-lg text-[12px] font-medium inline-flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">edit</span>
+                Modifier
+            </a>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3">
                 <div class="border-b border-outline-variant/30 pb-2">
                     <label class="text-[10px] text-text-muted uppercase tracking-wide">Nom complet</label>
-                    <p class="text-[14px] font-semibold text-on-surface mt-1">Dr. Sarah Elisabeth Martin</p>
+                    <p class="text-[14px] font-semibold text-on-surface mt-1">{{ trim(($user?->nom ?? '').' '.($user?->prenom ?? '')) ?: '-' }}</p>
                 </div>
                 <div class="border-b border-outline-variant/30 pb-2">
                     <label class="text-[10px] text-text-muted uppercase tracking-wide">Email professionnel</label>
-                    <p class="text-[14px] font-semibold text-on-surface mt-1">sarah.martin@academie.edu</p>
+                    <p class="text-[14px] font-semibold text-on-surface mt-1">{{ $user?->email ?? '-' }}</p>
                 </div>
                 <div class="border-b border-outline-variant/30 pb-2">
                     <label class="text-[10px] text-text-muted uppercase tracking-wide">Téléphone</label>
-                    <p class="text-[14px] font-semibold text-on-surface mt-1">+33 (0)1 23 45 67 89</p>
+                    <p class="text-[14px] font-semibold text-on-surface mt-1">{{ $user?->telephone ?? '-' }}</p>
                 </div>
             </div>
+
             <div class="space-y-3">
                 <div class="border-b border-outline-variant/30 pb-2">
-                    <label class="text-[10px] text-text-muted uppercase tracking-wide">Dernière connexion</label>
-                    <p class="text-[14px] font-semibold text-success-green mt-1">Aujourd'hui, 09:42</p>
+                    <label class="text-[10px] text-text-muted uppercase tracking-wide">Rôle</label>
+                    <p class="text-[14px] font-semibold text-on-surface mt-1">{{ $user?->role ?? '-' }}</p>
+                </div>
+
+                <div class="border-b border-outline-variant/30 pb-2">
+                    <label class="text-[10px] text-text-muted uppercase tracking-wide">Statut</label>
+                    <p class="text-[14px] font-semibold text-on-surface mt-1">{{ $user?->statut ?? '-' }}</p>
                 </div>
             </div>
         </div>
     </section>
 </div>
+
 
 <!-- Section 2: Settings Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -80,9 +99,9 @@
                             <div class="w-10 h-5 bg-outline-variant/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
-                    <button id="changePasswordBtn" class="w-full mt-3 px-3 py-2 text-primary border border-primary/30 rounded-lg hover:bg-primary/5 font-medium text-[12px]">
+                <a href="{{ route('sadmin.passwordchange') }}" class="w-full mt-3 px-3 py-2 text-primary border border-primary/30 rounded-lg hover:bg-primary/5 font-medium text-[12px] inline-flex justify-center">
                         Changer le mot de passe
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -123,73 +142,7 @@
     </div>
 </div>
 
-<!-- Modal Changement de mot de passe -->
-<div id="passwordModal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
-        <!-- En-tête du modal avec couleur bleue -->
-        <div class="bg-gradient-to-r from-primary to-primary-container px-5 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-white text-xl">lock</span>
-                <h3 class="text-white font-headline-md text-[16px]">Changement de mot de passe</h3>
-            </div>
-            <button id="closePasswordModal" class="text-white hover:opacity-80">
-                <span class="material-symbols-outlined text-[18px]">close</span>
-            </button>
-        </div>
-        
-        <!-- Corps du modal -->
-        <div class="p-5">
-            <div class="mb-3 p-2 bg-primary/10 rounded-lg border border-primary/20">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-[18px]">info</span>
-                    <p class="text-[11px] text-on-surface-variant">Pour votre sécurité, choisissez un mot de passe robuste d'au moins 8 caractères avec des lettres, chiffres et symboles.</p>
-                </div>
-            </div>
-            
-            <form id="passwordForm" class="space-y-4">
-                <div class="space-y-1.5">
-                    <label class="text-[11px] text-on-surface-variant font-medium">Mot de passe actuel</label>
-                    <div class="relative">
-                        <input type="password" id="currentPassword" class="w-full px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-[13px] pr-8" placeholder="Entrez votre mot de passe actuel">
-                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-primary toggle-password text-[18px]">visibility</span>
-                    </div>
-                </div>
-                
-                <div class="space-y-1.5">
-                    <label class="text-[11px] text-on-surface-variant font-medium">Nouveau mot de passe</label>
-                    <div class="relative">
-                        <input type="password" id="newPassword" class="w-full px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-[13px] pr-8" placeholder="••••••••">
-                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-primary toggle-password text-[18px]">visibility</span>
-                    </div>
-                    <div class="flex gap-2 mt-1.5">
-                        <div class="flex-1 h-1 bg-surface-container-high rounded-full overflow-hidden">
-                            <div id="passwordStrength" class="h-full w-0 bg-alert-red transition-all duration-300"></div>
-                        </div>
-                    </div>
-                    <p id="strengthText" class="text-[10px] text-text-muted">Force du mot de passe</p>
-                </div>
-                
-                <div class="space-y-1.5">
-                    <label class="text-[11px] text-on-surface-variant font-medium">Confirmer le nouveau mot de passe</label>
-                    <div class="relative">
-                        <input type="password" id="confirmPassword" class="w-full px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-[13px] pr-8" placeholder="Confirmez votre nouveau mot de passe">
-                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-primary toggle-password text-[18px]">visibility</span>
-                    </div>
-                </div>
-                
-                <!-- Boutons d'action -->
-                <div class="flex justify-end gap-3 pt-3 border-t border-outline-variant/30">
-                    <button type="button" id="cancelPasswordBtn" class="px-4 py-1.5 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-subtle font-medium text-[12px]">
-                        Annuler
-                    </button>
-                    <button type="submit" class="px-4 py-1.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-lg hover:opacity-90 font-medium shadow-md text-[12px]">
-                        Mettre à jour le mot de passe
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 @endsection
 
@@ -216,45 +169,41 @@
     }
 
     // Modal Password Change
+    // Note: sur cette page Paramètres, le modal ne doit pas changer le mot de passe.
+    // On garde l'UI (ouverture/fermeture + validation locale), mais pas de soumission / pas de simulation.
     const changePasswordBtn = document.getElementById('changePasswordBtn');
     const passwordModal = document.getElementById('passwordModal');
     const closePasswordModal = document.getElementById('closePasswordModal');
     const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
     const passwordForm = document.getElementById('passwordForm');
-    
+
     // Ouvrir le modal
     if (changePasswordBtn) {
         changePasswordBtn.addEventListener('click', () => {
+            // Tailwind: initialement hidden -> on retire hidden et on force display flex
+            passwordModal.classList.remove('hidden');
+            passwordModal.classList.add('flex');
             passwordModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         });
     }
-    
+
+
     // Fermer le modal
     const closeModal = () => {
         passwordModal.style.display = 'none';
         document.body.style.overflow = '';
-        // Réinitialiser le formulaire
-        if (passwordForm) {
-            passwordForm.reset();
-            const strengthBar = document.getElementById('passwordStrength');
-            const strengthText = document.getElementById('strengthText');
-            if (strengthBar) strengthBar.style.width = '0%';
-            if (strengthText) strengthText.textContent = 'Force du mot de passe';
-            if (strengthText) strengthText.className = 'text-[10px] text-text-muted';
-        }
+        if (passwordForm) passwordForm.reset();
     };
-    
+
     if (closePasswordModal) closePasswordModal.addEventListener('click', closeModal);
     if (cancelPasswordBtn) cancelPasswordBtn.addEventListener('click', closeModal);
-    
+
     // Cliquer en dehors pour fermer
     window.addEventListener('click', (e) => {
-        if (e.target === passwordModal) {
-            closeModal();
-        }
+        if (e.target === passwordModal) closeModal();
     });
-    
+
     // Toggle password visibility
     const togglePasswordBtns = document.querySelectorAll('.toggle-password');
     togglePasswordBtns.forEach(btn => {
@@ -269,82 +218,6 @@
             }
         });
     });
-    
-    // Vérification de la force du mot de passe
-    const newPasswordInput = document.getElementById('newPassword');
-    const strengthBar = document.getElementById('passwordStrength');
-    const strengthText = document.getElementById('strengthText');
-    
-    if (newPasswordInput) {
-        newPasswordInput.addEventListener('input', () => {
-            const password = newPasswordInput.value;
-            let strength = 0;
-            
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
-            
-            const width = (strength / 4) * 100;
-            strengthBar.style.width = width + '%';
-            
-            if (strength === 0) {
-                strengthBar.className = 'h-full w-0 bg-alert-red transition-all duration-300';
-                strengthText.textContent = 'Entrez un mot de passe';
-                strengthText.className = 'text-[10px] text-text-muted';
-            } else if (strength <= 2) {
-                strengthBar.className = 'h-full bg-alert-red transition-all duration-300';
-                strengthText.textContent = 'Mot de passe faible';
-                strengthText.className = 'text-[10px] text-alert-red';
-            } else if (strength === 3) {
-                strengthBar.className = 'h-full bg-warning-amber transition-all duration-300';
-                strengthText.textContent = 'Mot de passe moyen';
-                strengthText.className = 'text-[10px] text-warning-amber';
-            } else {
-                strengthBar.className = 'h-full bg-success-green transition-all duration-300';
-                strengthText.textContent = 'Mot de passe fort';
-                strengthText.className = 'text-[10px] text-success-green';
-            }
-        });
-    }
-    
-    // Soumission du formulaire
-    if (passwordForm) {
-        passwordForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const currentPassword = document.getElementById('currentPassword')?.value;
-            const newPassword = document.getElementById('newPassword')?.value;
-            const confirmPassword = document.getElementById('confirmPassword')?.value;
-            
-            if (!currentPassword) {
-                alert('Veuillez entrer votre mot de passe actuel');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                alert('Les mots de passe ne correspondent pas');
-                return;
-            }
-            
-            if (newPassword.length < 8) {
-                alert('Le mot de passe doit contenir au moins 8 caractères');
-                return;
-            }
-            
-            // Simulation de mise à jour
-            const submitBtn = passwordForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = 'Mise à jour en cours...';
-            submitBtn.disabled = true;
-            
-            setTimeout(() => {
-                alert('✅ Mot de passe mis à jour avec succès !');
-                closeModal();
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 1500);
-        });
-    }
+
+    // Activer la soumission (Laravel handle la mise à jour)
 </script>
-@endsection

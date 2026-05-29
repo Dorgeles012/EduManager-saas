@@ -135,29 +135,41 @@
         </div>
 
         <nav class="flex-1 space-y-1">
-            <!-- Onglet actif : Aperçu -->
-            <a class="flex items-center gap-3 px-3 py-2.5 text-primary font-bold bg-primary-fixed rounded-lg transition-transform active:scale-95" href="{{ route('sadmin.dashboard') }}">
+            @php
+                $activeClass = 'text-primary font-bold bg-primary-fixed rounded-lg transition-transform active:scale-95';
+                $inactiveClass = 'text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200';
+                $route = request()->route();
+                $routeName = $route?->getName();
+            @endphp
+
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.dashboard') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.dashboard') }}">
+
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
                 <span class="font-label-md text-label-md">Accueil</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200" href="{{ route('sadmin.etablissement') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.etablissement') || request()->routeIs('sadmin.etablissements.*') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.etablissement') }}">
+
+
                 <span class="material-symbols-outlined">domain</span>
                 <span class="font-label-md text-label-md">Établissements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200" href="{{ route('sadmin.client') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.client') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.client') }}">
+
                 <span class="material-symbols-outlined">add_business</span>
                 <span class="font-label-md text-label-md">Clients</span>
             </a>
 
 
-            <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200" href="{{ route('sadmin.abonnement') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.abonnement') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.abonnement') }}">
+
                 <span class="material-symbols-outlined">card_membership</span>
                 <span class="font-label-md text-label-md">Abonnements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200" href="{{ route('sadmin.notifications') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.notifications') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.notifications') }}">
+
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="font-label-md text-label-md">Notifications</span>
             </a>
@@ -166,7 +178,8 @@
 
 
         <div class="pt-6 border-t border-outline-variant mt-auto space-y-1">
-            <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg" href="{{ route('sadmin.parametres') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.parametres') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.parametres') }}">
+
 
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Paramètres</span>
@@ -208,6 +221,48 @@
         <div class="p-8 mt-16 max-w-[1440px] mx-auto">
             @yield('content')
         </div>
+
+        {{-- SweetAlert2 (via CDN) --}}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            // DELETE: confirmation SweetAlert2
+            window.confirmDeleteSweet = function(event, form){
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Supprimer ?',
+                    text: 'Cette action est irréversible.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit();
+                });
+                return false;
+            }
+
+            // Success messages (CRUD)
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: @json(session('success')),
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: @json(session('error')),
+                    confirmButtonText: 'OK'
+                });
+            @endif
+        </script>
     </main>
 
     @yield('scripts')

@@ -13,8 +13,13 @@ Route::middleware(['auth', 'verified', 'role:SADMIN'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/sadmin/dashboard', [DashboardController::class, 'index'])->name('sadmin.dashboard');
 
+    // Garde la route historique utilisée par la sidebar : /sadmin/etablissement
     Route::get('/sadmin/etablissement', [\App\Http\Controllers\Sadmin\EtablissementController::class, 'index'])
         ->name('sadmin.etablissement');
+
+    // (Optionnel) CRUD complet sur /sadmin/etablissements/... 
+    Route::resource('etablissements', \App\Http\Controllers\Sadmin\EtablissementCrudController::class)
+        ->names('sadmin.etablissements');
 
     Route::get('/sadmin/abonnement', [AbonnementController::class, 'index'])
         ->name('sadmin.abonnement');
@@ -31,9 +36,21 @@ Route::middleware(['auth', 'verified', 'role:SADMIN'])->group(function () {
         return view('sadmin.parametres');
     })->name('sadmin.parametres');
 
-    Route::get('/sadmin/compte', function () {
-        return view('sadmin.compte');
-    })->name('sadmin.compte');
+    Route::put('/sadmin/parametres/password', [\App\Http\Controllers\Sadmin\ComptePasswordController::class, 'update'])
+        ->name('sadmin.parametres.password.update');
+
+    Route::get('/sadmin/parametres/passwordchange', function () {
+        return view('sadmin.passwordchange');
+    })->name('sadmin.passwordchange');
+
+
+
+    Route::get('/sadmin/compte', [\App\Http\Controllers\Sadmin\CompteController::class, 'index'])
+        ->name('sadmin.compte');
+
+    Route::put('/sadmin/compte', [\App\Http\Controllers\Sadmin\CompteController::class, 'update'])
+        ->name('sadmin.compte.update');
+
 
     Route::get('/sadmin/notifications/historique', function () {
         return view('sadmin.historique');
