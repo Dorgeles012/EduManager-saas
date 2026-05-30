@@ -45,9 +45,8 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt([
             'email' => $this->string('email'),
             'password' => $this->string('password'),
-            // filtre: ne pas autoriser les users inactifs/bloqués
-            'statut' => 'active',
         ], $this->boolean('remember'))) {
+
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

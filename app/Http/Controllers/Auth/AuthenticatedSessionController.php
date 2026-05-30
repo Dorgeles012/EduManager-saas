@@ -29,12 +29,40 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Redirection automatique selon le rôle
-        if ($request->user() && $request->user()->role === 'SADMIN') {
-            return redirect()->route('sadmin.dashboard');
+        $user = $request->user();
+
+        if ($user) {
+            switch ($user->role) {
+                case 'SADMIN':
+                    return redirect()->route('sadmin.dashboard');
+
+                case 'CLIENT':
+                    return redirect()->route('client.dashboard');
+
+                case 'PERSONNEL':
+                    return redirect()->route('personnel.dashboard');
+
+                case 'ENSEIGNANT':
+                    return redirect()->route('enseignant.dashboard');
+
+                case 'PARENT':
+                    return redirect()->route('parent.dashboard');
+
+                default:
+                    Auth::guard('web')->logout();
+
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return redirect()->route('login')
+                        ->withErrors(['email' => 'Rôle utilisateur non reconnu.']);
+            }
         }
 
-        return redirect()->route('dashboard');
+        return redirect()->route('login');
+
     }
+
 
     /**
      * Destroy an authenticated session.

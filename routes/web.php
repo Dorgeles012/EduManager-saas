@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('auth.login');
 });
+Route::middleware(['auth', 'role:SADMIN'])->group(function () {
 
-Route::middleware(['auth', 'verified', 'role:SADMIN'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/sadmin/dashboard', [DashboardController::class, 'index'])->name('sadmin.dashboard');
 
@@ -24,9 +24,16 @@ Route::middleware(['auth', 'verified', 'role:SADMIN'])->group(function () {
     Route::get('/sadmin/abonnement', [AbonnementController::class, 'index'])
         ->name('sadmin.abonnement');
 
-    Route::get('/sadmin/client', function () {
-        return view('sadmin.client');
-    })->name('sadmin.client');
+    Route::resource('clients', \App\Http\Controllers\Sadmin\ClientController::class)
+        ->names('sadmin.clients');
+
+    Route::patch('sadmin/clients/{client}/block', [\App\Http\Controllers\Sadmin\ClientController::class, 'block'])
+        ->name('sadmin.clients.block');
+
+    Route::patch('sadmin/clients/{client}/unblock', [\App\Http\Controllers\Sadmin\ClientController::class, 'unblock'])
+        ->name('sadmin.clients.unblock');
+
+
 
     Route::get('/sadmin/notifications', function () {
         return view('sadmin.notifications');
@@ -55,6 +62,30 @@ Route::middleware(['auth', 'verified', 'role:SADMIN'])->group(function () {
     Route::get('/sadmin/notifications/historique', function () {
         return view('sadmin.historique');
     })->name('sadmin.notifications.historique');
+});
+
+Route::middleware(['auth', 'role:CLIENT'])->group(function () {
+    Route::get('/client/dashboard', fn () => view('dashboards.role', [
+        'title' => 'Dashboard Client',
+    ]))->name('client.dashboard');
+});
+
+Route::middleware(['auth', 'role:PERSONNEL'])->group(function () {
+    Route::get('/personnel/dashboard', fn () => view('dashboards.role', [
+        'title' => 'Dashboard Personnel',
+    ]))->name('personnel.dashboard');
+});
+
+Route::middleware(['auth', 'role:ENSEIGNANT'])->group(function () {
+    Route::get('/enseignant/dashboard', fn () => view('dashboards.role', [
+        'title' => 'Dashboard Enseignant',
+    ]))->name('enseignant.dashboard');
+});
+
+Route::middleware(['auth', 'role:PARENT'])->group(function () {
+    Route::get('/parent/dashboard', fn () => view('dashboards.role', [
+        'title' => 'Dashboard Parent',
+    ]))->name('parent.dashboard');
 });
 
 Route::middleware('auth')->group(function () {

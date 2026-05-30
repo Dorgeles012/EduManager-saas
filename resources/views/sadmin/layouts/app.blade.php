@@ -155,7 +155,8 @@
                 <span class="font-label-md text-label-md">Établissements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.client') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.client') }}">
+            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.clients.*') || request()->routeIs('sadmin.clients.index') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.clients.index') }}">
+
 
                 <span class="material-symbols-outlined">add_business</span>
                 <span class="font-label-md text-label-md">Clients</span>
