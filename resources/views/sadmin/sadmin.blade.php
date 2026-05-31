@@ -88,6 +88,7 @@
                     @endphp
                     
                     @forelse($sadminsList as $sadmin)
+                    @php $isCurrentUser = Auth::check() && (string)Auth::id() === (string)($sadmin->id ?? null); @endphp
                     <tr class="hover:bg-surface-container-low/30 transition-colors">
                         <td class="px-4 py-3 text-sm font-semibold text-on-surface">{{ $sadmin->nom }}</td>
                         <td class="px-4 py-3 text-sm">{{ $sadmin->prenom }}</td>
@@ -106,20 +107,24 @@
                         <td class="px-4 py-3 text-sm text-text-muted">{{ optional($sadmin->created_at)->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button type="button" class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all" onclick="openEditModal(this)"
+                                <!-- Icône Modifier (grisée pour l'utilisateur connecté) -->
+                                <button type="button" 
+                                    class="p-2 rounded-lg transition-all {{ $isCurrentUser ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary/10 text-primary hover:bg-primary/20' }}" 
+                                    onclick="{{ $isCurrentUser ? 'return false' : "openEditModal(this)" }}"
                                     data-id="{{ $sadmin->id }}"
                                     data-nom="{{ $sadmin->nom }}"
                                     data-prenom="{{ $sadmin->prenom }}"
                                     data-email="{{ $sadmin->email }}"
                                     data-telephone="{{ $sadmin->telephone }}"
-                                    title="Modifier">
+                                    title="{{ $isCurrentUser ? 'Vous ne pouvez pas vous modifier' : 'Modifier' }}">
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                 </button>
 
-                                <form method="POST" action="{{ route('sadmin.destroy', $sadmin) }}" class="m-0" onsubmit="return confirm('Supprimer ce SAdmin ?');">
+                                <!-- Icône Supprimer (grisée pour l'utilisateur connecté) avec SweetAlert -->
+                                <form method="POST" action="{{ route('sadmin.destroy', $sadmin) }}" class="m-0 {{ $isCurrentUser ? 'opacity-50 cursor-not-allowed' : '' }}" onsubmit="return {{ $isCurrentUser ? 'false' : "confirmDeleteSweet(event, this)" }};">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-2 rounded-lg bg-alert-red/10 text-alert-red hover:bg-alert-red/20 transition-all" title="Supprimer">
+                                    <button type="submit" {{ $isCurrentUser ? 'disabled' : '' }} class="p-2 rounded-lg {{ $isCurrentUser ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-alert-red/10 text-alert-red hover:bg-alert-red/20' }} transition-all" title="{{ $isCurrentUser ? 'Vous ne pouvez pas vous supprimer' : 'Supprimer' }}">
                                         <span class="material-symbols-outlined text-sm">delete</span>
                                     </button>
                                 </form>
