@@ -90,17 +90,22 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('sadmin.etablissements.show', $etablissement->id) }}" class="p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg" title="Détails">
-                                        <span class="material-symbols-outlined">visibility</span>
+                                    <!-- Icône Voir / Détails -->
+                                    <a href="{{ route('sadmin.etablissements.show', $etablissement->id) }}" class="p-2 rounded-lg bg-surface-subtle hover:bg-primary/10 hover:text-primary transition-all" title="Voir les détails">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
                                     </a>
-                                    <a href="{{ route('sadmin.etablissements.edit', $etablissement->id) }}" class="p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg" title="Modifier">
-                                        <span class="material-symbols-outlined">edit_square</span>
+                                    
+                                    <!-- Icône Modifier -->
+                                    <a href="{{ route('sadmin.etablissements.edit', $etablissement->id) }}" class="p-2 rounded-lg bg-surface-subtle hover:bg-warning-amber/10 hover:text-warning-amber transition-all" title="Modifier">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
                                     </a>
+                                    
+                                    <!-- Icône Supprimer -->
                                     <form method="POST" action="{{ route('sadmin.etablissements.destroy', $etablissement->id) }}" class="p-0 m-0" onsubmit="return confirmDeleteSweet(event, this);">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 text-on-surface-variant hover:text-alert-red hover:bg-alert-red/10 rounded-lg" title="Supprimer">
-                                            <span class="material-symbols-outlined">delete</span>
+                                        <button type="submit" class="p-2 rounded-lg bg-surface-subtle hover:bg-alert-red/10 hover:text-alert-red transition-all" title="Supprimer">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
                                         </button>
                                     </form>
                                 </div>
@@ -124,8 +129,6 @@
         </div>
     </div>
 </div>
-
-
 
 <!-- Modal Ajouter un établissement -->
 <div class="fixed inset-0 z-[60] flex items-center justify-center bg-on-surface/40 backdrop-blur-sm hidden" id="modal-add">

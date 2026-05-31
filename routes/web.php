@@ -3,12 +3,24 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Sadmin\AbonnementController;
 use App\Http\Controllers\Sadmin\DashboardController;
+use App\Http\Controllers\Sadmin\SadminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 Route::middleware(['auth', 'role:SADMIN'])->group(function () {
+
+
+
+    Route::get('/sadmin/sadmin', [SadminController::class, 'index'])->name('sadmin.index');
+    Route::post('/sadmin/sadmin', [SadminController::class, 'store'])->name('sadmin.store');
+    Route::get('/sadmin/sadmin/{sadmin}/edit', [SadminController::class, 'edit'])->name('sadmin.edit');
+    Route::match(['put','patch'], '/sadmin/sadmin/{sadmin}', [SadminController::class, 'update'])->name('sadmin.update');
+
+    Route::delete('/sadmin/sadmin/{sadmin}', [SadminController::class, 'destroy'])->name('sadmin.destroy');
+
+
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/sadmin/dashboard', [DashboardController::class, 'index'])->name('sadmin.dashboard');

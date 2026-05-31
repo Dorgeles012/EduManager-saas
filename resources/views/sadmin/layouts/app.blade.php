@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lexend:wght@400;600;700&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <!-- Font Awesome pour les icônes supplémentaires -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -143,49 +145,45 @@
             @endphp
 
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.dashboard') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.dashboard') }}">
-
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
                 <span class="font-label-md text-label-md">Accueil</span>
             </a>
 
+
+            @if(Auth::check() && Auth::user()->role === 'SADMIN')
+                <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.index') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.index') }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span class="font-label-md text-label-md">Super Administrateur</span>
+                </a>
+            @endif
+
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.etablissement') || request()->routeIs('sadmin.etablissements.*') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.etablissement') }}">
-
-
                 <span class="material-symbols-outlined">domain</span>
                 <span class="font-label-md text-label-md">Établissements</span>
             </a>
 
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.clients.*') || request()->routeIs('sadmin.clients.index') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.clients.index') }}">
-
-
-                <span class="material-symbols-outlined">add_business</span>
+                <span class="material-symbols-outlined">person_add</span>
                 <span class="font-label-md text-label-md">Clients</span>
             </a>
 
-
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.abonnement') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.abonnement') }}">
-
                 <span class="material-symbols-outlined">card_membership</span>
                 <span class="font-label-md text-label-md">Abonnements</span>
             </a>
 
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.notifications') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.notifications') }}">
-
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="font-label-md text-label-md">Notifications</span>
             </a>
 
         </nav>
 
-
         <div class="pt-6 border-t border-outline-variant mt-auto space-y-1">
             <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.parametres') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.parametres') }}">
-
-
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Paramètres</span>
             </a>
-
 
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
@@ -269,4 +267,3 @@
     @yield('scripts')
 </body>
 </html>
-
