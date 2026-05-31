@@ -13,6 +13,7 @@ class Client extends Model
     protected $table = 'clients';
 
     protected $fillable = [
+        'tenant_id',
         'nom',
         'prenom',
         'telephone',
@@ -26,6 +27,7 @@ class Client extends Model
     ];
 
     protected $casts = [
+        'tenant_id' => 'integer',
         'etablissement_id' => 'integer',
         'telephone' => 'string',
         'email' => 'string',

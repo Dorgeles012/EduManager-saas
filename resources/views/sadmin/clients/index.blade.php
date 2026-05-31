@@ -7,7 +7,7 @@
         <p class="text-body-sm text-text-muted">Administrez vos clients, bloquez/débloquez et gérez leurs comptes.</p>
     </div>
 
-    <a href="{{ route('sadmin.clients.create') }}" class="flex items-center gap-1.5 px-4 py-2 bg-primary-container text-on-primary font-label-sm rounded-lg shadow-md hover:shadow-lg">
+    <a href="{{ route('sadmin.clients.create') }}" class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md" >
         <span class="material-symbols-outlined text-[18px]">person_add</span>
         Ajouter un client
     </a>

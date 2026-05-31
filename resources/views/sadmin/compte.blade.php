@@ -13,22 +13,23 @@
     <aside class="w-full lg:w-80 space-y-4">
         <div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow border border-surface-subtle/50 flex flex-col items-center text-center">
             <div class="relative mb-4">
-                <div class="h-24 w-24 rounded-full overflow-hidden border-4 border-primary/20 shadow-md">
-                    @php
-                        $avatarUrl = $user?->image
-                            ? (Storage::disk('public')->exists($user->image) ? Storage::url($user->image) : null)
-                            : null;
-                    @endphp
-
-                    <img
-                        alt="User Avatar"
-                        class="h-full w-full object-cover"
-                        src="{{ $avatarUrl ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBroeuZog9qGMBKH4_biRoVzXCnj6ZRLBUdtv2F-PQs8DV5qIq8_PHt90j6DrWVLEMD7EZkZWimKNyTIZ8-BZXwEvZaZQ8AYjprIU0Jf7GZ8sfpgFxZBMG4LQBwJCZMf7wWIEtQMcLxlVZC64U2-9s9PEzg9HlI1WRnu1k_UhC19pRIzwEOPrjUpaFKC-_5I77rtb7IgKsfSo2oiEGrLKfVgTuKinhRjxDKwfs_iSNu9roQ8e_-PtA58w4OluECuyrYE5-g2u9ScUwb' }}"
-                    >
+                <!-- Avatar (photo si dispo sinon icône) -->
+                @php $profileUser = $user; @endphp
+                <div class="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/20 shadow-md overflow-hidden">
+                    @if(!empty($profileUser?->image))
+                        <img
+                            src="{{ asset('storage/'.$profileUser->image) }}"
+                            alt="Photo de profil"
+                            class="w-full h-full object-cover"
+                        >
+                    @else
+                        <span class="material-symbols-outlined text-primary text-5xl">account_circle</span>
+                    @endif
                 </div>
             </div>
 
-            <h3 class="font-headline-lg text-[18px] text-primary">{{ $user?->nom ?? '-' }}</h3>
+            <!-- Affichage du nom et prénom -->
+            <h3 class="font-headline-lg text-[18px] text-primary">{{ trim(($user?->nom ?? '').' '.($user?->prenom ?? '')) ?: 'Utilisateur' }}</h3>
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r from-primary/10 to-primary-container/10 text-primary mt-1">
                 {{ $user?->role ?? 'USER' }}
             </span>
@@ -118,8 +119,6 @@
                     @enderror
                 </div>
 
-
-
                 {{-- Rôle --}}
                 <div class="space-y-1.5">
                     <label class="text-[11px] text-on-surface-variant font-medium">Rôle</label>
@@ -128,6 +127,28 @@
                         disabled
                         type="text"
                         value="{{ $user?->role }}"
+                    >
+                </div>
+
+                {{-- Statut --}}
+                <div class="space-y-1.5">
+                    <label class="text-[11px] text-on-surface-variant font-medium">Statut</label>
+                    <input
+                        class="w-full px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface-container-low text-on-surface-variant cursor-not-allowed text-[13px]"
+                        disabled
+                        type="text"
+                        value="{{ $user?->statut ?? 'Actif' }}"
+                    >
+                </div>
+
+                {{-- Date d'inscription --}}
+                <div class="space-y-1.5">
+                    <label class="text-[11px] text-on-surface-variant font-medium">Date d'inscription</label>
+                    <input
+                        class="w-full px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface-container-low text-on-surface-variant cursor-not-allowed text-[13px]"
+                        disabled
+                        type="text"
+                        value="{{ $user?->created_at?->format('d/m/Y') ?? '-' }}"
                     >
                 </div>
 
@@ -177,4 +198,3 @@
     });
 </script>
 @endsection
-

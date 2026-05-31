@@ -202,16 +202,34 @@
             <div class="flex-1 max-w-xl">
                 <div class="relative group"></div>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all">
-                        <span class="material-symbols-outlined">notifications</span>
-                    </button>
-                    <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all"></button>
-
-                    <div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden cursor-pointer border border-outline-variant">
-                        <img class="w-full h-full object-cover" data-alt="Portrait professionnel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJ5sCn6ItxaWtj3lx_CPCmWWhg3X84zBOu5DRfsMBFPLHUzbEdl_LZeJivp1RUoCanz79520Nemj-sovggKyQ54x2gVOtvxe9OyPRowolySik3TMFtSg1Gg70CfTiixdMHFwKogFz1MdZUhCzw032S0C6L2_apuQszJtF6gb0PA30B0syA9m41oIEPSee4cbuQJWTytqHf3a_-Ew1TYaV3gPkrexbhE6ASsWSHzGyubS8gzjX9szBt2N7nKBA8UJ9C-1MQfHp-OAi9">
+            <div class="flex items-center gap-4 h-full">
+                <!-- Bouton Notifications -->
+                <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <!-- Badge de notification (optionnel) -->
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-alert-red rounded-full"></span>
+                </button>
+                
+                <!-- Séparateur vertical -->
+                <div class="w-px h-6 bg-outline-variant"></div>
+                
+                <!-- Photo de profil avec icône utilisateur -->
+                <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity group">
+                    <!-- Avatar (photo si dispo sinon icône) -->
+                    @php $authUser = Auth::user(); @endphp
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 transition-all group-hover:bg-primary/20 overflow-hidden">
+                        @if(!empty($authUser?->image))
+                            <img
+                                src="{{ asset('storage/'.$authUser->image) }}"
+                                alt="Photo de profil"
+                                class="w-full h-full object-cover"
+                            >
+                        @else
+                            <span class="material-symbols-outlined text-primary">account_circle</span>
+                        @endif
                     </div>
+                    <!-- Nom de l'utilisateur -->
+                    <span class="text-label-md text-on-surface font-medium hidden md:inline">{{ Auth::user()->prenom ?? 'Admin' }}</span>
                 </div>
             </div>
         </header>

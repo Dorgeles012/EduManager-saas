@@ -16,12 +16,9 @@
     <!-- Account Settings (Large Bento) -->
     <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl p-5 card-shadow border border-surface-subtle/50">
         <div class="flex items-center gap-3 mb-5">
-            <div class="h-12 w-12 rounded-full overflow-hidden border-4 border-primary/20 shadow-md bg-white">
-                <img
-                    class="h-full w-full object-cover"
-                    alt="User Avatar"
-                    src="{{ $avatarUrl ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBroeuZog9qGMBKH4_biRoVzXCnj6ZRLBUdtv2F-PQs8DV5qIq8_PHt90j6DrWVLEMD7EZkZWimKNyTIZ8-BZXwEvZaZQ8AYjprIU0Jf7GZ8sfpgFxZBMG4LQBwJCZMf7wWIEtQMcLxlVZC64U2-9s9PEzg9HlI1WRnu1k_UhC19pRIzwEOPrjUpaFKC-_5I77rtb7IgKsfSo2oiEGrLKfVgTuKinhRjxDKwfs_iSNu9roQ8e_-PtA58w4OluECuyrYE5-g2u9ScUwb' }}"
-                >
+            <!-- Avatar avec icône user -->
+            <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/20 shadow-md">
+                <span class="material-symbols-outlined text-primary text-2xl">account_circle</span>
             </div>
 
             <div class="flex-1">
@@ -65,7 +62,6 @@
         </div>
     </section>
 </div>
-
 
 <!-- Section 2: Settings Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -141,8 +137,6 @@
         </div>
     </div>
 </div>
-
-
 
 @endsection
 
@@ -221,3 +215,4 @@
 
     // Activer la soumission (Laravel handle la mise à jour)
 </script>
+@endsection

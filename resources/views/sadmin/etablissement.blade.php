@@ -9,7 +9,7 @@
             <h2 class="font-headline-lg text-headline-lg text-primary">Gestion de mes Établissements</h2>
             <p class="font-body-md text-body-md text-text-muted mt-1">Supervisez et gérez vos structures éducatives depuis un centre de contrôle unique.</p>
         </div>
-        <button class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md" onclick="document.getElementById('modal-add').classList.remove('hidden')">
+        <button class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md" onclick="openModal('modal-add')">
             <span class="material-symbols-outlined">add_business</span>
             Ajouter un établissement
         </button>
@@ -130,12 +130,14 @@
     </div>
 </div>
 
-<!-- Modal Ajouter un établissement -->
-<div class="fixed inset-0 z-[60] flex items-center justify-center bg-on-surface/40 backdrop-blur-sm hidden" id="modal-add">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+<!-- Modal Ajouter un établissement avec animation -->
+<div class="fixed inset-0 z-[60] hidden items-center justify-center p-4 transition-all duration-300" id="modal-add">
+    <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm transition-opacity duration-300" id="modal-add-backdrop" style="opacity: 0;" onclick="closeModal('modal-add')"></div>
+    
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all duration-300" id="modal-add-content" style="opacity: 0; transform: scale(0.95) translateY(-20px);">
         <div class="px-8 py-6 border-b border-surface-subtle flex justify-between items-center bg-primary-container text-white">
             <h3 class="font-headline-md text-headline-md">Nouvel Établissement</h3>
-            <button class="hover:bg-white/10 rounded-full p-1" onclick="document.getElementById('modal-add').classList.add('hidden')">
+            <button class="hover:bg-white/10 rounded-full p-1 transition-all" onclick="closeModal('modal-add')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -202,11 +204,77 @@
             </div>
 
             <div class="px-8 py-6 bg-surface-subtle flex justify-end gap-3">
-                <button type="button" class="px-6 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-white" onclick="document.getElementById('modal-add').classList.add('hidden')">Annuler</button>
-                <button type="submit" class="px-6 py-2 rounded-lg bg-primary-container text-white font-label-md text-label-md hover:opacity-90">Enregistrer</button>
+                <button type="button" class="px-6 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-white transition-all" onclick="closeModal('modal-add')">Annuler</button>
+                <button type="submit" class="px-6 py-2 rounded-lg bg-primary-container text-white font-label-md text-label-md hover:opacity-90 transition-all">Enregistrer</button>
             </div>
         </form>
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const backdrop = document.getElementById(modalId + '-backdrop');
+        const content = document.getElementById(modalId + '-content');
+        
+        if (modal) {
+            // Afficher le modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            // Déclencher l'animation après un court délai
+            setTimeout(() => {
+                if (backdrop) backdrop.style.opacity = '1';
+                if (content) {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1) translateY(0)';
+                }
+            }, 10);
+        }
+    }
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const backdrop = document.getElementById(modalId + '-backdrop');
+        const content = document.getElementById(modalId + '-content');
+        
+        if (modal) {
+            // Lancer l'animation de fermeture
+            if (backdrop) backdrop.style.opacity = '0';
+            if (content) {
+                content.style.opacity = '0';
+                content.style.transform = 'scale(0.95) translateY(-20px)';
+            }
+            
+            // Attendre la fin de l'animation pour cacher
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+    }
+    
+    // Fermer le modal avec la touche Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modal-add');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeModal('modal-add');
+            }
+        }
+    });
+    
+    // Fermer le modal en cliquant sur le backdrop
+    document.addEventListener('click', function(e) {
+        const backdrop = document.getElementById('modal-add-backdrop');
+        if (backdrop && e.target === backdrop) {
+            closeModal('modal-add');
+        }
+    });
+</script>
 @endsection

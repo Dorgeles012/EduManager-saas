@@ -56,6 +56,9 @@ class ClientController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $validated['status'] = $validated['status'] ?? 'actif';
 
+        // Multi-tenant: clients doivent appartenir à un tenant
+        $validated['tenant_id'] = auth()->user()?->tenant_id ?? 1;
+
         Client::create($validated);
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client ajouté avec succès.');

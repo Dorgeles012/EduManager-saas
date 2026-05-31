@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Sadmin\AbonnementController;
+
 use App\Http\Controllers\Sadmin\DashboardController;
 use App\Http\Controllers\Sadmin\SadminController;
 use Illuminate\Support\Facades\Route;
@@ -33,8 +33,19 @@ Route::middleware(['auth', 'role:SADMIN'])->group(function () {
     Route::resource('etablissements', \App\Http\Controllers\Sadmin\EtablissementCrudController::class)
         ->names('sadmin.etablissements');
 
-    Route::get('/sadmin/abonnement', [AbonnementController::class, 'index'])
+    Route::get('/sadmin/abonnement', [\App\Http\Controllers\Sadmin\SubscriptionController::class, 'index'])
         ->name('sadmin.abonnement');
+
+    Route::resource('subscriptions', \App\Http\Controllers\Sadmin\SubscriptionController::class)
+        ->names('subscriptions');
+
+    Route::post('/sadmin/subscription-types', [\App\Http\Controllers\Sadmin\SubscriptionTypeController::class, 'store'])
+        ->name('subscription-types.store');
+
+    Route::delete('/sadmin/subscription-types/{subscriptionType}', [\App\Http\Controllers\Sadmin\SubscriptionTypeController::class, 'destroy'])
+        ->name('subscription-types.destroy');
+
+
 
     Route::resource('clients', \App\Http\Controllers\Sadmin\ClientController::class)
         ->names('sadmin.clients');

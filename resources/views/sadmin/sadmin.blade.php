@@ -9,10 +9,11 @@
             <p class="text-text-muted mt-1 text-sm">Consultez, ajoutez et gérez les accès de haut niveau au portail.</p>
         </div>
         @if(Auth::user() && Auth::user()->role === 'SADMIN')
-        <button type="button" class="flex items-center gap-1.5 bg-primary text-on-primary px-4 py-2 rounded-lg hover:opacity-90 transition-all font-label-md text-sm shadow-lg shadow-primary/20" onclick="toggleModal('addSadminModal')">
-            <span class="material-symbols-outlined text-base">add_circle</span>
-            Ajouter un SAdmin
-        </button>
+
+       <button type="button" class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md"  onclick="toggleModal('addSadminModal')">
+          <span class="material-symbols-outlined text-base">add_circle</span> Ajouter un SAdmin
+     </button>
+
         @endif
     </div>
 
@@ -77,7 +78,6 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @php
-                        // Trier les sadmins par ID décroissant (du plus récent au plus ancien)
                         $sadminsList = ($sadmins ?? collect());
                         if(method_exists($sadminsList, 'items')) {
                             $sortedItems = collect($sadminsList->items())->sortByDesc('id');
@@ -106,7 +106,6 @@
                         <td class="px-4 py-3 text-sm text-text-muted">{{ optional($sadmin->created_at)->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <!-- Icône Modifier -->
                                 <button type="button" class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all" onclick="openEditModal(this)"
                                     data-id="{{ $sadmin->id }}"
                                     data-nom="{{ $sadmin->nom }}"
@@ -117,7 +116,6 @@
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                 </button>
 
-                                <!-- Icône Supprimer -->
                                 <form method="POST" action="{{ route('sadmin.destroy', $sadmin) }}" class="m-0" onsubmit="return confirm('Supprimer ce SAdmin ?');">
                                     @csrf
                                     @method('DELETE')
@@ -140,7 +138,6 @@
             </table>
         </div>
         
-        <!-- PAGINATION -->
         @if(($sadmins ?? collect())->count() > 0 && method_exists($sadmins, 'links'))
         <div class="px-4 py-3 bg-slate-50 flex justify-between items-center text-sm text-text-muted border-t border-slate-100">
             <span>
@@ -185,11 +182,11 @@
     </div>
 </div>
 
-<!-- MODAL: AJOUTER SADMIN -->
-<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="addSadminModal">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleModal('addSadminModal')"></div>
+<!-- MODAL: AJOUTER SADMIN avec animation -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4 transition-all duration-300" id="addSadminModal">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" id="addModalBackdrop" style="opacity: 0;" onclick="toggleModal('addSadminModal')"></div>
     
-    <div class="relative bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div class="relative bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300" id="addModalContent" style="opacity: 0; transform: scale(0.95) translateY(-20px);">
         
         <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-surface-container-low flex-shrink-0">
             <h3 class="font-headline-md text-base text-primary flex items-center gap-2">
@@ -309,14 +306,51 @@
 <script>
     function toggleModal(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
+        
+        if (modalId === 'addSadminModal') {
+            const backdrop = document.getElementById('addModalBackdrop');
+            const content = document.getElementById('addModalContent');
+            
+            if (modal.classList.contains('hidden')) {
+                // Ouvrir le modal avec animation
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+                
+                // Déclencher l'animation après un court délai
+                setTimeout(() => {
+                    if (backdrop) backdrop.style.opacity = '1';
+                    if (content) {
+                        content.style.opacity = '1';
+                        content.style.transform = 'scale(1) translateY(0)';
+                    }
+                }, 10);
+            } else {
+                // Fermer le modal avec animation inverse
+                if (backdrop) backdrop.style.opacity = '0';
+                if (content) {
+                    content.style.opacity = '0';
+                    content.style.transform = 'scale(0.95) translateY(-20px)';
+                }
+                
+                // Attendre la fin de l'animation pour cacher
+                setTimeout(() => {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }, 300);
+            }
         } else {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            // Pour editSadminModal (sans animation)
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
         }
     }
 
@@ -345,9 +379,7 @@
             modals.forEach(id => {
                 const modal = document.getElementById(id);
                 if (modal && !modal.classList.contains('hidden')) {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    document.body.style.overflow = 'auto';
+                    toggleModal(id);
                 }
             });
         }

@@ -1,0 +1,8 @@
+- [x] Créer une migration `add_tenant_id_to_clients_table` pour ajouter `tenant_id` à `clients`.
+- [x] Mettre à jour `app/Models/Client.php` (fillable + casts) pour gérer `tenant_id`.
+- [x] Corriger `app/Http/Controllers/Sadmin/ClientController.php` (store) pour injecter `tenant_id` lors de `Client::create`.
+- [ ] Vérifier que `DashboardController` et les autres requêtes liées à `clients.tenant_id` sont cohérentes.
+- [x] Exécuter `php artisan migrate`.
+- [ ] Tester l’écran `sadmin.dashboard` (recalcul `clientsCount`).
+- [x] Note: un test ProfileTest échoue indépendamment (View [layouts.navigation] manquante), non lié à `tenant_id`.
+- [ ] (Optionnel) Revalider les inserts/migrations/seeders existants si des erreurs surviennent.
