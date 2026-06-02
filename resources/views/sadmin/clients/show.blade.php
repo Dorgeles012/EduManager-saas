@@ -26,13 +26,16 @@
                 <span class="material-symbols-outlined text-primary text-[16px]">info</span>
                 <span class="text-label-sm text-[11px] text-text-muted">Informations générales</span>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="absolute inline-flex h-full w-full rounded-full {{ $client->status === 'actif' ? 'bg-success-green' : 'bg-red-500' }} opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 {{ $client->status === 'actif' ? 'bg-success-green' : 'bg-red-500' }}"></span>
-                </span>
-                <span class="text-label-sm text-[11px] font-semibold {{ $client->status === 'actif' ? 'text-success-green' : 'text-red-500' }}">
-                    {{ $client->status === 'actif' ? 'Actif' : 'Bloqué' }}
+                    <div class="flex items-center gap-2">
+                        @php
+                            $isActive = strtolower((string) $client->statut) === 'active';
+                        @endphp
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="absolute inline-flex h-full w-full rounded-full {{ $isActive ? 'bg-success-green' : 'bg-red-500' }} opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 {{ $isActive ? 'bg-success-green' : 'bg-red-500' }}"></span>
+                        </span>
+                        <span class="text-label-sm text-[11px] font-semibold {{ $isActive ? 'text-success-green' : 'text-red-500' }}">
+                            {{ $isActive ? 'Actif' : 'Bloqué' }}
                 </span>
             </div>
         </div>
@@ -43,8 +46,8 @@
             <div class="flex flex-col md:flex-row md:items-start gap-5 pb-5 border-b border-outline-variant/30">
                 <div class="relative">
                     <div class="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary-container/10 rounded-2xl flex items-center justify-center shadow-md relative z-10 overflow-hidden">
-                        @if($client->photo)
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($client->photo) }}" alt="Photo client" class="w-full h-full object-cover">
+                        @if($client->image)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($client->image) }}" alt="Photo client" class="w-full h-full object-cover">
                         @else
                             <span class="text-2xl font-bold bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">
                                 {{ strtoupper(substr($client->prenom ?? $client->nom, 0, 1)) }}{{ strtoupper(substr($client->nom ?? '', 0, 1)) }}

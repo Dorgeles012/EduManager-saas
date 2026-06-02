@@ -18,7 +18,7 @@ class StoreClientRequest extends FormRequest
             'nom' => ['required', 'string', 'max:255'],
             'prenom' => ['required', 'string', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:50'],
-            'email' => ['required', 'email', 'max:255', 'unique:clients,email'],
+'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'adresse' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:actif,bloqué'],
             'password' => ['required', 'string', 'min:8', 'max:255'],

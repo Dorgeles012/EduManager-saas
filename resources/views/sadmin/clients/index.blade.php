@@ -46,7 +46,6 @@
         <table class="w-full text-left border-collapse">
             <thead>
             <tr class="bg-surface-subtle">
-                <th class="px-4 py-3 font-label-sm text-text-muted uppercase tracking-wider text-[11px]">N°</th>
                 <th class="px-4 py-3 font-label-sm text-text-muted uppercase tracking-wider text-[11px]">Client</th>
                 <th class="px-4 py-3 font-label-sm text-text-muted uppercase tracking-wider text-[11px]">Établissement</th>
                 <th class="px-4 py-3 font-label-sm text-text-muted uppercase tracking-wider text-[11px]">Téléphone</th>
@@ -58,7 +57,6 @@
             <tbody class="divide-y divide-surface-subtle">
             @forelse($clients as $client)
                 <tr class="hover:bg-background transition-colors">
-                    <td class="px-4 py-3 text-body-sm text-[13px] text-on-surface">{{ $client->id }}</td>
 
                     <td class="px-4 py-3">
                         <div class="font-label-md text-[13px] text-on-surface">{{ $client->nom }} {{ $client->prenom }}</div>
@@ -69,7 +67,7 @@
                     <td class="px-4 py-3 text-body-sm text-[13px] text-on-surface-variant">{{ $client->email }}</td>
 
                     <td class="px-4 py-3">
-                        @if($client->status === 'actif')
+                        @if(($client->statut ?? null) === 'active')
                             <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-800 text-[12px]">Actif</span>
                         @else
                             <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-800 text-[12px]">Bloqué</span>
@@ -94,7 +92,7 @@
                                 </button>
                             </form>
 
-                            @if($client->status === 'actif')
+                            @if(($client->statut ?? null) === 'active')
                                 <form method="POST" action="{{ route('sadmin.clients.block', $client) }}" class="m-0">
                                     @csrf
                                     @method('PATCH')

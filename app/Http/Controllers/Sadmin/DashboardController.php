@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Sadmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
 use App\Models\Etablissement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +20,9 @@ class DashboardController extends Controller
             ->sum('montant');
 
 
-        $clientsCount = Client::query()
+        $clientsCount = User::query()
             ->where('tenant_id', $tenantId)
+            ->whereRaw('LOWER(role) = ?', ['client'])
             ->count();
 
         $etablissements = Etablissement::query()

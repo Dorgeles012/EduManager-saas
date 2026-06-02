@@ -33,18 +33,23 @@ class AuthenticatedSessionController extends Controller
 
         if ($user) {
             switch ($user->role) {
+                case 'sadmin':
                 case 'SADMIN':
                     return redirect()->route('sadmin.dashboard');
 
+                case 'client':
                 case 'CLIENT':
                     return redirect()->route('client.dashboard');
 
+                case 'personnel':
                 case 'PERSONNEL':
                     return redirect()->route('personnel.dashboard');
 
+                case 'enseignant':
                 case 'ENSEIGNANT':
                     return redirect()->route('enseignant.dashboard');
 
+                case 'parent':
                 case 'PARENT':
                     return redirect()->route('parent.dashboard');
 

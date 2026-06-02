@@ -21,7 +21,7 @@ class UpdateClientRequest extends FormRequest
             'nom' => ['required', 'string', 'max:255'],
             'prenom' => ['required', 'string', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:50'],
-            'email' => ['required', 'email', 'max:255', 'unique:clients,email,' . $clientId],
+'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $clientId],
             'adresse' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:actif,bloqué'],
             'password' => ['nullable', 'string', 'min:8', 'max:255'],

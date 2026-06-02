@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Sadmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sadmin\StoreClientRequest;
 use App\Http\Requests\Sadmin\UpdateClientRequest;
-use App\Models\Client;
 use App\Models\Etablissement;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +17,7 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Client::query()->with('etablissement');
+        $query = User::query()->whereRaw('LOWER(role) = ?', ['client']);
 
         $q = trim((string) $request->get('q', ''));
         if ($q !== '') {
@@ -34,10 +34,14 @@ class ClientController extends Controller
 
         $status = $request->get('status', 'all');
         if (in_array($status, ['actif', 'bloqué'], true)) {
-            $query->where('status', $status);
+            // users.statut
+            $query->where('statut', $status === 'bloqué' ? 'blocked' : 'active');
         }
 
-        $clients = $query->latest()->paginate(10)->withQueryString();
+        // Filtrer strictement sur statut DB (active/blocked) selon le cas ci-dessus
+        // Création : toujours 'active' (bloqué jamais)
+
+        $clients = $query->with('etablissement')->latest()->paginate(10)->withQueryString();
 
         return view('sadmin.clients.index', compact('clients', 'q', 'status'));
     }
@@ -54,38 +58,53 @@ class ClientController extends Controller
         $validated = $request->validated();
         $validated['photo'] = $this->handlePhotoUpload($request);
         $validated['password'] = Hash::make($validated['password']);
-        $validated['status'] = $validated['status'] ?? 'actif';
-
         // Multi-tenant: clients doivent appartenir à un tenant
         $validated['tenant_id'] = auth()->user()?->tenant_id ?? 1;
 
-        Client::create($validated);
+        // Règles métier imposées
+        $password = $validated['password'];
+
+        User::create([
+            'tenant_id' => auth()->user()?->tenant_id ?? 1,
+            'nom' => $validated['nom'],
+            'prenom' => $validated['prenom'] ?? null,
+            'telephone' => $validated['telephone'] ?? null,
+            'email' => $validated['email'],
+            'password' => $password,
+            'image' => $validated['photo'] ?? null,
+            'etablissement_id' => $validated['etablissement_id'] ?? null,
+            'adresse' => $validated['adresse'] ?? null,
+            'ville' => $validated['ville'] ?? null,
+            'role' => 'client',
+            // Ne jamais créer un client bloqué
+            'statut' => 'active',
+        ]);
+
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client ajouté avec succès.');
     }
 
-    public function show(Client $client): View
+    public function show(User $client): View
     {
-        $client->load('etablissement');
-
         return view('sadmin.clients.show', compact('client'));
     }
 
-    public function edit(Client $client): View
+    public function edit(User $client): View
     {
-        $client->load('etablissement');
         $etablissements = $this->availableEtablissements();
+
 
         return view('sadmin.clients.edit', compact('client', 'etablissements'));
     }
 
-    public function update(UpdateClientRequest $request, Client $client): RedirectResponse
+    public function update(UpdateClientRequest $request, User $client): RedirectResponse
     {
         $validated = $request->validated();
 
         $photoPath = $this->handlePhotoUpload($request);
         if ($photoPath !== null) {
-            $validated['photo'] = $photoPath;
+            $validated['image'] = $photoPath;
+            unset($validated['photo']);
         } else {
             unset($validated['photo']);
         }
@@ -96,34 +115,53 @@ class ClientController extends Controller
             unset($validated['password']);
         }
 
-        $validated['status'] = $validated['status'] ?? $client->status;
+        // Ne jamais forcer 'blocked' via un champ de formulaire optionnel non sécurisé.
+        // La gestion blocage se fait via les actions block/unblock.
+        if (array_key_exists('status', $validated)) {
+            $requestedStatus = $validated['status'];
+            unset($validated['status']);
+
+            // autoriser seulement les conversions depuis UI, mais sans créer de client bloqué ailleurs.
+            // Ici (update) on conserve le statut existant si pas d'action de blocage explicite.
+            if (! in_array($requestedStatus, ['actif', 'bloqué'], true)) {
+                // rien
+            }
+        }
+
+        // Map anciens champs CRUD -> colonnes users
+        if (array_key_exists('photo', $validated)) {
+            $validated['image'] = $validated['photo'];
+            unset($validated['photo']);
+        }
 
         $client->update($validated);
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client mis à jour avec succès.');
     }
 
-    public function destroy(Client $client): RedirectResponse
+    public function destroy(User $client): RedirectResponse
     {
         $client->delete();
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client supprimé avec succès.');
     }
 
-    public function block(Client $client): RedirectResponse
+    public function block(User $client): RedirectResponse
     {
-        if ($client->status !== 'bloqué') {
-            $client->update(['status' => 'bloqué']);
+        if ($client->statut !== 'blocked') {
+            $client->update(['statut' => 'blocked']);
         }
+
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client bloqué.');
     }
 
-    public function unblock(Client $client): RedirectResponse
+    public function unblock(User $client): RedirectResponse
     {
-        if ($client->status !== 'actif') {
-            $client->update(['status' => 'actif']);
+        if ($client->statut !== 'active') {
+            $client->update(['statut' => 'active']);
         }
+
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client débloqué.');
     }

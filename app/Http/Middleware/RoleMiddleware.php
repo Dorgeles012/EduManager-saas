@@ -17,7 +17,10 @@ class RoleMiddleware
     {
         $user = $request->user();
 
-        if (! $user || $user->role !== $role) {
+        $expected = strtolower($role);
+        $actual = $user?->role !== null ? strtolower((string) $user->role) : null;
+
+        if (! $user || $actual !== $expected) {
             abort(403, 'Accès interdit.');
         }
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('auth.login');
 });
-Route::middleware(['auth', 'role:SADMIN'])->group(function () {
+Route::middleware(['auth', 'role:sadmin'])->group(function () {
 
 
 
@@ -87,25 +87,25 @@ Route::middleware(['auth', 'role:SADMIN'])->group(function () {
     })->name('sadmin.notifications.historique');
 });
 
-Route::middleware(['auth', 'role:CLIENT'])->group(function () {
+Route::middleware(['auth', 'role:client'])->group(function () {
     Route::get('/client/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Client',
     ]))->name('client.dashboard');
 });
 
-Route::middleware(['auth', 'role:PERSONNEL'])->group(function () {
+Route::middleware(['auth', 'role:personnel'])->group(function () {
     Route::get('/personnel/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Personnel',
     ]))->name('personnel.dashboard');
 });
 
-Route::middleware(['auth', 'role:ENSEIGNANT'])->group(function () {
+Route::middleware(['auth', 'role:enseignant'])->group(function () {
     Route::get('/enseignant/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Enseignant',
     ]))->name('enseignant.dashboard');
 });
 
-Route::middleware(['auth', 'role:PARENT'])->group(function () {
+Route::middleware(['auth', 'role:parent'])->group(function () {
     Route::get('/parent/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Parent',
     ]))->name('parent.dashboard');
