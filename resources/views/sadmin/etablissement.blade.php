@@ -58,7 +58,6 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-subtle">
-                        <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">N°</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Établissement</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Type</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Localisation</th>
@@ -70,7 +69,6 @@
                 <tbody class="divide-y divide-surface-subtle">
                     @forelse($etablissements ?? collect() as $index => $etablissement)
                         <tr class="hover:bg-surface-container-low">
-                            <td class="px-6 py-4 font-body-sm text-body-sm text-on-surface">{{ $index + 1 }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div>

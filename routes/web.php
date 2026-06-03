@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('auth.login');
 });
+
 Route::middleware(['auth', 'role:sadmin'])->group(function () {
 
 
@@ -87,11 +88,8 @@ Route::middleware(['auth', 'role:sadmin'])->group(function () {
     })->name('sadmin.notifications.historique');
 });
 
-Route::middleware(['auth', 'role:client'])->group(function () {
-    Route::get('/client/dashboard', fn () => view('dashboards.role', [
-        'title' => 'Dashboard Client',
-    ]))->name('client.dashboard');
-});
+// Module client
+require __DIR__ . '/client.php';
 
 Route::middleware(['auth', 'role:personnel'])->group(function () {
     Route::get('/personnel/dashboard', fn () => view('dashboards.role', [
@@ -118,3 +116,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+

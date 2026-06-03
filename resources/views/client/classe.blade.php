@@ -1,0 +1,387 @@
+@extends('client.layouts.app')
+
+@section('title', 'Gestion des Classes | EduAdmin Pro')
+
+@section('content')
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+    <div>
+        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Classes</h2>
+        <p class="text-text-muted font-body-md">Gérez les différentes classes de votre établissement</p>
+    </div>
+    <button class="bg-primary text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 font-label-md transition-all hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/20" onclick="toggleModal('modal-add')">
+        <span class="material-symbols-outlined text-lg">add</span>
+        Ajouter une classe
+    </button>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-2xl">groups</span>
+        </div>
+        <div>
+            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Classes disponibles</p>
+            <h3 class="font-headline-md text-headline-md">{{ $totalClasses ?? 0 }}</h3>
+        </div>
+    </div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+        <div class="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-2xl">account_tree</span>
+        </div>
+        <div>
+            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Niveaux</p>
+            <h3 class="font-headline-md text-headline-md">{{ $totalLevels ?? 0 }}</h3>
+        </div>
+    </div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+        <div class="w-12 h-12 bg-warning-amber/10 rounded-full flex items-center justify-center text-warning-amber">
+            <span class="material-symbols-outlined text-2xl">location_away</span>
+        </div>
+        <div>
+            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Mon Établissement</p>
+            <h3 class="font-headline-md text-headline-md">{{ $schoolName ?? 'Mon Établissement' }}</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Main Data Table Section -->
+<div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant overflow-hidden">
+    <!-- Table Header Action Area -->
+    <div class="p-6 border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h4 class="font-headline-md text-headline-md flex items-center gap-2">
+            Liste des classes
+        </h4>
+        <!-- Bouton supprimé d'ici -->
+    </div>
+
+    <!-- Table Content -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">N°</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Nom de la classe</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Établissement</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Niveau</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Effectif</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
+                </tr>
+            </thead>    
+            <tbody>
+                @forelse($classes ?? [] as $class)
+                <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
+                    <td class="px-6 py-4 text-body-sm">{{ $loop->iteration }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-[18px]">class</span>
+                            </div>
+                            <span class="font-body-md font-medium">{{ $class['name'] }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $class['school'] }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
+                            {{ $class['level'] }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $class['student_count'] ?? 0 }} élèves</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="openEditModal({{ json_encode($class) }})" title="Modifier">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors" onclick="confirmDelete({{ $class['id'] }}, '{{ $class['name'] }}')" title="Supprimer">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td class="py-10 px-6 text-center" colspan="6">
+                        <div class="flex flex-col items-center max-w-xs mx-auto">
+                            <div class="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-6">
+                                <span class="material-symbols-outlined text-5xl text-outline-variant">co_present</span>
+                            </div>
+                            <h5 class="font-headline-md text-headline-md text-on-surface mb-2">Aucune classe disponible</h5>
+                            <p class="text-text-muted font-body-sm mb-6">Commencez par ajouter votre première classe en cliquant sur le bouton ci-dessus.</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-6 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
+        @if(isset($classes) && method_exists($classes, 'links'))
+            <span class="text-label-sm text-text-muted">Affichage de {{ $classes->firstItem() ?? 0 }} à {{ $classes->lastItem() ?? 0 }} sur {{ $classes->total() ?? 0 }} entrées</span>
+            <div class="flex gap-2">
+                {{ $classes->links() ?? '' }}
+            </div>
+        @else
+            <span class="text-label-sm text-text-muted">Affichage de 0 à {{ $classes?->count() ?? 0 }} sur {{ $classes?->count() ?? 0 }} entrées</span>
+            <div class="flex gap-2"></div>
+        @endif
+    </div>
+</div>
+
+<!-- Modal: Ajouter une Classe -->
+<div class="fixed inset-0 z-[100] hidden" id="modal-add">
+    <div class="modal-overlay absolute inset-0"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div class="bg-primary-container p-6 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="font-headline-md text-headline-md">Ajouter une classe</h3>
+                    <p class="text-on-primary-container text-sm">Créez une nouvelle structure pédagogique</p>
+                </div>
+                <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="toggleModal('modal-add')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form class="p-8 space-y-6" id="addClassForm">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" required>
+                            <option value="">Sélectionner un établissement</option>
+                            @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                            <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
+                            <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" required>
+                                <option value="">Sélectionner un niveau</option>
+                                @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
+                            <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" placeholder="40" type="number">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                    <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="toggleModal('modal-add')" type="button">Annuler</button>
+                    <button class="bg-primary text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-primary/90 shadow-md" type="submit">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Modifier la Classe -->
+<div class="fixed inset-0 z-[100] hidden" id="modal-edit">
+    <div class="modal-overlay absolute inset-0"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div class="bg-warning-amber p-6 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="font-headline-md text-headline-md">Modifier la classe</h3>
+                    <p class="text-white/80 text-sm">Mise à jour des informations de classe</p>
+                </div>
+                <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="toggleModal('modal-edit')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form class="p-8 space-y-6" id="editClassForm">
+                <input type="hidden" id="editClassId">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" type="text" required>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" required>
+                            @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                            <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
+                            <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" required>
+                                @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
+                            <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" type="number">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                    <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="toggleModal('modal-edit')" type="button">Annuler</button>
+                    <button class="bg-warning-amber text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-warning-amber/90 shadow-md" type="submit">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #f9f9ff; }
+    .font-headline { font-family: 'Lexend', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .custom-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
+    .modal-overlay { background: rgba(17, 28, 45, 0.4); backdrop-filter: blur(4px); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    function toggleModal(id) {
+        const modal = document.getElementById(id);
+        const isHidden = modal.classList.contains('hidden');
+        
+        if (isHidden) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function openEditModal(classData) {
+        document.getElementById('editClassId').value = classData.id;
+        document.getElementById('editClassName').value = classData.name;
+        document.getElementById('editClassMaxStudents').value = classData.max_students || '';
+        
+        // Sélectionner les options correspondantes
+        const schoolSelect = document.getElementById('editClassSchool');
+        for(let i = 0; i < schoolSelect.options.length; i++) {
+            if(schoolSelect.options[i].text === classData.school) {
+                schoolSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        const levelSelect = document.getElementById('editClassLevel');
+        for(let i = 0; i < levelSelect.options.length; i++) {
+            if(levelSelect.options[i].text === classData.level) {
+                levelSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        toggleModal('modal-edit');
+    }
+
+    // Add Class Form Submission
+    const addForm = document.getElementById('addClassForm');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const className = document.getElementById('className').value;
+            
+            Swal.fire({
+                title: 'Confirmation',
+                text: `Souhaitez-vous ajouter la classe "${className}" ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, ajouter',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1f108e',
+                cancelButtonColor: '#64748B'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Succès !',
+                        text: 'La classe a été ajoutée avec succès.',
+                        icon: 'success',
+                        confirmButtonColor: '#1f108e'
+                    });
+                    toggleModal('modal-add');
+                    addForm.reset();
+                }
+            });
+        });
+    }
+
+    // Edit Class Form Submission
+    const editForm = document.getElementById('editClassForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const className = document.getElementById('editClassName').value;
+            
+            Swal.fire({
+                title: 'Confirmation',
+                text: `Souhaitez-vous modifier la classe "${className}" ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, modifier',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#D97706',
+                cancelButtonColor: '#64748B'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Modifié !',
+                        text: 'La classe a été modifiée avec succès.',
+                        icon: 'success',
+                        confirmButtonColor: '#D97706'
+                    });
+                    toggleModal('modal-edit');
+                }
+            });
+        });
+    }
+
+    // Delete Logic
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: `La classe "${name}" sera définitivement supprimée.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ba1a1a',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Supprimé !',
+                    text: 'La classe a été supprimée avec succès.',
+                    icon: 'success',
+                    confirmButtonColor: '#1f108e'
+                });
+            }
+        });
+    }
+
+    // Close modal when clicking on overlay
+    window.onclick = function(event) {
+        const modals = ['modal-add', 'modal-edit'];
+        modals.forEach(id => {
+            const modal = document.getElementById(id);
+            if (event.target == modal?.querySelector('.modal-overlay')) {
+                toggleModal(id);
+            }
+        });
+    }
+</script>
+@endpush

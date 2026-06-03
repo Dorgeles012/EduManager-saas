@@ -28,43 +28,47 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Redirection automatique selon le rôle
-        $user = $request->user();
+        // Redirection automatique selon le rôle.
+        // Vérifie d'abord explicitement que l'utilisateur existe bien dans la table `users`
+        // (à partir du user déjà authentifié), puis redirige selon son rôle.
+        $authUser = $request->user();
 
-        if ($user) {
-            switch ($user->role) {
-                case 'sadmin':
-                case 'SADMIN':
-                    return redirect()->route('sadmin.dashboard');
+        if (! $authUser) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-                case 'client':
-                case 'CLIENT':
-                    return redirect()->route('client.dashboard');
-
-                case 'personnel':
-                case 'PERSONNEL':
-                    return redirect()->route('personnel.dashboard');
-
-                case 'enseignant':
-                case 'ENSEIGNANT':
-                    return redirect()->route('enseignant.dashboard');
-
-                case 'parent':
-                case 'PARENT':
-                    return redirect()->route('parent.dashboard');
-
-                default:
-                    Auth::guard('web')->logout();
-
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-
-                    return redirect()->route('login')
-                        ->withErrors(['email' => 'Rôle utilisateur non reconnu.']);
-            }
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Utilisateur introuvable.']);
         }
 
-        return redirect()->route('login');
+        $existsInUsers = \App\Models\User::query()
+            ->where('id', $authUser->id)
+            ->exists();
+
+        if (! $existsInUsers) {
+            // Cas anormal: on force la déconnexion, car l'utilisateur n'existe plus.
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Utilisateur introuvable.']);
+        }
+
+        $role = $authUser->role ? strtolower((string) $authUser->role) : null;
+
+        // Redirection selon le rôle, avec fallback non-destructif.
+        return match ($role) {
+            'sadmin' => redirect()->route('sadmin.dashboard'),
+            'client' => redirect()->route('client.dashboard'),
+            'personnel' => redirect()->route('personnel.dashboard'),
+            'enseignant' => redirect()->route('enseignant.dashboard'),
+            'parent' => redirect()->route('parent.dashboard'),
+            default => redirect()->intended(route('sadmin.dashboard')),
+        };
+
+
 
     }
 
