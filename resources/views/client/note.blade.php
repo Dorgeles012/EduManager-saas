@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'EduAdmin Pro - Gestion des Notes')
-
+@section('title', 'EduManager - Notes')
 @section('content')
 <!-- Header & Action -->
 <div class="flex justify-between items-end mb-8">
@@ -142,12 +140,13 @@
     @endif
 </div>
 
-<!-- Modal: Ajouter une note -->
-<div class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[100] hidden items-center justify-center p-4" id="noteModal">
-    <div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-2xl border border-outline-variant overflow-hidden">
-        <div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center">
-            <h3 class="font-headline-md text-primary" id="modalTitle">Ajouter une nouvelle note</h3>
-            <button class="text-outline hover:text-alert-red transition-colors" onclick="closeModal()">
+<!-- Modal: Ajouter/Modifier une note -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="noteModal">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal()"></div>
+    <div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-2xl border border-outline-variant overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="noteModalContent">
+        <div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white">
+            <h3 class="font-headline-md" id="modalTitle">Ajouter une nouvelle note</h3>
+            <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal()">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -156,7 +155,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="block text-label-md text-on-surface">Élève</label>
-                    <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container py-2 text-body-md" id="studentId" required>
+                    <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary py-2 text-body-md" id="studentId" required>
                         <option value="">Sélectionner un élève</option>
                         @foreach($students ?? [] as $student)
                         <option value="{{ $student['id'] }}">{{ $student['name'] }}</option>
@@ -165,7 +164,7 @@
                 </div>
                 <div class="space-y-2">
                     <label class="block text-label-md text-on-surface">Classe</label>
-                    <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container py-2 text-body-md" id="classId" required>
+                    <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary py-2 text-body-md" id="classId" required>
                         <option value="">Sélectionner une classe</option>
                         @foreach($classes ?? [] as $class)
                         <option value="{{ $class['id'] }}">{{ $class['name'] }}</option>
@@ -175,7 +174,7 @@
             </div>
             <div class="space-y-2">
                 <label class="block text-label-md text-on-surface">Matière</label>
-                <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container py-2 text-body-md" id="subjectId" required>
+                <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary py-2 text-body-md" id="subjectId" required>
                     <option value="">Sélectionner une matière</option>
                     @foreach($subjects ?? ['Anglais', 'Mathématiques', 'Physique chimie'] as $subject)
                     <option value="{{ $subject }}">{{ $subject }}</option>
@@ -184,7 +183,7 @@
             </div>
             <div class="space-y-2">
                 <label class="block text-label-md text-on-surface">Note (0 - 20)</label>
-                <input class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container py-2 text-body-md" id="noteInput" max="20" min="0" oninput="updateAppreciation()" placeholder="Ex: 14.5" step="0.25" type="number" required>
+                <input class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary py-2 text-body-md" id="noteInput" max="20" min="0" oninput="updateAppreciation()" placeholder="Ex: 14.5" step="0.25" type="number" required>
             </div>
             <!-- Dynamic Appreciation Preview -->
             <div class="bg-surface-container-low p-6 rounded-lg border border-outline-variant/30 text-center min-h-[100px] flex flex-col items-center justify-center">
@@ -195,7 +194,7 @@
             </div>
             <div class="flex gap-4 pt-4">
                 <button class="flex-1 px-4 py-3 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container transition-colors" onclick="closeModal()" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-3 rounded-lg bg-primary text-on-primary font-label-md hover:opacity-90 shadow-md shadow-primary/20 transition-all" type="submit">Enregistrer la note</button>
+                <button class="flex-1 px-4 py-3 rounded-lg bg-primary text-white font-label-md hover:opacity-90 shadow-md transition-all" type="submit">Enregistrer la note</button>
             </div>
         </form>
     </div>
@@ -238,6 +237,16 @@
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Modal overlay animation */
+    .modal-overlay {
+        transition: backdrop-filter 0.3s ease;
+    }
+    
+    /* Modal animation */
+    #noteModal {
+        transition: opacity 0.3s ease;
+    }
 </style>
 @endpush
 
@@ -246,16 +255,32 @@
     let isEditMode = false;
 
     function openModal() {
-        document.getElementById('noteModal').classList.remove('hidden');
-        document.getElementById('noteModal').classList.add('flex');
+        const modal = document.getElementById('noteModal');
+        const content = document.getElementById('noteModalContent');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeModal() {
-        document.getElementById('noteModal').classList.add('hidden');
-        document.getElementById('noteModal').classList.remove('flex');
-        document.body.style.overflow = 'auto';
-        resetForm();
+        const modal = document.getElementById('noteModal');
+        const content = document.getElementById('noteModalContent');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetForm();
+        }, 300);
     }
 
     function resetForm() {
@@ -322,14 +347,16 @@
             confirmButtonColor: '#E11D48',
             cancelButtonColor: '#64748B',
             confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            borderRadius: '12px'
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Supprimé !',
                     text: 'La note a été supprimée avec succès.',
                     icon: 'success',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
             }
         });
@@ -347,7 +374,8 @@
                     title: 'Note invalide',
                     text: 'La note doit être comprise entre 0 et 20.',
                     icon: 'error',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
                 return;
             }
@@ -362,7 +390,8 @@
                 confirmButtonColor: '#1f108e',
                 cancelButtonColor: '#64748B',
                 confirmButtonText: 'Oui',
-                cancelButtonText: 'Annuler'
+                cancelButtonText: 'Annuler',
+                borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
@@ -371,7 +400,8 @@
                         icon: 'success',
                         confirmButtonColor: '#1f108e',
                         timer: 2000,
-                        timerProgressBar: true
+                        timerProgressBar: true,
+                        borderRadius: '12px'
                     });
                     closeModal();
                 }
@@ -379,19 +409,11 @@
         });
     }
 
-    // Close modal on outside click
-    window.onclick = function(event) {
-        const modal = document.getElementById('noteModal');
-        if (event.target == modal) {
-            closeModal();
-        }
-    }
-
     // Close modal on escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             const modal = document.getElementById('noteModal');
-            if (modal && !modal.classList.contains('hidden')) {
+            if (modal && modal.classList.contains('flex')) {
                 closeModal();
             }
         }

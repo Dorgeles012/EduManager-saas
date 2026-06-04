@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'EduAdmin Pro - Bulletins Scolaires')
-
+@section('title', 'EduManager - Bulletins Scolaires')
 @section('content')
 <!-- Page Header -->
 <div class="mb-8 flex justify-between items-end">

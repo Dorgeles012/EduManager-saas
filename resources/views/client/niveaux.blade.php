@@ -1,6 +1,5 @@
 @extends('client.layouts.app')
-
-
+@section('title', 'EduManager - Niveaux')
 @section('content')
 <!-- Page Header -->
 <div class="flex justify-between items-end mb-8">
@@ -8,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Niveaux</h2>
         <p class="text-body-md text-on-surface-variant">Liste complète des niveaux d'enseignement de votre réseau.</p>
     </div>
-    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="toggleModal('add-level-modal')">
+    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('add-level-modal')">
         <span class="material-symbols-outlined text-[20px]">add</span>
         Ajouter un niveau
     </button>
@@ -85,7 +84,7 @@
                         <div class="flex flex-col items-center gap-4">
                             <span class="material-symbols-outlined text-[48px] text-outline">layers</span>
                             <p>Aucun niveau trouvé</p>
-                            <button class="text-primary hover:underline" onclick="toggleModal('add-level-modal')">Ajouter un niveau</button>
+                            <button class="text-primary hover:underline" onclick="openModal('add-level-modal')">Ajouter un niveau</button>
                         </div>
                     </td>
                 </tr>
@@ -109,23 +108,23 @@
 </div>
 
 <!-- Modal: Add Level -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="add-level-modal">
-    <div class="absolute inset-0 modal-backdrop" onclick="toggleModal('add-level-modal')"></div>
-    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary-fixed/30">
-            <h3 class="font-headline-md text-headline-md text-primary">Nouveau Niveau</h3>
-            <button class="p-1 hover:bg-surface-container-high rounded-full transition-colors" onclick="toggleModal('add-level-modal')">
+<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="add-level-modal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('add-level-modal')"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="add-level-modal-content">
+        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white">
+            <h3 class="font-headline-md text-headline-md">Nouveau Niveau</h3>
+            <button class="p-1 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('add-level-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
         <form class="p-6 space-y-5" id="addLevelForm">
             <div class="space-y-2">
                 <label class="font-label-md text-label-md text-on-surface-variant block">Nom du niveau</label>
-                <input class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all" id="levelName" placeholder="Ex: CP, 6ème, CM2 B" type="text" required>
+                <input class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="levelName" placeholder="Ex: CP, 6ème, CM2 B" type="text" required>
             </div>
             <div class="space-y-2">
                 <label class="font-label-md text-label-md text-on-surface-variant block">Établissement</label>
-                <select class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all bg-white" id="levelSchool" required>
+                <select class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all bg-white" id="levelSchool" required>
                     <option value="">Sélectionner un établissement</option>
                     @foreach($schools ?? [['id' => 1, 'name' => 'saint françois xavier']] as $school)
                     <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
@@ -133,20 +132,20 @@
                 </select>
             </div>
             <div class="pt-4 flex gap-3">
-                <button class="flex-1 py-3 border border-outline text-on-surface-variant font-label-md rounded-lg hover:bg-surface-container-high transition-colors" onclick="toggleModal('add-level-modal')" type="button">Annuler</button>
-                <button class="flex-1 py-3 bg-primary text-on-primary font-label-md rounded-lg hover:opacity-95 transition-opacity shadow-lg shadow-primary/20" type="submit">Enregistrer</button>
+                <button class="flex-1 py-3 border border-outline text-on-surface-variant font-label-md rounded-lg hover:bg-surface-container-high transition-colors" onclick="closeModal('add-level-modal')" type="button">Annuler</button>
+                <button class="flex-1 py-3 bg-primary text-white font-label-md rounded-lg hover:opacity-95 transition-opacity shadow-lg" type="submit">Enregistrer</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Modal: Edit Level -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="edit-level-modal">
-    <div class="absolute inset-0 modal-backdrop" onclick="toggleModal('edit-level-modal')"></div>
-    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary-fixed/30">
-            <h3 class="font-headline-md text-headline-md text-primary">Modifier le Niveau</h3>
-            <button class="p-1 hover:bg-surface-container-high rounded-full transition-colors" onclick="toggleModal('edit-level-modal')">
+<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="edit-level-modal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('edit-level-modal')"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="edit-level-modal-content">
+        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white">
+            <h3 class="font-headline-md text-headline-md">Modifier le Niveau</h3>
+            <button class="p-1 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('edit-level-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -154,11 +153,11 @@
             <input type="hidden" id="editLevelId">
             <div class="space-y-2">
                 <label class="font-label-md text-label-md text-on-surface-variant block">Nom du niveau</label>
-                <input class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all" id="editLevelName" type="text" required>
+                <input class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="editLevelName" type="text" required>
             </div>
             <div class="space-y-2">
                 <label class="font-label-md text-label-md text-on-surface-variant block">Établissement</label>
-                <select class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all bg-white" id="editLevelSchool" required>
+                <select class="w-full border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all bg-white" id="editLevelSchool" required>
                     <option value="">Sélectionner un établissement</option>
                     @foreach($schools ?? [['id' => 1, 'name' => 'saint françois xavier']] as $school)
                     <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
@@ -166,40 +165,60 @@
                 </select>
             </div>
             <div class="pt-4 flex gap-3">
-                <button class="flex-1 py-3 border border-outline text-on-surface-variant font-label-md rounded-lg hover:bg-surface-container-high transition-colors" onclick="toggleModal('edit-level-modal')" type="button">Annuler</button>
-                <button class="flex-1 py-3 bg-primary text-on-primary font-label-md rounded-lg hover:opacity-95 transition-opacity shadow-lg shadow-primary/20" type="submit">Mettre à jour</button>
+                <button class="flex-1 py-3 border border-outline text-on-surface-variant font-label-md rounded-lg hover:bg-surface-container-high transition-colors" onclick="closeModal('edit-level-modal')" type="button">Annuler</button>
+                <button class="flex-1 py-3 bg-primary text-white font-label-md rounded-lg hover:opacity-95 transition-opacity shadow-lg" type="submit">Mettre à jour</button>
             </div>
         </form>
     </div>
 </div>
-@endsection
 
-@push('styles')
 <style>
     .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
     .modal-backdrop {
-        background-color: rgba(17, 28, 45, 0.4);
-        backdrop-filter: blur(4px);
+        transition: backdrop-filter 0.3s ease;
     }
     .card-shadow {
         box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04);
     }
+    
+    /* Animation styles for modals */
+    #add-level-modal, #edit-level-modal {
+        transition: opacity 0.3s ease;
+    }
 </style>
-@endpush
 
 @push('scripts')
 <script>
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        } else {
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
+        }, 300);
     }
 
     function openEditModal(id, name, school) {
@@ -215,7 +234,7 @@
             }
         }
         
-        toggleModal('edit-level-modal');
+        openModal('edit-level-modal');
     }
 
     // Add Level Form Submission
@@ -234,16 +253,18 @@
                 confirmButtonText: 'Oui, ajouter',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1f108e',
-                cancelButtonColor: '#64748B'
+                cancelButtonColor: '#64748B',
+                borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Succès !',
                         text: 'Le niveau a été ajouté avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#1f108e'
+                        confirmButtonColor: '#1f108e',
+                        borderRadius: '12px'
                     });
-                    toggleModal('add-level-modal');
+                    closeModal('add-level-modal');
                     addForm.reset();
                 }
             });
@@ -265,16 +286,18 @@
                 confirmButtonText: 'Oui, modifier',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1f108e',
-                cancelButtonColor: '#64748B'
+                cancelButtonColor: '#64748B',
+                borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Modifié !',
                         text: 'Le niveau a été modifié avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#1f108e'
+                        confirmButtonColor: '#1f108e',
+                        borderRadius: '12px'
                     });
-                    toggleModal('edit-level-modal');
+                    closeModal('edit-level-modal');
                 }
             });
         });
@@ -290,17 +313,32 @@
             confirmButtonColor: '#ba1a1a',
             cancelButtonColor: '#64748B',
             confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            borderRadius: '12px'
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Supprimé !',
                     text: "Le niveau a été supprimé avec succès.",
                     icon: 'success',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
             }
         });
     }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") {
+            const modals = ['add-level-modal', 'edit-level-modal'];
+            modals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (modal && modal.classList.contains('flex')) {
+                    closeModal(id);
+                }
+            });
+        }
+    });
 </script>
 @endpush

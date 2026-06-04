@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'Comptabilité - EduAdmin Pro')
-
+@section('title', 'EduManager - Comptabilité')
 @section('content')
 <!-- Header Actions & Welcome -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -9,11 +7,11 @@
         <p class="font-body-md text-body-md text-on-surface-variant">Gestion financière du portail client</p>
     </div>
     <div class="flex gap-3">
-        <button class="flex items-center gap-2 bg-success-green text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="toggleModal('modalScolarite')">
+        <button class="flex items-center gap-2 bg-success-green text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">
             <span class="material-symbols-outlined text-[20px]">add_circle</span>
             Enregistrer une scolarité
         </button>
-        <button class="flex items-center gap-2 bg-alert-red text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="toggleModal('modalDepense')">
+        <button class="flex items-center gap-2 bg-alert-red text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalDepense')">
             <span class="material-symbols-outlined text-[20px]">payments</span>
             Enregistrer une dépense
         </button>
@@ -72,10 +70,8 @@
         <section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden custom-shadow">
             <div class="px-6 py-5 border-b border-outline-variant flex items-center justify-between">
                 <div class="flex items-center gap-3">
-
                     <h4 class="font-headline-md text-headline-md">Scolarités</h4>
                 </div>
-    
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -127,7 +123,6 @@
                     <span class="material-symbols-outlined text-alert-red">payments</span>
                     <h4 class="font-headline-md text-headline-md">Dépenses</h4>
                 </div>
-    
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -168,11 +163,12 @@
 </div>
 
 <!-- Modal Scolarité -->
-<div class="fixed inset-0 z-[60] hidden items-center justify-center bg-inverse-surface/40 backdrop-blur-sm p-4" id="modalScolarite">
-    <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green/5">
-            <h3 class="font-headline-md text-headline-md text-primary">Enregistrer une scolarité</h3>
-            <button class="text-on-surface-variant hover:text-primary transition-colors" onclick="toggleModal('modalScolarite')">
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalScolarite">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalScolarite')"></div>
+    <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalScolariteContent">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green text-white">
+            <h3 class="font-headline-md text-headline-md">Enregistrer une scolarité</h3>
+            <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalScolarite')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -180,7 +176,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-1">
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Niveau</label>
-                    <select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="levelSelect">
+                    <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="levelSelect">
                         @foreach($levels ?? ['Primaire', 'Secondaire', 'Lycée'] as $level)
                         <option>{{ $level }}</option>
                         @endforeach
@@ -188,58 +184,59 @@
                 </div>
                 <div class="col-span-1">
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Classe</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="className" placeholder="Ex: Terminal C" type="text">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="className" placeholder="Ex: Terminal C" type="text">
                 </div>
             </div>
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Nom de l'élève</label>
-                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="studentName" placeholder="Entrez le nom complet" type="text">
+                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="studentName" placeholder="Entrez le nom complet" type="text">
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant (FCFA)</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="amountInput" step="100" type="number">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" step="100" type="number">
                 </div>
                 <div>
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Année Académique</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm bg-surface-container-low" readonly type="text" value="{{ $currentYear ?? '2024-2025' }}">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm bg-surface-container-low" readonly type="text" value="{{ $currentYear ?? '2024-2025' }}">
                 </div>
             </div>
             <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container-low transition-colors" onclick="toggleModal('modalScolarite')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 rounded-lg bg-success-green text-white font-label-md hover:brightness-110 shadow-lg shadow-success-green/20" type="submit">Valider l'encaissement</button>
+                <button class="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container-low transition-colors" onclick="closeModal('modalScolarite')" type="button">Annuler</button>
+                <button class="flex-1 px-4 py-2.5 rounded-lg bg-success-green text-white font-label-md hover:brightness-110 shadow-lg" type="submit">Valider l'encaissement</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Modal Dépense -->
-<div class="fixed inset-0 z-[60] hidden items-center justify-center bg-inverse-surface/40 backdrop-blur-sm p-4" id="modalDepense">
-    <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-alert-red/5">
-            <h3 class="font-headline-md text-headline-md text-primary">Enregistrer une dépense</h3>
-            <button class="text-on-surface-variant hover:text-primary transition-colors" onclick="toggleModal('modalDepense')">
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalDepense">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalDepense')"></div>
+    <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDepenseContent">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-alert-red text-white">
+            <h3 class="font-headline-md text-headline-md">Enregistrer une dépense</h3>
+            <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalDepense')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
         <form class="p-6 space-y-4" id="depenseForm">
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Libellé de la dépense</label>
-                <textarea class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="expenseLabel" placeholder="Décrivez la nature de la dépense..." rows="3"></textarea>
+                <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseLabel" placeholder="Décrivez la nature de la dépense..." rows="3"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant (FCFA)</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="expenseAmount" step="100" type="number">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseAmount" step="100" type="number">
                 </div>
                 <div>
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Date de l'opération</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary-container text-body-sm" id="expenseDate" type="date">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseDate" type="date">
                 </div>
             </div>
             <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container-low transition-colors" onclick="toggleModal('modalDepense')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 rounded-lg bg-alert-red text-white font-label-md hover:brightness-110 shadow-lg shadow-alert-red/20" type="submit">Confirmer la dépense</button>
+                <button class="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container-low transition-colors" onclick="closeModal('modalDepense')" type="button">Annuler</button>
+                <button class="flex-1 px-4 py-2.5 rounded-lg bg-alert-red text-white font-label-md hover:brightness-110 shadow-lg" type="submit">Confirmer la dépense</button>
             </div>
         </form>
     </div>
@@ -252,32 +249,61 @@
     .font-headline { font-family: 'Lexend', sans-serif; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .custom-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
-    .modal-active { display: flex !important; }
+    
+    /* Modal overlay animation */
+    .modal-overlay {
+        transition: backdrop-filter 0.3s ease;
+    }
+    
+    /* Modal animation */
+    #modalScolarite, #modalDepense {
+        transition: opacity 0.3s ease;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    // Modal Handling
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.toggle('hidden');
-        modal.classList.toggle('modal-active');
-        if (!modal.classList.contains('hidden')) {
-            document.body.style.overflow = 'hidden';
-        } else {
+    // Modal Handling with animation
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + 'Content';
+        const content = document.getElementById(contentId);
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + 'Content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
+        }, 300);
     }
 
     // Close modal on escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            const activeModals = document.querySelectorAll('.modal-active');
-            activeModals.forEach(modal => {
-                modal.classList.add('hidden');
-                modal.classList.remove('modal-active');
-                document.body.style.overflow = 'auto';
+            const modals = ['modalScolarite', 'modalDepense'];
+            modals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (modal && modal.classList.contains('flex')) {
+                    closeModal(id);
+                }
             });
         }
     });
@@ -295,19 +321,21 @@
                     title: 'Champs manquants',
                     text: 'Veuillez remplir tous les champs obligatoires.',
                     icon: 'error',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
                 return;
             }
             
-            toggleModal('modalScolarite');
+            closeModal('modalScolarite');
             Swal.fire({
                 title: 'Enregistré !',
                 text: `La scolarité de ${studentName} d'un montant de ${parseInt(amount).toLocaleString()} FCFA a été encaissée avec succès.`,
                 icon: 'success',
                 confirmButtonColor: '#1f108e',
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+                borderRadius: '12px'
             }).then(() => {
                 scolariteForm.reset();
             });
@@ -326,19 +354,21 @@
                     title: 'Champs manquants',
                     text: 'Veuillez remplir tous les champs obligatoires.',
                     icon: 'error',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
                 return;
             }
             
-            toggleModal('modalDepense');
+            closeModal('modalDepense');
             Swal.fire({
                 title: 'Dépense Enregistrée',
                 text: `La dépense "${label.substring(0, 50)}" d'un montant de ${parseInt(amount).toLocaleString()} FCFA a été ajoutée à la comptabilité.`,
                 icon: 'warning',
                 confirmButtonColor: '#1f108e',
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+                borderRadius: '12px'
             }).then(() => {
                 depenseForm.reset();
             });

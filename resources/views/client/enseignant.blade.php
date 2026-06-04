@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'EduAdmin Pro - Gestion des Enseignants')
-
+@section('title', 'EduManager - Enseignants')
 @section('content')
 <!-- Header Section avec bouton -->
 <div class="flex justify-between items-end mb-10">
@@ -9,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Enseignants</h2>
         <p class="text-body-md text-on-surface-variant">Gérez les enseignants de votre établissement avec précision et clarté.</p>
     </div>
-    <button class="inline-flex items-center px-5 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 active:scale-95 transition-all shadow-md" onclick="toggleModal('add-teacher-modal')">
+    <button class="inline-flex items-center px-5 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 active:scale-95 transition-all shadow-md" onclick="openModal('add-teacher-modal')">
         <span class="material-symbols-outlined mr-2">add</span>
         Ajouter un enseignant
     </button>
@@ -112,7 +110,6 @@
                         <div class="flex flex-col items-center gap-4">
                             <span class="material-symbols-outlined text-5xl text-outline">school</span>
                             <p>Aucun enseignant trouvé</p>
-                            
                         </div>
                     </td>
                 </tr>
@@ -141,12 +138,13 @@
     </div>
 </div>
 
-<!-- Modal: Ajouter Enseignant (avec scrollbar interne) -->
-<div class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4" id="add-teacher-modal">
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all scale-95 opacity-0 duration-300 flex flex-col" id="add-modal-content">
-        <div class="px-8 py-6 border-b border-surface-subtle flex items-center justify-between bg-surface-container-low flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md text-primary">Ajouter un enseignant</h3>
-            <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-white rounded-full transition-all" onclick="toggleModal('add-teacher-modal')">
+<!-- Modal: Ajouter Enseignant (avec scrollbar interne et animation) -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="add-teacher-modal">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('add-teacher-modal')"></div>
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="add-modal-content">
+        <div class="px-8 py-6 border-b border-surface-subtle flex items-center justify-between bg-primary text-white flex-shrink-0">
+            <h3 class="font-headline-md text-headline-md">Ajouter un enseignant</h3>
+            <button class="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-all" onclick="closeModal('add-teacher-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -189,18 +187,19 @@
             </form>
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
-            <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="toggleModal('add-teacher-modal')" type="button">Annuler</button>
+            <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('add-teacher-modal')" type="button">Annuler</button>
             <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" type="submit" form="addTeacherForm">Enregistrer</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Modifier Enseignant (avec scrollbar interne) -->
-<div class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4" id="edit-teacher-modal">
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all scale-95 opacity-0 duration-300 flex flex-col" id="edit-modal-content">
-        <div class="px-8 py-6 border-b border-surface-subtle flex items-center justify-between bg-surface-container-low flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md text-primary">Modifier l'enseignant</h3>
-            <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-white rounded-full transition-all" onclick="toggleModal('edit-teacher-modal')">
+<!-- Modal: Modifier Enseignant (avec scrollbar interne et animation) -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="edit-teacher-modal">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('edit-teacher-modal')"></div>
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="edit-modal-content">
+        <div class="px-8 py-6 border-b border-surface-subtle flex items-center justify-between bg-primary text-white flex-shrink-0">
+            <h3 class="font-headline-md text-headline-md">Modifier l'enseignant</h3>
+            <button class="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-all" onclick="closeModal('edit-teacher-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -236,7 +235,7 @@
             </form>
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
-            <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="toggleModal('edit-teacher-modal')" type="button">Annuler</button>
+            <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('edit-teacher-modal')" type="button">Annuler</button>
             <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" type="submit" form="editTeacherForm">Enregistrer</button>
         </div>
     </div>
@@ -269,6 +268,15 @@
     
     .overflow-y-auto::-webkit-scrollbar-thumb:hover {
         background: #a0a0a0;
+    }
+    
+    .modal-overlay {
+        transition: backdrop-filter 0.3s ease;
+    }
+    
+    /* Animation styles for modals */
+    #add-teacher-modal, #edit-teacher-modal {
+        transition: opacity 0.3s ease;
     }
 </style>
 @endpush
@@ -309,28 +317,35 @@
         });
     }
 
-    function toggleModal(modalId) {
+    // Fonctions d'ouverture/fermeture avec animation
+    function openModal(modalId) {
         const modal = document.getElementById(modalId);
         const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
         const content = document.getElementById(contentId);
         
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        } else {
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }, 300);
-        }
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
 
     function openEditModal(teacher) {
@@ -348,7 +363,7 @@
             }
         }
         
-        toggleModal('edit-teacher-modal');
+        openModal('edit-teacher-modal');
     }
 
     function confirmDelete(id, name) {
@@ -403,7 +418,7 @@
                         timerProgressBar: true,
                         borderRadius: '12px'
                     });
-                    toggleModal('add-teacher-modal');
+                    closeModal('add-teacher-modal');
                     addForm.reset();
                 }
             });
@@ -438,7 +453,7 @@
                         timerProgressBar: true,
                         borderRadius: '12px'
                     });
-                    toggleModal('edit-teacher-modal');
+                    closeModal('edit-teacher-modal');
                 }
             });
         });
@@ -450,22 +465,11 @@
             const modals = ['add-teacher-modal', 'edit-teacher-modal'];
             modals.forEach(id => {
                 const modal = document.getElementById(id);
-                if (modal && !modal.classList.contains('hidden')) {
-                    toggleModal(id);
+                if (modal && modal.classList.contains('flex')) {
+                    closeModal(id);
                 }
             });
         }
     });
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modals = ['add-teacher-modal', 'edit-teacher-modal'];
-        modals.forEach(id => {
-            const modal = document.getElementById(id);
-            if (event.target == modal && modal && !modal.classList.contains('hidden')) {
-                toggleModal(id);
-            }
-        });
-    }
 </script>
 @endpush

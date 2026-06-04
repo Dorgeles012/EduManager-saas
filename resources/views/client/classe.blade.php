@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'Gestion des Classes | EduAdmin Pro')
-
+@section('title', 'EduManager - Classe')
 @section('content')
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
@@ -9,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Classes</h2>
         <p class="text-text-muted font-body-md">Gérez les différentes classes de votre établissement</p>
     </div>
-    <button class="bg-primary text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 font-label-md transition-all hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/20" onclick="toggleModal('modal-add')">
+    <button class="bg-primary text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 font-label-md transition-all hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/20" onclick="openModal('modal-add')">
         <span class="material-symbols-outlined text-lg">add</span>
         Ajouter une classe
     </button>
@@ -53,7 +51,6 @@
         <h4 class="font-headline-md text-headline-md flex items-center gap-2">
             Liste des classes
         </h4>
-        <!-- Bouton supprimé d'ici -->
     </div>
 
     <!-- Table Content -->
@@ -131,109 +128,105 @@
 </div>
 
 <!-- Modal: Ajouter une Classe -->
-<div class="fixed inset-0 z-[100] hidden" id="modal-add">
-    <div class="modal-overlay absolute inset-0"></div>
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
-            <div class="bg-primary-container p-6 text-white flex items-center justify-between">
-                <div>
-                    <h3 class="font-headline-md text-headline-md">Ajouter une classe</h3>
-                    <p class="text-on-primary-container text-sm">Créez une nouvelle structure pédagogique</p>
-                </div>
-                <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="toggleModal('modal-add')">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-add">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-add')"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-add-content">
+        <div class="bg-primary p-6 text-white flex items-center justify-between">
+            <div>
+                <h3 class="font-headline-md text-headline-md">Ajouter une classe</h3>
+                <p class="text-white/80 text-sm">Créez une nouvelle structure pédagogique</p>
             </div>
-            <form class="p-8 space-y-6" id="addClassForm">
-                <div class="grid grid-cols-1 gap-6">
+            <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="closeModal('modal-add')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form class="p-8 space-y-6" id="addClassForm">
+            <div class="grid grid-cols-1 gap-6">
+                <div class="space-y-1.5">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
+                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
+                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" required>
+                        <option value="">Sélectionner un établissement</option>
+                        @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                        <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" required>
-                            <option value="">Sélectionner un établissement</option>
-                            @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
-                            <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                        <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" required>
+                            <option value="">Sélectionner un niveau</option>
+                            @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                            <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                            <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" required>
-                                <option value="">Sélectionner un niveau</option>
-                                @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
-                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                            <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" placeholder="40" type="number">
-                        </div>
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" placeholder="40" type="number">
                     </div>
                 </div>
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
-                    <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="toggleModal('modal-add')" type="button">Annuler</button>
-                    <button class="bg-primary text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-primary/90 shadow-md" type="submit">Enregistrer</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-add')" type="button">Annuler</button>
+                <button class="bg-primary text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-primary/90 shadow-md" type="submit">Enregistrer</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <!-- Modal: Modifier la Classe -->
-<div class="fixed inset-0 z-[100] hidden" id="modal-edit">
-    <div class="modal-overlay absolute inset-0"></div>
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
-            <div class="bg-warning-amber p-6 text-white flex items-center justify-between">
-                <div>
-                    <h3 class="font-headline-md text-headline-md">Modifier la classe</h3>
-                    <p class="text-white/80 text-sm">Mise à jour des informations de classe</p>
-                </div>
-                <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="toggleModal('modal-edit')">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-edit">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-edit')"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
+        <div class="bg-warning-amber p-6 text-white flex items-center justify-between">
+            <div>
+                <h3 class="font-headline-md text-headline-md">Modifier la classe</h3>
+                <p class="text-white/80 text-sm">Mise à jour des informations de classe</p>
             </div>
-            <form class="p-8 space-y-6" id="editClassForm">
-                <input type="hidden" id="editClassId">
-                <div class="grid grid-cols-1 gap-6">
+            <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="closeModal('modal-edit')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form class="p-8 space-y-6" id="editClassForm">
+            <input type="hidden" id="editClassId">
+            <div class="grid grid-cols-1 gap-6">
+                <div class="space-y-1.5">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
+                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" type="text" required>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
+                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" required>
+                        @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                        <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" type="text" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" required>
-                            @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
-                            <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                        <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" required>
+                            @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                            <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                            <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" required>
-                                @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
-                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                            <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" type="number">
-                        </div>
+                    <div class="space-y-1.5">
+                        <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" type="number">
                     </div>
                 </div>
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
-                    <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="toggleModal('modal-edit')" type="button">Annuler</button>
-                    <button class="bg-warning-amber text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-warning-amber/90 shadow-md" type="submit">Mettre à jour</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit')" type="button">Annuler</button>
+                <button class="bg-warning-amber text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-warning-amber/90 shadow-md" type="submit">Mettre à jour</button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
@@ -244,24 +237,46 @@
     .font-headline { font-family: 'Lexend', sans-serif; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .custom-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
-    .modal-overlay { background: rgba(17, 28, 45, 0.4); backdrop-filter: blur(4px); }
+    .modal-overlay { transition: backdrop-filter 0.3s ease; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
+    
+    /* Animation styles for modals */
+    #modal-add, #modal-edit {
+        transition: opacity 0.3s ease;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        const isHidden = modal.classList.contains('hidden');
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
         
-        if (isHidden) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        } else {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
+        }, 300);
     }
 
     function openEditModal(classData) {
@@ -286,7 +301,7 @@
             }
         }
         
-        toggleModal('modal-edit');
+        openModal('modal-edit');
     }
 
     // Add Class Form Submission
@@ -304,16 +319,18 @@
                 confirmButtonText: 'Oui, ajouter',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1f108e',
-                cancelButtonColor: '#64748B'
+                cancelButtonColor: '#64748B',
+                borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Succès !',
                         text: 'La classe a été ajoutée avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#1f108e'
+                        confirmButtonColor: '#1f108e',
+                        borderRadius: '12px'
                     });
-                    toggleModal('modal-add');
+                    closeModal('modal-add');
                     addForm.reset();
                 }
             });
@@ -335,16 +352,18 @@
                 confirmButtonText: 'Oui, modifier',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#D97706',
-                cancelButtonColor: '#64748B'
+                cancelButtonColor: '#64748B',
+                borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Modifié !',
                         text: 'La classe a été modifiée avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#D97706'
+                        confirmButtonColor: '#D97706',
+                        borderRadius: '12px'
                     });
-                    toggleModal('modal-edit');
+                    closeModal('modal-edit');
                 }
             });
         });
@@ -360,28 +379,32 @@
             confirmButtonColor: '#ba1a1a',
             cancelButtonColor: '#64748B',
             confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            borderRadius: '12px'
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Supprimé !',
                     text: 'La classe a été supprimée avec succès.',
                     icon: 'success',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
             }
         });
     }
 
-    // Close modal when clicking on overlay
-    window.onclick = function(event) {
-        const modals = ['modal-add', 'modal-edit'];
-        modals.forEach(id => {
-            const modal = document.getElementById(id);
-            if (event.target == modal?.querySelector('.modal-overlay')) {
-                toggleModal(id);
-            }
-        });
-    }
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") {
+            const modals = ['modal-add', 'modal-edit'];
+            modals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (modal && modal.classList.contains('flex')) {
+                    closeModal(id);
+                }
+            });
+        }
+    });
 </script>
 @endpush

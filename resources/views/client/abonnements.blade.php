@@ -1,5 +1,5 @@
 @extends('client.layouts.app')
-
+@section('title', 'EduManager - Abonnements')
 @section('content')
 <!-- Header Section -->
 <div class="mb-10">

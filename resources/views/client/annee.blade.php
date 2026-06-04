@@ -1,6 +1,5 @@
 @extends('client.layouts.app')
-
-
+@section('title', 'EduManager - Année academique')
 @section('content')
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
@@ -114,12 +113,13 @@
     </div>
 </div>
 
-<!-- Modal: Ajouter une année -->
-<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-4" id="addModal">
-    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-        <div class="p-6 border-b border-surface-subtle flex justify-between items-center">
-            <h3 class="font-headline-md text-headline-md text-primary">Nouvelle Année Académique</h3>
-            <button class="text-outline hover:text-on-surface transition-colors" onclick="closeModal('addModal')">
+<!-- Modal: Ajouter une année (avec backdrop flou et animation) -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="addModal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('addModal')"></div>
+    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="addModalContent">
+        <div class="p-6 border-b border-surface-subtle flex justify-between items-center bg-primary-container text-on-primary">
+            <h3 class="font-headline-md text-headline-md">Nouvelle Année Académique</h3>
+            <button class="text-on-primary/80 hover:text-on-primary transition-colors" onclick="closeModal('addModal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -133,7 +133,7 @@
                 <button class="flex-1 px-4 py-3 border border-outline-variant text-on-surface-variant rounded-lg font-label-md hover:bg-surface-subtle transition-all" onclick="closeModal('addModal')" type="button">
                     Annuler
                 </button>
-                <button class="flex-1 px-4 py-3 bg-primary-container text-on-primary rounded-lg font-label-md hover:shadow-lg transition-all active:scale-95" type="submit">
+                <button class="flex-1 px-4 py-3 bg-primary text-white rounded-lg font-label-md hover:shadow-lg transition-all active:scale-95" type="submit">
                     Enregistrer
                 </button>
             </div>
@@ -141,12 +141,13 @@
     </div>
 </div>
 
-<!-- Modal: Détails -->
-<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-4" id="detailModal">
-    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-        <div class="p-6 bg-primary-container text-on-primary flex justify-between items-center">
+<!-- Modal: Détails (avec backdrop flou et animation) -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="detailModal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('detailModal')"></div>
+    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="detailModalContent">
+        <div class="p-6 bg-primary text-white flex justify-between items-center">
             <h3 class="font-headline-md text-headline-md">Détails de l'année</h3>
-            <button class="text-on-primary/80 hover:text-on-primary transition-colors" onclick="closeModal('detailModal')">
+            <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('detailModal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -173,7 +174,7 @@
                 <span class="material-symbols-outlined text-primary text-[20px]">info</span>
                 <p class="text-body-sm text-on-surface-variant italic">Cette année académique est actuellement configurée comme "Planifiée". Elle pourra être activée lors de la clôture de l'année en cours.</p>
             </div>
-            <button class="w-full py-3 bg-surface-subtle text-on-surface font-label-md rounded-lg hover:bg-outline-variant/30 transition-all" onclick="closeModal('detailModal')">
+            <button class="w-full py-3 bg-primary text-white font-label-md rounded-lg hover:bg-primary/90 transition-all" onclick="closeModal('detailModal')">
                 Fermer
             </button>
         </div>
@@ -186,32 +187,79 @@
     .modal-active {
         display: flex !important;
     }
+    
+    /* Animation styles for modals */
+    #addModal, #detailModal {
+        transition: opacity 0.3s ease;
+    }
+    
+    .modal-backdrop {
+        transition: backdrop-filter 0.3s ease;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    // Modal Logic
+    // Modal Logic avec animation
     function openModal(id, yearLabel = null) {
+        const modal = document.getElementById(id);
+        const contentId = id + 'Content';
+        const content = document.getElementById(contentId);
+        
         if (id === 'detailModal' && yearLabel) {
             document.getElementById('detailYearLabel').textContent = yearLabel;
         }
-        document.getElementById(id).classList.add('modal-active');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('modal-active');
         document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeModal(id) {
-        document.getElementById(id).classList.remove('modal-active');
-        document.body.style.overflow = 'auto';
+        const modal = document.getElementById(id);
+        const contentId = id + 'Content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('modal-active');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
 
     // Close modal on background click
     window.onclick = function(event) {
-        if (event.target.classList.contains('fixed')) {
-            event.target.classList.remove('modal-active');
-            document.body.style.overflow = 'auto';
+        if (event.target.classList.contains('modal-backdrop')) {
+            const modal = event.target.closest('.fixed');
+            if (modal && modal.id) {
+                closeModal(modal.id);
+            }
         }
     }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const addModal = document.getElementById('addModal');
+            const detailModal = document.getElementById('detailModal');
+            
+            if (addModal && addModal.classList.contains('modal-active')) {
+                closeModal('addModal');
+            }
+            if (detailModal && detailModal.classList.contains('modal-active')) {
+                closeModal('detailModal');
+            }
+        }
+    });
 
     // Add Form Logic
     const addYearForm = document.getElementById('addYearForm');

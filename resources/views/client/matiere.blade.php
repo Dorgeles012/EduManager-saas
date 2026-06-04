@@ -1,5 +1,5 @@
 @extends('client.layouts.app')
-
+@section('title', 'EduManager - Matieres')
 @section('content')
 <!-- Page Header -->
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">

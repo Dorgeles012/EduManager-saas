@@ -1,4 +1,5 @@
 @extends('client.layouts.app')
+@section('title', 'EduManager - Personnel')
 @section('content')
 
 <!-- Page Header -->
@@ -7,7 +8,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Gestion du Personnel</h2>
         <p class="text-text-muted font-body-lg text-body-lg">Gérez les utilisateurs de votre établissement</p>
     </div>
-    <button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:bg-opacity-90 transition-all active:scale-95 whitespace-nowrap shadow-md" onclick="toggleModal('add-user-modal')">
+    <button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:bg-opacity-90 transition-all active:scale-95 whitespace-nowrap shadow-md" onclick="openModal('add-user-modal')">
         <span class="material-symbols-outlined text-[20px]">person_add</span>
         Ajouter un utilisateur
     </button>
@@ -84,10 +85,10 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" onclick="openViewModal()" title="Voir">
+                            <button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" onclick="openModal('view-user-modal')" title="Voir">
                                 <span class="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
-                            <button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" onclick="openEditModal()" title="Modifier">
+                            <button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" onclick="openModal('edit-user-modal')" title="Modifier">
                                 <span class="material-symbols-outlined text-[20px]">edit</span>
                             </button>
                             <button class="p-1.5 text-on-surface-variant hover:text-warning-amber hover:bg-surface-container rounded-lg transition-all" onclick="confirmBlock()" title="Bloquer">
@@ -113,12 +114,13 @@
     </div>
 </div>
 
-<!-- Modal: Ajouter un utilisateur (avec scroll interne) -->
-<div class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="add-user-modal">
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md text-primary">Ajouter un utilisateur</h3>
-            <button class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant" onclick="toggleModal('add-user-modal')">
+<!-- Modal: Ajouter un utilisateur -->
+<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="add-user-modal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('add-user-modal')"></div>
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="add-user-modal-content">
+        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white flex-shrink-0">
+            <h3 class="font-headline-md text-headline-md">Ajouter un utilisateur</h3>
+            <button class="p-2 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('add-user-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -175,17 +177,18 @@
             </form>
         </div>
         <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-low/30 flex justify-end gap-4 flex-shrink-0">
-            <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="toggleModal('add-user-modal')" type="button">Annuler</button>
+            <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('add-user-modal')" type="button">Annuler</button>
             <button class="px-6 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:opacity-90 transition-all shadow-md" type="submit" form="addUserForm">Créer l'utilisateur</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Détails de TRA kazan (avec scroll interne) -->
-<div class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="view-user-modal">
-    <div class="bg-white w-full max-w-lg max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        <div class="p-8 text-center bg-primary-container relative flex-shrink-0">
-            <button class="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors" onclick="toggleModal('view-user-modal')">
+<!-- Modal: Détails de TRA kazan -->
+<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="view-user-modal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('view-user-modal')"></div>
+    <div class="bg-white w-full max-w-lg max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="view-user-modal-content">
+        <div class="p-8 text-center bg-primary relative flex-shrink-0">
+            <button class="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors" onclick="closeModal('view-user-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
             <div class="relative inline-block">
@@ -227,7 +230,7 @@
                 </div>
             </div>
             <div class="pt-6 mt-6 border-t border-outline-variant flex justify-center gap-4">
-                <button class="flex items-center gap-2 text-primary font-label-md text-label-md hover:underline" onclick="toggleModal('view-user-modal'); toggleModal('edit-user-modal')">
+                <button class="flex items-center gap-2 text-primary font-label-md text-label-md hover:underline" onclick="closeModal('view-user-modal'); openModal('edit-user-modal')">
                     <span class="material-symbols-outlined">edit</span> Modifier le profil
                 </button>
             </div>
@@ -235,12 +238,13 @@
     </div>
 </div>
 
-<!-- Modal: Modifier TRA kazan (avec scroll interne) -->
-<div class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" id="edit-user-modal">
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md text-primary">Modifier l'utilisateur</h3>
-            <button class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant" onclick="toggleModal('edit-user-modal')">
+<!-- Modal: Modifier TRA kazan -->
+<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="edit-user-modal">
+    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('edit-user-modal')"></div>
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="edit-user-modal-content">
+        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white flex-shrink-0">
+            <h3 class="font-headline-md text-headline-md">Modifier l'utilisateur</h3>
+            <button class="p-2 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('edit-user-modal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -278,30 +282,52 @@
             </form>
         </div>
         <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-low/30 flex justify-end gap-4 flex-shrink-0">
-            <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="toggleModal('edit-user-modal')" type="button">Annuler</button>
+            <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('edit-user-modal')" type="button">Annuler</button>
             <button class="px-6 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:opacity-90 shadow-md" type="submit" form="editUserForm">Enregistrer les modifications</button>
         </div>
     </div>
 </div>
 
+<style>
+    /* Animation styles for modals */
+    #add-user-modal, #view-user-modal, #edit-user-modal {
+        transition: opacity 0.3s ease;
+    }
+    
+    .modal-backdrop {
+        transition: backdrop-filter 0.3s ease;
+    }
+</style>
+
 <script>
-    function toggleModal(modalId) {
+    function openModal(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        } else {
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId + '-content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
-    }
-
-    function openViewModal() {
-        toggleModal('view-user-modal');
-    }
-
-    function openEditModal() {
-        toggleModal('edit-user-modal');
+        }, 300);
     }
 
     // Recherche d'employés
@@ -325,7 +351,6 @@
                 }
             });
             
-            // Mettre à jour le texte de pagination
             const paginationSpan = document.getElementById('paginationInfo');
             if (paginationSpan) {
                 if (visibleCount === 1) {
@@ -393,7 +418,7 @@
                 confirmButtonColor: '#1f108e',
                 borderRadius: '12px'
             }).then(() => {
-                toggleModal('add-user-modal');
+                closeModal('add-user-modal');
                 addForm.reset();
             });
         });
@@ -411,19 +436,8 @@
                 confirmButtonColor: '#1f108e',
                 borderRadius: '12px'
             }).then(() => {
-                toggleModal('edit-user-modal');
+                closeModal('edit-user-modal');
             });
-        });
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modals = ['add-user-modal', 'view-user-modal', 'edit-user-modal'];
-        modals.forEach(id => {
-            const modal = document.getElementById(id);
-            if (event.target == modal && modal && !modal.classList.contains('hidden')) {
-                toggleModal(id);
-            }
         });
     }
 
@@ -433,8 +447,8 @@
             const modals = ['add-user-modal', 'view-user-modal', 'edit-user-modal'];
             modals.forEach(id => {
                 const modal = document.getElementById(id);
-                if (modal && !modal.classList.contains('hidden')) {
-                    toggleModal(id);
+                if (modal && modal.classList.contains('flex')) {
+                    closeModal(id);
                 }
             });
         }

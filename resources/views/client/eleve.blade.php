@@ -1,7 +1,5 @@
 @extends('client.layouts.app')
-
-@section('title', 'EduManager Pro - Gestion des Élèves')
-
+@section('title', 'EduManager - Eleves')
 @section('content')
 <!-- Page Header -->
 <div class="flex justify-between items-start mb-10">
@@ -123,10 +121,10 @@
 </div>
 
 <!-- Modal: Standard Addition -->
-<div class="fixed inset-0 z-[60] hidden items-center justify-center p-4" id="modal-standard">
-    <div class="modal-overlay absolute inset-0"></div>
-    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary-container text-on-primary sticky top-0">
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-standard">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-standard')"></div>
+    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-standard-content">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0">
             <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE</h3>
             <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')">
                 <span class="material-symbols-outlined">close</span>
@@ -143,15 +141,15 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="stdLastname" placeholder="Ex: TRAORE" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" placeholder="Ex: TRAORE" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="stdFirstname" placeholder="Ex: Moussa" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" placeholder="Ex: Moussa" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="birthdate-std" required type="date">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="birthdate-std" required type="date">
                             <p class="hidden text-[11px] text-alert-red mt-1 flex items-center gap-1" id="age-warning-std">
                                 <span class="material-symbols-outlined text-[14px]">warning</span>
                                 L'âge minimum requis est de 5 ans.
@@ -159,12 +157,12 @@
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="stdBirthPlace" placeholder="Ex: Abidjan" type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" placeholder="Ex: Abidjan" type="text">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="stdLevel">
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
                                     @foreach($levels ?? ['CP1', 'CP2', 'CE1', 'CE2', 'CM1', 'CM2'] as $level)
                                     <option>{{ $level }}</option>
                                     @endforeach
@@ -186,33 +184,33 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="parentLastname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentLastname" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="parentFirstname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentFirstname" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Type de Parent</label>
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input class="text-primary focus:ring-primary-container" name="parent_type" type="radio" value="pere"> Père
+                                    <input class="text-primary focus:ring-primary" name="parent_type" type="radio" value="pere"> Père
                                 </label>
                                 <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input class="text-primary focus:ring-primary-container" name="parent_type" type="radio" value="mere"> Mère
+                                    <input class="text-primary focus:ring-primary" name="parent_type" type="radio" value="mere"> Mère
                                 </label>
                                 <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input checked class="text-primary focus:ring-primary-container" name="parent_type" type="radio" value="tuteur"> Tuteur
+                                    <input checked class="text-primary focus:ring-primary" name="parent_type" type="radio" value="tuteur"> Tuteur
                                 </label>
                             </div>
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="parentPhone" placeholder="+225 00 00 00 00 00" required type="tel">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" placeholder="+225 00 00 00 00 00" required type="tel">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary-container focus:border-primary-container" id="parentEmail" placeholder="parent@email.com" type="email">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" placeholder="parent@email.com" type="email">
                         </div>
                     </div>
                 </div>
@@ -221,7 +219,7 @@
                 <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-standard')" type="button">
                     Annuler
                 </button>
-                <button class="px-8 py-2 bg-primary-container text-on-primary rounded-lg font-label-md hover:bg-primary transition-all active:scale-95 shadow-md" type="submit">
+                <button class="px-8 py-2 bg-primary text-white rounded-lg font-label-md hover:bg-primary/90 transition-all active:scale-95 shadow-md" type="submit">
                     Enregistrer l'élève
                 </button>
             </div>
@@ -230,10 +228,10 @@
 </div>
 
 <!-- Modal: Transferred Addition -->
-<div class="fixed inset-0 z-[60] hidden items-center justify-center p-4" id="modal-transfer">
-    <div class="modal-overlay absolute inset-0"></div>
-    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green text-on-primary sticky top-0">
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-transfer">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-transfer')"></div>
+    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-transfer-content">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green text-white sticky top-0">
             <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE TRANSFÉRÉ</h3>
             <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-transfer')">
                 <span class="material-symbols-outlined">close</span>
@@ -309,16 +307,14 @@
                 <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-transfer')" type="button">
                     Annuler
                 </button>
-                <button class="px-8 py-2 bg-success-green text-on-primary rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">
+                <button class="px-8 py-2 bg-success-green text-white rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">
                     Valider le transfert
                 </button>
             </div>
         </form>
     </div>
 </div>
-@endsection
 
-@push('styles')
 <style>
     .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -329,24 +325,48 @@
         border: 1px solid rgba(226, 232, 240, 1);
     }
     .modal-overlay {
-        background: rgba(17, 28, 45, 0.4);
-        backdrop-filter: blur(4px);
+        transition: backdrop-filter 0.3s ease;
+    }
+    
+    /* Animation styles for modals */
+    #modal-standard, #modal-transfer {
+        transition: opacity 0.3s ease;
     }
 </style>
-@endpush
+@endsection
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    // Modal functions
+    // Modal functions with animation
     function openModal(id) {
-        $(`#${id}`).removeClass('hidden').addClass('flex');
-        $('body').addClass('overflow-hidden');
+        const modal = document.getElementById(id);
+        const contentId = id + '-content';
+        const content = document.getElementById(contentId);
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeModal(id) {
-        $(`#${id}`).removeClass('flex').addClass('hidden');
-        $('body').removeClass('overflow-hidden');
+        const modal = document.getElementById(id);
+        const contentId = id + '-content';
+        const content = document.getElementById(contentId);
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
 
     function viewStudent(id) {
@@ -354,7 +374,8 @@
             title: 'Fiche élève',
             text: `Affichage des détails de l'élève ID: ${id}`,
             icon: 'info',
-            confirmButtonColor: '#1f108e'
+            confirmButtonColor: '#1f108e',
+            borderRadius: '12px'
         });
     }
 
@@ -363,7 +384,8 @@
             title: 'Modifier',
             text: `Modification de l'élève ${student.firstname} ${student.lastname}`,
             icon: 'info',
-            confirmButtonColor: '#D97706'
+            confirmButtonColor: '#D97706',
+            borderRadius: '12px'
         });
     }
 
@@ -398,14 +420,16 @@
             confirmButtonColor: '#ba1a1a',
             cancelButtonColor: '#64748B',
             confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            borderRadius: '12px'
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Supprimé !',
                     text: 'L\'élève a été supprimé avec succès.',
                     icon: 'success',
-                    confirmButtonColor: '#1f108e'
+                    confirmButtonColor: '#1f108e',
+                    borderRadius: '12px'
                 });
             }
         });
@@ -428,7 +452,8 @@
                     title: 'Âge non valide',
                     text: 'L\'élève doit avoir au moins 5 ans.',
                     icon: 'error',
-                    confirmButtonColor: '#3730a3'
+                    confirmButtonColor: '#3730a3',
+                    borderRadius: '12px'
                 });
                 return;
             }
@@ -437,7 +462,8 @@
                 title: 'Succès !',
                 text: "L'élève a été enregistré avec succès.",
                 icon: 'success',
-                confirmButtonColor: '#3730a3'
+                confirmButtonColor: '#3730a3',
+                borderRadius: '12px'
             }).then(() => {
                 closeModal('modal-standard');
                 this.reset();
@@ -451,7 +477,8 @@
                     title: 'Âge non valide',
                     text: 'L\'élève doit avoir au moins 5 ans.',
                     icon: 'error',
-                    confirmButtonColor: '#059669'
+                    confirmButtonColor: '#059669',
+                    borderRadius: '12px'
                 });
                 return;
             }
@@ -460,7 +487,8 @@
                 title: 'Transfert Validé !',
                 text: "L'élève transféré a été ajouté à la file d'attente de validation.",
                 icon: 'success',
-                confirmButtonColor: '#059669'
+                confirmButtonColor: '#059669',
+                borderRadius: '12px'
             }).then(() => {
                 closeModal('modal-transfer');
                 this.reset();
@@ -470,8 +498,12 @@
         // Close modal on escape key
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
-                $('.fixed.z-\\[60\\]:not(.hidden)').each(function() {
-                    closeModal($(this).attr('id'));
+                const modals = ['modal-standard', 'modal-transfer'];
+                modals.forEach(id => {
+                    const modal = document.getElementById(id);
+                    if (modal && modal.classList.contains('flex')) {
+                        closeModal(id);
+                    }
                 });
             }
         });

@@ -2,8 +2,6 @@
 <html class="light" lang="fr">
 <head>
     @php
-        // Evite les erreurs "Undefined variable" dans les pages client.
-        // Certaines vues/menus peuvent attendre des variables comme $teachers.
         $teachers = $teachers ?? collect();
     @endphp
     <meta charset="utf-8">
