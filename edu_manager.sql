@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 28 mai 2026 à 10:28
+-- Généré le : jeu. 04 juin 2026 à 17:58
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -69,14 +69,6 @@ CREATE TABLE `cache` (
   `value` mediumtext NOT NULL,
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Déchargement des données de la table `cache`
---
-
-INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('laravel-cache-admin@test.com|127.0.0.1', 'i:1;', 1779930179),
-('laravel-cache-admin@test.com|127.0.0.1:timer', 'i:1779930179;', 1779930179);
 
 -- --------------------------------------------------------
 
@@ -156,40 +148,6 @@ CREATE TABLE `emploi_temps` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `enseignants`
---
-
-CREATE TABLE `enseignants` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `tenant_id` bigint(20) UNSIGNED NOT NULL,
-  `etablissement_id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nom` varchar(255) NOT NULL,
-  `prenoms` varchar(255) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `telephone` varchar(50) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `specialite` varchar(255) DEFAULT NULL,
-  `statut` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `enseignant_matiere`
---
-
-CREATE TABLE `enseignant_matiere` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `enseignant_id` bigint(20) UNSIGNED NOT NULL,
-  `matiere_id` bigint(20) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `etablissements`
 --
 
@@ -205,8 +163,17 @@ CREATE TABLE `etablissements` (
   `logo` text DEFAULT NULL,
   `statut` enum('active','inactive') NOT NULL DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `etablissements`
+--
+
+INSERT INTO `etablissements` (`id`, `tenant_id`, `nom`, `acronyme`, `type_etablissement`, `email`, `telephone`, `adresse`, `logo`, `statut`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2, 1, 'Collège Figuier 1', 'CF1', 'college', 'Collegefiguier1@mail.com', '0575096534', 'Yopougon annaneraie', NULL, 'active', '2026-06-04 13:30:42', '2026-06-04 13:30:42', NULL),
+(3, 1, 'Collège Figuier 2', 'CF2', 'college', 'Collegefiguier2@gmail.com', '0575096534', 'Yopougon annaneraie', NULL, 'active', '2026-06-04 13:32:02', '2026-06-04 13:32:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -328,7 +295,30 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (2, '0001_01_01_000002_create_jobs_table', 1),
 (3, '2026_05_27_093302_create_permission_tables', 1),
 (4, '2026_05_27_095008_create_all_tables', 1),
-(5, '2026_05_28_002706_create_sessions_table', 2);
+(5, '2026_05_28_002706_create_sessions_table', 1),
+(6, '2026_05_28_100000_add_indices_to_etablissements', 1),
+(7, '2026_05_28_213203_create_etablissements_table', 1),
+(8, '2026_05_29_000000_create_clients_table', 1),
+(9, '2026_05_30_000001_replace_entreprise_with_etablissement_id_on_clients_table', 1),
+(10, '2026_05_30_051245_create_password_otps_table', 1),
+(11, '2026_05_30_051537_update_password_otps', 1),
+(12, '2026_05_31_132430_add_subscription_fields_to_subscriptions_table', 1),
+(13, '2026_05_31_132446_update_subscriptions_columns', 1),
+(14, '2026_05_31_142921_fix_subscriptions_plan_id_default', 1),
+(15, '2026_05_31_200000_add_timestamps_to_subscriptions_table', 1),
+(16, '2026_05_31_999998_add_tenant_id_to_clients_table', 1),
+(17, '2026_06_01_000000_create_subscriptions_types', 1),
+(18, '2026_06_01_999996_subscription_add_created_by_and_fcfa_view_columns', 1),
+(19, '2026_06_01_999997_fix_subscriptions_dates_default', 1),
+(20, '2026_06_01_999998_fix_subscriptions_plan_id_default', 1),
+(21, '2026_06_01_999999_fix_subscriptions_tenant_id_default', 1),
+(22, '2026_06_02_000000_migrate_clients_to_users', 1),
+(23, '2026_06_02_000001_drop_old_client_tables', 1),
+(24, '2026_06_02_140124_add_etablissement_id_and_client_fields_to_users', 1),
+(25, '2026_06_04_000001_normalize_plans_and_subscriptions', 1),
+(26, '2026_06_04_000002_fix_plans_columns', 1),
+(27, '2026_06_04_000003_add_subscription_type_to_plans', 1),
+(28, '2026_06_04_000004_create_payments_table', 1);
 
 -- --------------------------------------------------------
 
@@ -407,18 +397,14 @@ CREATE TABLE `notifications` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `parents`
+-- Structure de la table `password_otps`
 --
 
-CREATE TABLE `parents` (
+CREATE TABLE `password_otps` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `tenant_id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nom` varchar(255) DEFAULT NULL,
-  `prenom` varchar(255) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `telephone` varchar(50) DEFAULT NULL,
-  `adresse` text DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `otp_code` varchar(64) NOT NULL,
+  `expires_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -426,16 +412,13 @@ CREATE TABLE `parents` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `password_resets`
+-- Structure de la table `password_reset_tokens`
 --
 
-CREATE TABLE `password_resets` (
-  `id` bigint(20) UNSIGNED NOT NULL,
+CREATE TABLE `password_reset_tokens` (
   `email` varchar(255) NOT NULL,
-  `code` varchar(10) NOT NULL,
-  `expires_at` datetime NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -473,28 +456,6 @@ CREATE TABLE `permissions` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `personnel`
---
-
-CREATE TABLE `personnel` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `tenant_id` bigint(20) UNSIGNED NOT NULL,
-  `etablissement_id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nom` varchar(255) DEFAULT NULL,
-  `prenom` varchar(255) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `telephone` varchar(50) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `fonction` varchar(255) DEFAULT NULL,
-  `statut` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `plans`
 --
 
@@ -502,12 +463,19 @@ CREATE TABLE `plans` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `nom` varchar(255) NOT NULL,
   `prix` int(11) NOT NULL,
-  `max_ecoles` int(11) NOT NULL DEFAULT 1,
-  `max_users` int(11) NOT NULL DEFAULT 10,
+  `subscription_type_id` bigint(20) UNSIGNED DEFAULT NULL,
   `description` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `statut` enum('active','inactive') NOT NULL DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `plans`
+--
+
+INSERT INTO `plans` (`id`, `nom`, `prix`, `subscription_type_id`, `description`, `created_at`, `updated_at`, `statut`) VALUES
+(1, 'Offre Primaire Standard', 40000, 1, '200 élèves maximum\r\n10 enseignants maximum\r\n5 personnels maximum\r\nBulletins PDF\r\nGestion scolarité\r\nNotifications', '2026-06-04 13:43:28', '2026-06-04 15:19:16', 'active');
 
 -- --------------------------------------------------------
 
@@ -532,26 +500,6 @@ CREATE TABLE `roles` (
 CREATE TABLE `role_has_permissions` (
   `permission_id` bigint(20) UNSIGNED NOT NULL,
   `role_id` bigint(20) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `sadmins`
---
-
-CREATE TABLE `sadmins` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `nom` varchar(255) NOT NULL,
-  `prenom` varchar(255) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `telephone` varchar(50) DEFAULT NULL,
-  `image` text DEFAULT NULL,
-  `statut` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -593,7 +541,8 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('BbGwYBIuA8n5BMxyLKoBy86fxPyDDZNSue4MQHOP', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiZVZBMUc4OXNueVF0cVdTTGpIU1ZROVJZMWNyWEl3OUU2T21oMEtmWCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1779930119);
+('2v8LcKAkxPgI3aFCAqZ9YcWbPuNJpH0QJq32To67', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoic3o3MkZtV3dkMVRiY1RSWDI5Zkc5YWFTaEVSRE9rZkZWUEFiSUdyMyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9jbGllbnQvYWJvbm5lbWVudCI7czo1OiJyb3V0ZSI7czoyMzoiY2xpZW50LmFib25uZW1lbnQuaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1780588610),
+('3CXvkWkVcP8rL5P0vNNnUFFf786SBtjsPtjO7CkK', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiTnVXUmM1OVlwT2tUR3lRb3lhZ2Y3dXk1UzlHWHBjZjYxSmFub1piQyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9zYWRtaW4vZXRhYmxpc3NlbWVudCI7czo1OiJyb3V0ZSI7czoyMDoic2FkbWluLmV0YWJsaXNzZW1lbnQiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=', 1780587140);
 
 -- --------------------------------------------------------
 
@@ -603,14 +552,42 @@ INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, 
 
 CREATE TABLE `subscriptions` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `tenant_id` bigint(20) UNSIGNED NOT NULL,
-  `plan_id` bigint(20) UNSIGNED NOT NULL,
-  `date_debut` date NOT NULL,
-  `date_fin` date NOT NULL,
+  `tenant_id` bigint(20) UNSIGNED NOT NULL DEFAULT 1,
+  `plan_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `date_debut` date DEFAULT NULL,
+  `date_fin` date DEFAULT NULL,
   `statut` enum('active','expired','cancelled') NOT NULL DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `price` int(11) NOT NULL,
+  `duration` int(11) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `subscription_types`
+--
+
+CREATE TABLE `subscription_types` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `default_duration` int(10) UNSIGNED DEFAULT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `subscription_types`
+--
+
+INSERT INTO `subscription_types` (`id`, `type`, `default_duration`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Mensuel', NULL, 'active', '2026-06-04 13:41:45', '2026-06-04 13:41:45');
 
 -- --------------------------------------------------------
 
@@ -656,10 +633,13 @@ CREATE TABLE `transactions` (
 CREATE TABLE `users` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `tenant_id` bigint(20) UNSIGNED NOT NULL DEFAULT 1,
+  `etablissement_id` bigint(20) UNSIGNED DEFAULT NULL,
   `nom` varchar(255) NOT NULL,
   `prenom` varchar(255) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `telephone` varchar(50) DEFAULT NULL,
+  `adresse` varchar(255) DEFAULT NULL,
+  `ville` varchar(100) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `image` text DEFAULT NULL,
   `role` enum('SADMIN','CLIENT','PERSONNEL','ENSEIGNANT','PARENT') NOT NULL,
@@ -672,8 +652,9 @@ CREATE TABLE `users` (
 -- Déchargement des données de la table `users`
 --
 
-INSERT INTO `users` (`id`, `tenant_id`, `nom`, `prenom`, `email`, `telephone`, `password`, `image`, `role`, `statut`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Admin', 'System', 'admin@test.com', NULL, '$2y$12$5JRDw/VoLqpQl8hV46KqBe8lcbb3WtDOtXk4s6LM1sEgJTklQ8EgK', NULL, 'SADMIN', 'active', '2026-05-27 15:06:51', '2026-05-27 15:06:51');
+INSERT INTO `users` (`id`, `tenant_id`, `etablissement_id`, `nom`, `prenom`, `email`, `telephone`, `adresse`, `ville`, `password`, `image`, `role`, `statut`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 'Tra', 'Dorgeles', 'sylvianneparisot8@gmail.com', '07 09 52 78 52', 'Yopougon Toit-Rouge', 'Abidjan', '$2y$12$/ve6EQUJ2p/kHR/HoybV0.ldJERkkVW4qDptdJ27X5aLUJwwHs99q', 'profile-images/1_iRD9iiWeWwB1HjEaXbAQ.jpg', 'SADMIN', 'active', NULL, '2026-06-04 13:27:12'),
+(2, 1, 2, 'Amany', 'ange marie grace', 'dorgeles@mail.com', '0101010101', 'Yopougon millionnaire', 'Abidjan', '$2y$12$q7DidhsOcSX0rByQVTMEMOMGx5BxT3PhFB.Wrcpq5OitZPijwacqu', 'clients/2443c885-037f-4a48-8d71-413953c7db40.jpg', 'CLIENT', 'active', '2026-06-04 13:33:48', '2026-06-04 13:33:48');
 
 -- --------------------------------------------------------
 
@@ -742,22 +723,13 @@ ALTER TABLE `emploi_temps`
   ADD PRIMARY KEY (`id`);
 
 --
--- Index pour la table `enseignants`
---
-ALTER TABLE `enseignants`
-  ADD PRIMARY KEY (`id`);
-
---
--- Index pour la table `enseignant_matiere`
---
-ALTER TABLE `enseignant_matiere`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Index pour la table `etablissements`
 --
 ALTER TABLE `etablissements`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `etablissements_tenant_nom_idx` (`tenant_id`,`nom`),
+  ADD KEY `etablissements_tenant_email_idx` (`tenant_id`,`email`),
+  ADD KEY `etablissements_tenant_acronyme_idx` (`tenant_id`,`acronyme`);
 
 --
 -- Index pour la table `failed_jobs`
@@ -836,16 +808,18 @@ ALTER TABLE `notifications`
   ADD PRIMARY KEY (`id`);
 
 --
--- Index pour la table `parents`
+-- Index pour la table `password_otps`
 --
-ALTER TABLE `parents`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `password_otps`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `password_otps_email_index` (`email`),
+  ADD KEY `password_otps_expires_at_index` (`expires_at`);
 
 --
--- Index pour la table `password_resets`
+-- Index pour la table `password_reset_tokens`
 --
-ALTER TABLE `password_resets`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`email`);
 
 --
 -- Index pour la table `payments`
@@ -861,16 +835,11 @@ ALTER TABLE `permissions`
   ADD UNIQUE KEY `permissions_name_guard_name_unique` (`name`,`guard_name`);
 
 --
--- Index pour la table `personnel`
---
-ALTER TABLE `personnel`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Index pour la table `plans`
 --
 ALTER TABLE `plans`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `plans_subscription_type_id_foreign` (`subscription_type_id`);
 
 --
 -- Index pour la table `roles`
@@ -885,14 +854,6 @@ ALTER TABLE `roles`
 ALTER TABLE `role_has_permissions`
   ADD PRIMARY KEY (`permission_id`,`role_id`),
   ADD KEY `role_has_permissions_role_id_foreign` (`role_id`);
-
---
--- Index pour la table `sadmins`
---
-ALTER TABLE `sadmins`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sadmins_username_unique` (`username`),
-  ADD UNIQUE KEY `sadmins_email_unique` (`email`);
 
 --
 -- Index pour la table `scolarites`
@@ -912,7 +873,15 @@ ALTER TABLE `sessions`
 -- Index pour la table `subscriptions`
 --
 ALTER TABLE `subscriptions`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `subscriptions_name_type_unique` (`name`,`type`);
+
+--
+-- Index pour la table `subscription_types`
+--
+ALTER TABLE `subscription_types`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `subscription_types_type_unique` (`type`);
 
 --
 -- Index pour la table `tenants`
@@ -932,7 +901,8 @@ ALTER TABLE `transactions`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `users_email_unique` (`email`);
+  ADD UNIQUE KEY `users_email_unique` (`email`),
+  ADD KEY `users_etablissement_id_foreign` (`etablissement_id`);
 
 --
 -- Index pour la table `versements`
@@ -975,22 +945,10 @@ ALTER TABLE `emploi_temps`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT pour la table `enseignants`
---
-ALTER TABLE `enseignants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT pour la table `enseignant_matiere`
---
-ALTER TABLE `enseignant_matiere`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT pour la table `etablissements`
 --
 ALTER TABLE `etablissements`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `failed_jobs`
@@ -1026,7 +984,7 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT pour la table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT pour la table `niveaux`
@@ -1047,15 +1005,9 @@ ALTER TABLE `notifications`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT pour la table `parents`
+-- AUTO_INCREMENT pour la table `password_otps`
 --
-ALTER TABLE `parents`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT pour la table `password_resets`
---
-ALTER TABLE `password_resets`
+ALTER TABLE `password_otps`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -1071,27 +1023,15 @@ ALTER TABLE `permissions`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT pour la table `personnel`
---
-ALTER TABLE `personnel`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT pour la table `plans`
 --
 ALTER TABLE `plans`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT pour la table `sadmins`
---
-ALTER TABLE `sadmins`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -1105,6 +1045,12 @@ ALTER TABLE `scolarites`
 --
 ALTER TABLE `subscriptions`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `subscription_types`
+--
+ALTER TABLE `subscription_types`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `tenants`
@@ -1122,7 +1068,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `versements`
@@ -1147,11 +1093,23 @@ ALTER TABLE `model_has_roles`
   ADD CONSTRAINT `model_has_roles_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
 
 --
+-- Contraintes pour la table `plans`
+--
+ALTER TABLE `plans`
+  ADD CONSTRAINT `plans_subscription_type_id_foreign` FOREIGN KEY (`subscription_type_id`) REFERENCES `subscription_types` (`id`) ON DELETE SET NULL;
+
+--
 -- Contraintes pour la table `role_has_permissions`
 --
 ALTER TABLE `role_has_permissions`
   ADD CONSTRAINT `role_has_permissions_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `role_has_permissions_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_etablissement_id_foreign` FOREIGN KEY (`etablissement_id`) REFERENCES `etablissements` (`id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

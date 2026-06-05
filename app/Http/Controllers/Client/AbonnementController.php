@@ -3,19 +3,36 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\View;
+use App\Models\Plan;
+use Illuminate\Http\Request;
 
 class AbonnementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('client.abonnements');
+        $type = $request->query('type');
+
+        $planQuery = Plan::query()->where('statut', 'active');
+
+        if ($type) {
+            // Filtre par type via la colonne plans.subscription_type_id
+            $planQuery->where('subscription_type_id', $type);
+        }
+
+        // “Premier plan actif” pour conserver le design actuel (1 seule carte)
+        // On tri avec `id` (stable) pour garantir que le “premier” est déterministe.
+        $featuredPlan = $planQuery->orderBy('id')->first();
+
+        return view('client.abonnements', [
+            'featuredPlan' => $featuredPlan,
+        ]);
     }
 
+
     // CRUD minimal : pour éviter 404 si la sidebar/les futures actions utilisent route resource.
-    public function create()
+    public function create(Request $request)
     {
-        return view('client.abonnements');
+        return $this->index($request);
     }
 
     public function store()
@@ -25,12 +42,12 @@ class AbonnementController extends Controller
 
     public function show($abonnement)
     {
-        return view('client.abonnements');
+        return redirect()->route('client.abonnement.index');
     }
 
     public function edit($abonnement)
     {
-        return view('client.abonnements');
+        return redirect()->route('client.abonnement.index');
     }
 
     public function update($request, $abonnement)
@@ -43,4 +60,5 @@ class AbonnementController extends Controller
         return redirect()->route('client.abonnement.index');
     }
 }
+
 

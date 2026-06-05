@@ -21,10 +21,14 @@ Route::middleware(['auth', 'client'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // CRUDs existants
+        // Route page abonnements (tableau)
+        Route::get('/abonnements', [AbonnementController::class, 'index'])->name('abonnements.index');
+
+        // CRUDs existants (garde la ressource pour compat)
         Route::resource('abonnement', AbonnementController::class);
         Route::resource('annee', AnneeController::class);
         Route::resource('personnel', PersonnelController::class);
+
 
         // Pages (index minimal) pour compléter la sidebar
         Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('comptabilite');
