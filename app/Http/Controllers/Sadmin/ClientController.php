@@ -34,12 +34,13 @@ class ClientController extends Controller
 
         $status = $request->get('status', 'all');
         if (in_array($status, ['actif', 'bloqué'], true)) {
-            // users.statut
-            $query->where('statut', $status === 'bloqué' ? 'blocked' : 'active');
+            // users.statut (DB: actif/bloqué)
+            $query->where('statut', $status);
         }
 
-        // Filtrer strictement sur statut DB (active/blocked) selon le cas ci-dessus
-        // Création : toujours 'active' (bloqué jamais)
+        // Filtre strict sur statut DB (actif/bloqué)
+        // Création : toujours 'actif' (bloqué jamais)
+
 
         $clients = $query->with('etablissement')->latest()->paginate(10)->withQueryString();
 
@@ -76,8 +77,7 @@ class ClientController extends Controller
             'adresse' => $validated['adresse'] ?? null,
             'ville' => $validated['ville'] ?? null,
             'role' => 'client',
-            // Ne jamais créer un client bloqué
-            'statut' => 'active',
+            // `statut` est forcé par défaut côté modèle (actif)
         ]);
 
 
@@ -118,15 +118,11 @@ class ClientController extends Controller
         // Ne jamais forcer 'blocked' via un champ de formulaire optionnel non sécurisé.
         // La gestion blocage se fait via les actions block/unblock.
         if (array_key_exists('status', $validated)) {
-            $requestedStatus = $validated['status'];
+            // On ignore volontairement l'éventuel champ `status` côté formulaire,
+            // le blocage/déblocage se fait via les actions block/unblock.
             unset($validated['status']);
-
-            // autoriser seulement les conversions depuis UI, mais sans créer de client bloqué ailleurs.
-            // Ici (update) on conserve le statut existant si pas d'action de blocage explicite.
-            if (! in_array($requestedStatus, ['actif', 'bloqué'], true)) {
-                // rien
-            }
         }
+
 
         // Map anciens champs CRUD -> colonnes users
         if (array_key_exists('photo', $validated)) {
@@ -148,8 +144,8 @@ class ClientController extends Controller
 
     public function block(User $client): RedirectResponse
     {
-        if ($client->statut !== 'blocked') {
-            $client->update(['statut' => 'blocked']);
+        if ($client->statut !== 'bloqué') {
+            $client->block();
         }
 
 
@@ -158,8 +154,8 @@ class ClientController extends Controller
 
     public function unblock(User $client): RedirectResponse
     {
-        if ($client->statut !== 'active') {
-            $client->update(['statut' => 'active']);
+        if ($client->statut !== 'actif') {
+            $client->unblock();
         }
 
 

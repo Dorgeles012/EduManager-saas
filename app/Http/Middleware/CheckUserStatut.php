@@ -9,9 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckUserStatut
 {
     /**
-     * Bloque l’accès (sans empêcher le login) si l’utilisateur est "blocked".
+     * Bloque l’accès (sans empêcher le login) si l’utilisateur est "bloqué".
      */
-    public function handle(Request $request, Closure $next, string $blockedValue = 'blocked'): Response
+    public function handle(Request $request, Closure $next, string $blockedValue = 'bloqué'): Response
     {
         $user = $request->user();
 
@@ -22,4 +22,6 @@ class CheckUserStatut
         return $next($request);
     }
 }
+
+
 

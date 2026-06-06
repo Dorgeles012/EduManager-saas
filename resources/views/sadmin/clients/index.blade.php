@@ -67,7 +67,7 @@
                     <td class="px-4 py-3 text-body-sm text-[13px] text-on-surface-variant">{{ $client->email }}</td>
 
                     <td class="px-4 py-3">
-                        @if(($client->statut ?? null) === 'active')
+                        @if(($client->statut ?? null) === 'actif')
                             <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-800 text-[12px]">Actif</span>
                         @else
                             <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-800 text-[12px]">Bloqué</span>
@@ -92,7 +92,7 @@
                                 </button>
                             </form>
 
-                            @if(($client->statut ?? null) === 'active')
+                            @if(($client->statut ?? null) === 'actif')
                                 <form method="POST" action="{{ route('sadmin.clients.block', $client) }}" class="m-0">
                                     @csrf
                                     @method('PATCH')

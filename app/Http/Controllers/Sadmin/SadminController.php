@@ -47,7 +47,7 @@ class SadminController extends Controller
         $user->telephone = $validated['telephone'];
         $user->password = Hash::make($validated['password']);
         $user->role = 'SADMIN';
-        $user->statut = 'active';
+        // `statut` est forcé par défaut côté modèle (actif)
 
         $user->save();
 

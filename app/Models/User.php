@@ -19,6 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'nom',
         'prenom',
+        'client_id',
         'email',
         'telephone',
         'password',
@@ -30,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at',
         'etablissement_id',
     ];
+
 
 
     protected $hidden = [
@@ -50,10 +52,27 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Etablissement::class, 'etablissement_id');
     }
 
+    /**
+     * Personnels appartenant à un client.
+     */
+    public function personnels(): HasMany
+    {
+        return $this->hasMany(User::class, 'client_id');
+    }
+
+    /**
+     * Client propriétaire du personnel (self-relation).
+     */
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class, 'user_id');
     }
+
 
 
     public function getNameAttribute(): ?string
@@ -66,12 +85,42 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->attributes['nom'] = $value;
     }
 
+    public const STATUT_ACTIF = 'actif';
+    public const STATUT_BLOQUE = 'bloqué';
+
     protected static function booted()
     {
         static::creating(function ($user) {
             if (empty($user->tenant_id)) {
                 $user->tenant_id = 1;
             }
+
+            // Par défaut : toujours actif lors de la création (sauf si explicitement fourni)
+            if (empty($user->statut)) {
+                $user->statut = self::STATUT_ACTIF;
+            }
         });
     }
+
+    public function isBlocked(): bool
+    {
+        return $this->statut === self::STATUT_BLOQUE;
+    }
+
+    public function block(): self
+    {
+        $this->statut = self::STATUT_BLOQUE;
+        $this->save();
+
+        return $this;
+    }
+
+    public function unblock(): self
+    {
+        $this->statut = self::STATUT_ACTIF;
+        $this->save();
+
+        return $this;
+    }
 }
+

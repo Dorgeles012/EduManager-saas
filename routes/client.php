@@ -33,6 +33,12 @@ Route::middleware(['auth', 'client'])
         Route::resource('annee', AnneeController::class);
         Route::resource('personnel', PersonnelController::class);
 
+        Route::patch('/personnel/{personnel}/block', [PersonnelController::class, 'block'])
+            ->name('personnel.block');
+        Route::patch('/personnel/{personnel}/unblock', [PersonnelController::class, 'unblock'])
+            ->name('personnel.unblock');
+
+
         Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('comptabilite');
         Route::get('/classe', [ClasseController::class, 'index'])->name('classe');
         Route::get('/eleve', [EleveController::class, 'index'])->name('eleve');
