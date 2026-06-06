@@ -42,9 +42,9 @@
                         @php
                             $sadminsCollection = $sadmins ?? collect();
                             if(method_exists($sadminsCollection, 'items')) {
-                                $activeCount = collect($sadminsCollection->items())->where('statut', 'active')->count();
+                                $activeCount = collect($sadminsCollection->items())->where('statut', 'actif')->count();
                             } else {
-                                $activeCount = $sadminsCollection->where('statut', 'active')->count();
+                                $activeCount = $sadminsCollection->where('statut', 'actif')->count();
                             }
                         @endphp
                         {{ $activeCount }}
@@ -96,12 +96,14 @@
                         <td class="px-4 py-3 text-sm">{{ $sadmin->telephone }}</td>
                         <td class="px-4 py-3">
                             @php
-                                $statut = $sadmin->statut ?? 'active';
+                                $statut = $sadmin->statut ?? 'actif';
                             @endphp
-                            @if($statut === 'active')
+                            @if($statut === 'actif')
                                 <span class="bg-teal-50 text-success-green px-2 py-0.5 rounded-full text-xs font-semibold">Actif</span>
-                            @else
+                            @elseif($statut === 'inactif')
                                 <span class="bg-amber-50 text-warning-amber px-2 py-0.5 rounded-full text-xs font-semibold">Inactif</span>
+                            @else
+                                <span class="bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full text-xs font-semibold">{{ ucfirst($statut) }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-sm text-text-muted">{{ optional($sadmin->created_at)->format('d/m/Y') }}</td>
@@ -305,9 +307,10 @@
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     function toggleModal(modalId) {
         const modal = document.getElementById(modalId);
@@ -378,6 +381,28 @@
         toggleModal('editSadminModal');
     }
 
+    function confirmDeleteSweet(event, form) {
+        event.preventDefault();
+        
+        Swal.fire({
+            title: 'Supprimer le SAdmin',
+            text: 'Êtes-vous sûr de vouloir supprimer ce super administrateur ? Cette action est irréversible.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler',
+            borderRadius: '12px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        
+        return false;
+    }
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const modals = ['addSadminModal', 'editSadminModal'];
@@ -389,5 +414,37 @@
             });
         }
     });
+
+    // Afficher les messages flash avec SweetAlert
+    @if(session('success'))
+        Swal.fire({
+            title: 'Succès !',
+            text: '{{ session('success') }}',
+            icon: 'success',
+            confirmButtonColor: '#1f108e',
+            borderRadius: '12px',
+            timer: 3000
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            title: 'Erreur !',
+            text: '{{ session('error') }}',
+            icon: 'error',
+            confirmButtonColor: '#1f108e',
+            borderRadius: '12px'
+        });
+    @endif
+
+    @if($errors->any())
+        Swal.fire({
+            title: 'Erreur de validation',
+            html: `{!! implode('<br>', $errors->all()) !!}`,
+            icon: 'error',
+            confirmButtonColor: '#1f108e',
+            borderRadius: '12px'
+        });
+    @endif
 </script>
 @endsection

@@ -42,9 +42,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $email = $this->string('email');
+        $password = $this->string('password');
+
+        // Vérification sécurité : si l’utilisateur est "bloqué", refuser le login AVANT
+        // que Laravel ne crée une session.
+        $user = \App\Models\User::query()->where('email', $email)->first();
+        if ($user && ($user->statut ?? null) === 'bloqué') {
+            throw ValidationException::withMessages([
+                'email' => 'Votre compte est bloqué, veuillez contacter l’administrateur',
+            ]);
+        }
+
         if (! Auth::attempt([
-            'email' => $this->string('email'),
-            'password' => $this->string('password'),
+            'email' => $email,
+            'password' => $password,
         ], $this->boolean('remember'))) {
 
             RateLimiter::hit($this->throttleKey());
