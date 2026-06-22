@@ -60,13 +60,31 @@ class ClasseController extends Controller
         $validated = $this->validateClasse($request);
         $user = auth()->user();
 
-        Classe::create([
+        $classe = Classe::create([
             'tenant_id' => $user->tenant_id,
             'etablissement_id' => $validated['etablissement_id'],
             'niveau_id' => $validated['niveau_id'],
             'nom' => $validated['nom'],
             'capacite' => $validated['capacite'] ?? 50,
         ]);
+
+        $classe->loadMissing(['etablissement', 'niveau']);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Classe créée avec succès.',
+                'class' => [
+                    'id' => $classe->id,
+                    'name' => $classe->nom,
+                    'school_id' => $classe->etablissement_id,
+                    'school' => $classe->etablissement?->nom ?? 'Non assigné',
+                    'level_id' => $classe->niveau_id,
+                    'level' => $classe->niveau?->nom ?? 'Non assigné',
+                    'max_students' => $classe->capacite,
+                ],
+            ], 201);
+        }
 
         return back()->with('success', 'Classe créée avec succès.');
     }
@@ -83,6 +101,24 @@ class ClasseController extends Controller
             'capacite' => $validated['capacite'] ?? 50,
         ]);
 
+        $classe->refresh()->loadMissing(['etablissement', 'niveau']);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Classe mise à jour avec succès.',
+                'class' => [
+                    'id' => $classe->id,
+                    'name' => $classe->nom,
+                    'school_id' => $classe->etablissement_id,
+                    'school' => $classe->etablissement?->nom ?? 'Non assigné',
+                    'level_id' => $classe->niveau_id,
+                    'level' => $classe->niveau?->nom ?? 'Non assigné',
+                    'max_students' => $classe->capacite,
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Classe mise à jour avec succès.');
     }
 
@@ -90,6 +126,13 @@ class ClasseController extends Controller
     {
         $this->authorizeTenant($classe);
         $classe->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Classe supprimée avec succès.',
+            ]);
+        }
 
         return back()->with('success', 'Classe supprimée avec succès.');
     }

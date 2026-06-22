@@ -2,7 +2,7 @@
 @section('title', 'EduManager - Classe')
 @section('content')
 <!-- Header Section -->
-<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
     <div>
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Classes</h2>
         <p class="text-text-muted font-body-md">Gérez les différentes classes de votre établissement</p>
@@ -108,7 +108,6 @@
                                 <span class="material-symbols-outlined text-5xl text-outline-variant">co_present</span>
                             </div>
                             <h5 class="font-headline-md text-headline-md text-on-surface mb-2">Aucune classe disponible</h5>
-                            <p class="text-text-muted font-body-sm mb-6">Commencez par ajouter votre première classe en cliquant sur le bouton ci-dessus.</p>
                         </div>
                     </td>
                 </tr>
@@ -255,8 +254,29 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: @json(session('success')),
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: @json(session('error')),
+                timer: 3000,
+                showConfirmButton: false,
+            });
+        @endif
+
         const classForms = ['addClassForm', 'editClassForm'];
         classForms.forEach((formId) => {
             const form = document.getElementById(formId);
@@ -361,7 +381,8 @@
                         title: 'Succès !',
                         text: 'La classe a été ajoutée avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#1f108e',
+                        showConfirmButton: false,
+                        timer: 3000,
                         borderRadius: '12px'
                     });
                     closeModal('modal-add');
@@ -394,7 +415,8 @@
                         title: 'Modifié !',
                         text: 'La classe a été modifiée avec succès.',
                         icon: 'success',
-                        confirmButtonColor: '#D97706',
+                        showConfirmButton: false,
+                        timer: 3000,
                         borderRadius: '12px'
                     });
                     closeModal('modal-edit');
@@ -421,7 +443,8 @@
                     title: 'Supprimé !',
                     text: 'La classe a été supprimée avec succès.',
                     icon: 'success',
-                    confirmButtonColor: '#1f108e',
+                    showConfirmButton: false,
+                    timer: 3000,
                     borderRadius: '12px'
                 });
             }
