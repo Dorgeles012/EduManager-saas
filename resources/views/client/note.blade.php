@@ -7,7 +7,7 @@
         <h2 class="font-headline-md text-[32px] text-primary mb-1">Gestion des Notes</h2>
         <p class="text-text-muted">Consultez et administrez les performances académiques des élèves.</p>
     </div>
-    <button class="bg-primary text-on-primary px-6 py-3 rounded-lg flex items-center gap-2 font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md shadow-primary/20" onclick="openModal()">
+    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal()">
         <span class="material-symbols-outlined">add</span>
         Ajouter une note
     </button>

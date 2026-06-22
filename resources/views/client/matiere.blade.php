@@ -7,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-on-surface">Gestion des Matières</h2>
         <p class="font-body-md text-body-md text-text-muted mt-1">Gérez l'ensemble des matières enseignées dans l'établissement</p>
     </div>
-    <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:shadow-lg active:scale-95 transition-all" onclick="openModal('addModal')">
+    <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('addModal')">
         <span class="material-symbols-outlined">add</span>
         Ajouter une matière
     </button>
@@ -21,7 +21,7 @@
         </div>
         <div>
             <p class="text-text-muted text-sm font-medium">Matières disponibles</p>
-            <p class="text-3xl font-headline-md text-primary">3</p>
+            <p class="text-3xl font-headline-md text-primary">{{ $totalSubjects ?? 0 }}</p>
         </div>
     </div>
     <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
@@ -30,7 +30,7 @@
         </div>
         <div>
             <p class="text-text-muted text-sm font-medium">Coefficient total</p>
-            <p class="text-3xl font-headline-md text-secondary">11</p>
+            <p class="text-3xl font-headline-md text-secondary">{{ $totalCoefficient ?? 0 }}</p>
         </div>
     </div>
     <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
@@ -61,6 +61,47 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/20">
+                @forelse($subjects ?? [] as $subject)
+                <tr class="hover:bg-primary/5 transition-colors group">
+                    <td class="px-6 py-4 text-on-surface-variant">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-lg">menu_book</span>
+                            </div>
+                            <span class="font-medium text-on-surface">{{ $subject['name'] }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1 bg-surface-container-high text-primary rounded-full font-bold text-xs">{{ $subject['coefficient'] }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-success-green"></div>
+                            <span class="text-sm font-medium text-success-green">Active</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editMatiere({{ $subject['id'] }}, @js($subject['name']), {{ $subject['coefficient'] }})" title="Modifier">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <form action="{{ route('client.matiere.destroy', $subject['id']) }}" method="POST" class="inline delete-subject-form">
+                                @csrf
+                                @method('DELETE')
+                                <button class="p-2 text-alert-red hover:bg-alert-red/10 rounded-lg transition-all delete-subject-btn" data-name="{{ $subject['name'] }}" type="button" title="Supprimer">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-on-surface-variant">Aucune matière enregistrée</td>
+                </tr>
+                @endforelse
+                @if(false)
                 <!-- Row 1 -->
                 <tr class="hover:bg-primary/5 transition-colors group">
                     <td class="px-6 py-4 text-on-surface-variant">01</td>
@@ -154,6 +195,7 @@
                         </div>
                     </td>
                 </tr>
+                @endif
             </tbody>
         </table>
     </div>
@@ -181,14 +223,15 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-5" onsubmit="handleAction(event, 'add')">
+        <form class="p-6 space-y-5" id="addSubjectForm" action="{{ route('client.matiere.store') }}" method="POST">
+            @csrf
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Nom de la matière</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" placeholder="Ex: Informatique" required type="text">
+                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="nom" placeholder="Ex: Informatique" required type="text">
             </div>
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Coefficient</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" max="10" min="1" placeholder="1-10" required type="number">
+                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="coefficient" max="10" min="1" placeholder="1-10" required type="number">
             </div>
             <div class="pt-4 flex gap-3">
                 <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('addModal')" type="button">Annuler</button>
@@ -208,14 +251,16 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-5" onsubmit="handleAction(event, 'edit')">
+        <form class="p-6 space-y-5" id="editSubjectForm" method="POST">
+            @csrf
+            @method('PUT')
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Nom de la matière</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editName" required type="text">
+                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editName" name="nom" required type="text">
             </div>
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Coefficient</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editCoeff" max="10" min="1" required type="number">
+                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editCoeff" name="coefficient" max="10" min="1" required type="number">
             </div>
             <div class="pt-4 flex gap-3">
                 <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('editModal')" type="button">Annuler</button>
@@ -263,7 +308,30 @@
         }, 300);
     }
 
-    function editMatiere(name, coeff) {
+    document.addEventListener('DOMContentLoaded', function() {
+        ['addSubjectForm', 'editSubjectForm'].forEach((formId) => {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                HTMLFormElement.prototype.submit.call(form);
+            }, true);
+        });
+
+        document.querySelectorAll('.delete-subject-btn').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (confirm(`Supprimer la matière "${this.dataset.name}" ?`)) {
+                    this.closest('form').submit();
+                }
+            }, true);
+        });
+    });
+
+    function editMatiere(id, name, coeff) {
+        document.getElementById('editSubjectForm').action = `{{ url('/client/matiere') }}/${id}`;
         document.getElementById('editName').value = name;
         document.getElementById('editCoeff').value = coeff;
         openModal('editModal');

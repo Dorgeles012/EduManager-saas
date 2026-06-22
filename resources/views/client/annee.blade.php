@@ -7,13 +7,10 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Années Académiques</h2>
         <p class="font-body-md text-text-muted mt-1">Gérez les années scolaires et universitaires</p>
     </div>
-
-    <div class="flex gap-3">
-        <button type="button" onclick="openAddModal()" class="flex items-center gap-2 px-6 py-3 bg-primary-container text-on-primary rounded-lg font-label-md hover:bg-opacity-90 transition-all shadow-sm active:scale-95">
+        <button type="button" onclick="openAddModal()" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow">
             <span class="material-symbols-outlined">add</span>
             Ajouter une année
         </button>
-    </div>
 </div>
 
 <!-- Stats Grid -->

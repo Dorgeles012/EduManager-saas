@@ -2,32 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Classe extends Model
+class Niveau extends Model
 {
     use HasFactory;
 
-    protected $table = 'classes';
+    protected $table = 'niveaux';
 
     protected $fillable = [
         'tenant_id',
         'etablissement_id',
-        'niveau_id',
-        'filiere_id',
         'nom',
-        'capacite',
     ];
 
     protected $casts = [
         'tenant_id' => 'integer',
         'etablissement_id' => 'integer',
-        'niveau_id' => 'integer',
-        'filiere_id' => 'integer',
-        'capacite' => 'integer',
     ];
 
     public function etablissement(): BelongsTo
@@ -35,14 +29,8 @@ class Classe extends Model
         return $this->belongsTo(Etablissement::class, 'etablissement_id');
     }
 
-    public function niveau(): BelongsTo
+    public function classes(): HasMany
     {
-        return $this->belongsTo(Niveau::class, 'niveau_id');
-    }
-
-    public function eleves(): HasMany
-    {
-        return $this->hasMany(Eleve::class, 'classe_id');
+        return $this->hasMany(Classe::class, 'niveau_id');
     }
 }
-

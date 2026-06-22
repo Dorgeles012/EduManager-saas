@@ -326,6 +326,16 @@
 
         <!-- Page Content -->
         <div class="main-content-with-fixed-nav p-6">
+            @if($errors->any())
+                <div class="mb-4 rounded-lg border border-alert-red/20 bg-alert-red/10 px-4 py-3 text-alert-red">
+                    <ul class="list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
         </div>
     </main>

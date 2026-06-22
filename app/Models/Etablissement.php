@@ -33,4 +33,19 @@ class Etablissement extends Model
     {
         return $this->hasMany(Client::class);
     }
+
+    public function niveaux(): HasMany
+    {
+        return $this->hasMany(Niveau::class, 'etablissement_id');
+    }
+
+    public function classes(): HasMany
+    {
+        return $this->hasMany(Classe::class, 'etablissement_id');
+    }
+
+    public function eleves(): HasMany
+    {
+        return $this->hasMany(Eleve::class, 'etablissement_id');
+    }
 }

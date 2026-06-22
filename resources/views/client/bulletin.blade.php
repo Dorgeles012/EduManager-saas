@@ -7,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Bulletins Scolaires</h2>
         <p class="font-body-md text-body-md text-on-surface-variant">Consultez et gérez les bulletins des élèves</p>
     </div>
-    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all" onclick="toggleModal(true)">
+    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="toggleModal(true)">
         <span class="material-symbols-outlined">add</span>
         Générer un bulletin
     </button>

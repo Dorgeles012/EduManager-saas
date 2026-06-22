@@ -98,9 +98,13 @@
                             <button class="w-8 h-8 flex items-center justify-center text-warning-amber hover:bg-warning-amber/10 rounded-full transition-all" onclick="openEditModal({{ json_encode($teacher) }})" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
-                            <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all" onclick="confirmDelete({{ $teacher['id'] }}, '{{ $teacher['firstname'] }} {{ $teacher['lastname'] }}')" title="Supprimer">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
+                            <form action="{{ route('client.enseignant.destroy', $teacher['id']) }}" method="POST" class="inline delete-teacher-form">
+                                @csrf
+                                @method('DELETE')
+                                <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all delete-teacher-btn" data-name="{{ $teacher['firstname'] }} {{ $teacher['lastname'] }}" type="button" title="Supprimer">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -156,7 +160,13 @@
                     <p class="text-xs text-primary/70">L'enseignant pourra modifier ce mot de passe lors de sa première connexion.</p>
                 </div>
             </div>
-            <form class="space-y-5" id="addTeacherForm">
+            <form class="space-y-5" id="addTeacherForm" action="{{ route('client.enseignant.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="nom" id="teacherLastnameHidden">
+                <input type="hidden" name="prenoms" id="teacherFirstnameHidden">
+                <input type="hidden" name="email" id="teacherEmailHidden">
+                <input type="hidden" name="telephone" id="teacherPhoneHidden">
+                <input type="hidden" name="matiere_id" id="teacherSubjectHidden">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="block font-label-md text-label-md text-on-surface">Nom <span class="text-alert-red">*</span></label>
@@ -180,7 +190,7 @@
                     <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherSubject" required>
                         <option value="">Sélectionnez une matière</option>
                         @foreach($subjects ?? ['Anglais', 'Mathématiques', 'Physique chimie'] as $subject)
-                        <option value="{{ $subject }}">{{ $subject }}</option>
+                        <option value="{{ is_array($subject) ? $subject['id'] : $subject }}">{{ is_array($subject) ? $subject['name'] : $subject }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -204,7 +214,14 @@
             </button>
         </div>
         <div class="flex-1 overflow-y-auto p-8">
-            <form class="space-y-5" id="editTeacherForm">
+            <form class="space-y-5" id="editTeacherForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="nom" id="editTeacherLastnameHidden">
+                <input type="hidden" name="prenoms" id="editTeacherFirstnameHidden">
+                <input type="hidden" name="email" id="editTeacherEmailHidden">
+                <input type="hidden" name="telephone" id="editTeacherPhoneHidden">
+                <input type="hidden" name="matiere_id" id="editTeacherSubjectHidden">
                 <input type="hidden" id="editTeacherId">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
@@ -228,7 +245,7 @@
                     <label class="block font-label-md text-label-md text-on-surface">Matière enseignée <span class="text-alert-red">*</span></label>
                     <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherSubject" required>
                         @foreach($subjects ?? ['Anglais', 'Mathématiques', 'Physique chimie'] as $subject)
-                        <option value="{{ $subject }}">{{ $subject }}</option>
+                        <option value="{{ is_array($subject) ? $subject['id'] : $subject }}">{{ is_array($subject) ? $subject['name'] : $subject }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -283,6 +300,46 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addTeacherForm = document.getElementById('addTeacherForm');
+        if (addTeacherForm) {
+            addTeacherForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                document.getElementById('teacherLastnameHidden').value = document.getElementById('teacherLastname').value;
+                document.getElementById('teacherFirstnameHidden').value = document.getElementById('teacherFirstname').value;
+                document.getElementById('teacherEmailHidden').value = document.getElementById('teacherEmail').value;
+                document.getElementById('teacherPhoneHidden').value = document.getElementById('teacherPhone').value;
+                document.getElementById('teacherSubjectHidden').value = document.getElementById('teacherSubject').value;
+                HTMLFormElement.prototype.submit.call(addTeacherForm);
+            }, true);
+        }
+
+        const editTeacherForm = document.getElementById('editTeacherForm');
+        if (editTeacherForm) {
+            editTeacherForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                document.getElementById('editTeacherLastnameHidden').value = document.getElementById('editTeacherLastname').value;
+                document.getElementById('editTeacherFirstnameHidden').value = document.getElementById('editTeacherFirstname').value;
+                document.getElementById('editTeacherEmailHidden').value = document.getElementById('editTeacherEmail').value;
+                document.getElementById('editTeacherPhoneHidden').value = document.getElementById('editTeacherPhone').value;
+                document.getElementById('editTeacherSubjectHidden').value = document.getElementById('editTeacherSubject').value;
+                HTMLFormElement.prototype.submit.call(editTeacherForm);
+            }, true);
+        }
+
+        document.querySelectorAll('.delete-teacher-btn').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (confirm(`Supprimer l'enseignant "${this.dataset.name}" ?`)) {
+                    this.closest('form').submit();
+                }
+            }, true);
+        });
+    });
+
     // Fonction de recherche
     const searchInput = document.getElementById('searchTeacher');
     if (searchInput) {
@@ -349,6 +406,7 @@
     }
 
     function openEditModal(teacher) {
+        document.getElementById('editTeacherForm').action = `{{ url('/client/enseignant') }}/${teacher.id}`;
         document.getElementById('editTeacherId').value = teacher.id;
         document.getElementById('editTeacherLastname').value = teacher.lastname;
         document.getElementById('editTeacherFirstname').value = teacher.firstname;
@@ -357,7 +415,7 @@
         
         const subjectSelect = document.getElementById('editTeacherSubject');
         for(let i = 0; i < subjectSelect.options.length; i++) {
-            if(subjectSelect.options[i].value === teacher.subject) {
+            if(subjectSelect.options[i].value == teacher.subject_id) {
                 subjectSelect.selectedIndex = i;
                 break;
             }

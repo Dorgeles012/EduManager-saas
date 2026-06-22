@@ -172,13 +172,18 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-4" id="scolariteForm">
+        <form class="p-6 space-y-4" id="scolariteForm" action="{{ route('client.comptabilite.scolarite.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="eleve_id" id="studentIdHidden">
+            <input type="hidden" name="montant" id="amountHidden">
+            <input type="hidden" name="montant_versement" id="amountVersementHidden">
+            <input type="hidden" name="annee_scolaire" id="academicYearHidden" value="{{ $currentYear ?? '2024-2025' }}">
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-1">
                     <label class="block text-label-sm text-on-surface-variant mb-1.5">Niveau</label>
                     <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="levelSelect">
                         @foreach($levels ?? ['Primaire', 'Secondaire', 'Lycée'] as $level)
-                        <option>{{ $level }}</option>
+                        <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -189,7 +194,12 @@
             </div>
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Nom de l'élève</label>
-                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="studentName" placeholder="Entrez le nom complet" type="text">
+                <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="studentName">
+                    <option value="">Sélectionner un élève</option>
+                    @foreach($eleves ?? [] as $eleve)
+                        <option value="{{ $eleve['id'] }}">{{ $eleve['name'] }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -219,7 +229,11 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-4" id="depenseForm">
+        <form class="p-6 space-y-4" id="depenseForm" action="{{ route('client.comptabilite.depense.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="libel_depense" id="expenseLabelHidden">
+            <input type="hidden" name="montant" id="expenseAmountHidden">
+            <input type="hidden" name="date_depense" id="expenseDateHidden">
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Libellé de la dépense</label>
                 <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseLabel" placeholder="Décrivez la nature de la dépense..." rows="3"></textarea>
@@ -264,6 +278,32 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const realScolariteForm = document.getElementById('scolariteForm');
+        if (realScolariteForm) {
+            realScolariteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                document.getElementById('studentIdHidden').value = document.getElementById('studentName').value;
+                document.getElementById('amountHidden').value = document.getElementById('amountInput').value;
+                document.getElementById('amountVersementHidden').value = document.getElementById('amountInput').value;
+                HTMLFormElement.prototype.submit.call(realScolariteForm);
+            }, true);
+        }
+
+        const realDepenseForm = document.getElementById('depenseForm');
+        if (realDepenseForm) {
+            realDepenseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                document.getElementById('expenseLabelHidden').value = document.getElementById('expenseLabel').value;
+                document.getElementById('expenseAmountHidden').value = document.getElementById('expenseAmount').value;
+                document.getElementById('expenseDateHidden').value = document.getElementById('expenseDate').value;
+                HTMLFormElement.prototype.submit.call(realDepenseForm);
+            }, true);
+        }
+    });
+
     // Modal Handling with animation
     function openModal(modalId) {
         const modal = document.getElementById(modalId);

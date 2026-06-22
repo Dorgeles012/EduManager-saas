@@ -5,68 +5,127 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
 use App\Models\Etablissement;
-use App\Models\Matiere;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Str;
+use App\Models\Niveau;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClasseController extends Controller
 {
     public function index()
     {
-        // IMPORTANT : les vues attendent historiquement des tableaux stylés.
-        // Ici, on fournit une collection de tableaux avec des clés attendues par Blade.
-        // Tenant scoping : on filtre par tenant_id si disponible.
-        $tenantId = auth()->user()?->tenant_id;
+        $user = auth()->user();
 
-        $classesQuery = Classe::query();
-        if ($tenantId) {
-            $classesQuery->where('tenant_id', $tenantId);
-        }
+        $classes = Classe::with(['etablissement', 'niveau'])
+            ->withCount('eleves')
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->latest()
+            ->get();
 
-        $classes = $classesQuery
-            ->orderByDesc('id')
-            ->get()
-            ->map(function ($classe) {
-                // La vue utilise des clés : name, school, level, student_count, id, max_students
-                // Ces colonnes n'existent pas forcément telles quelles en DB (selon ton schéma).
-                // On reconstruit donc avec des valeurs sûres.
-                $niveauLabel = $classe->niveau_id ? ('Niveau #' . $classe->niveau_id) : 'N/A';
-                $schoolLabel = $classe->etablissement_id ? ('Etablissement #' . $classe->etablissement_id) : 'Mon Établissement';
-
-                return [
-                    'id' => $classe->id,
-                    'name' => $classe->nom,
-                    'school' => $schoolLabel,
-                    'level' => $niveauLabel,
-                    'student_count' => 0,
-                    'max_students' => $classe->capacite,
-                ];
-            });
-
-        // Champs auxiliaires utilisés par la vue
         $schools = Etablissement::query()
-            ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
-            ->orderByDesc('id')
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('id', $user->etablissement_id))
+            ->orderBy('nom')
             ->get(['id', 'nom'])
-            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->nom])
-            ->values();
+            ->map(fn ($school) => ['id' => $school->id, 'name' => $school->nom]);
 
-        // Niveaux : pour l'instant, on donne des valeurs par défaut si table non modélisée
-        $levels = [
-            ['id' => 1, 'name' => 'Primaire'],
-            ['id' => 2, 'name' => 'Collège'],
-            ['id' => 3, 'name' => 'Lycée'],
-        ];
+        $levels = Niveau::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->orderBy('nom')
+            ->get(['id', 'nom'])
+            ->map(fn ($level) => ['id' => $level->id, 'name' => $level->nom]);
 
         return view('client.classe', [
-            'classes' => $classes,
+            'classes' => $classes->map(fn ($classe) => [
+                'id' => $classe->id,
+                'name' => $classe->nom,
+                'school_id' => $classe->etablissement_id,
+                'level_id' => $classe->niveau_id,
+                'school' => $classe->etablissement?->nom ?? 'Non assigné',
+                'level' => $classe->niveau?->nom ?? 'Non assigné',
+                'student_count' => $classe->eleves_count,
+                'max_students' => $classe->capacite,
+            ]),
             'totalClasses' => $classes->count(),
-            'totalLevels' => count($levels),
+            'totalLevels' => $levels->count(),
             'schoolName' => $schools->first()['name'] ?? 'Mon Établissement',
             'levels' => $levels,
             'schools' => $schools,
         ]);
     }
+
+    public function store(Request $request)
+    {
+        $validated = $this->validateClasse($request);
+        $user = auth()->user();
+
+        Classe::create([
+            'tenant_id' => $user->tenant_id,
+            'etablissement_id' => $validated['etablissement_id'],
+            'niveau_id' => $validated['niveau_id'],
+            'nom' => $validated['nom'],
+            'capacite' => $validated['capacite'] ?? 50,
+        ]);
+
+        return back()->with('success', 'Classe créée avec succès.');
+    }
+
+    public function update(Request $request, Classe $classe)
+    {
+        $this->authorizeTenant($classe);
+        $validated = $this->validateClasse($request);
+
+        $classe->update([
+            'etablissement_id' => $validated['etablissement_id'],
+            'niveau_id' => $validated['niveau_id'],
+            'nom' => $validated['nom'],
+            'capacite' => $validated['capacite'] ?? 50,
+        ]);
+
+        return back()->with('success', 'Classe mise à jour avec succès.');
+    }
+
+    public function destroy(Classe $classe)
+    {
+        $this->authorizeTenant($classe);
+        $classe->delete();
+
+        return back()->with('success', 'Classe supprimée avec succès.');
+    }
+
+    private function validateClasse(Request $request): array
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'nom' => ['required', 'string', 'max:255'],
+            'etablissement_id' => [
+                'required',
+                Rule::exists('etablissements', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
+            ],
+            'niveau_id' => [
+                'required',
+                Rule::exists('niveaux', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
+            ],
+            'capacite' => ['nullable', 'integer', 'min:1', 'max:500'],
+        ]);
+
+        if ($user->etablissement_id) {
+            abort_unless((int) $validated['etablissement_id'] === (int) $user->etablissement_id, 403);
+        }
+
+        return $validated;
+    }
+
+    private function authorizeTenant(Classe $classe): void
+    {
+        $user = auth()->user();
+
+        abort_unless(
+            $classe->tenant_id === $user->tenant_id
+            && (!$user->etablissement_id || $classe->etablissement_id === $user->etablissement_id),
+            403
+        );
+    }
 }
-
-

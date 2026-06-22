@@ -7,7 +7,7 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Classes</h2>
         <p class="text-text-muted font-body-md">Gérez les différentes classes de votre établissement</p>
     </div>
-    <button class="bg-primary text-white px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 font-label-md transition-all hover:bg-primary/90 active:scale-95 shadow-lg shadow-primary/20" onclick="openModal('modal-add')">
+    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-add')">
         <span class="material-symbols-outlined text-lg">add</span>
         Ajouter une classe
     </button>
@@ -90,9 +90,13 @@
                             <button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="openEditModal({{ json_encode($class) }})" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
-                            <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors" onclick="confirmDelete({{ $class['id'] }}, '{{ $class['name'] }}')" title="Supprimer">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
+                            <form action="{{ route('client.classe.destroy', $class['id']) }}" method="POST" class="inline delete-class-form">
+                                @csrf
+                                @method('DELETE')
+                                <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-class-btn" data-name="{{ $class['name'] }}" title="Supprimer" type="button">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -140,15 +144,16 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-8 space-y-6" id="addClassForm">
+        <form class="p-8 space-y-6" id="addClassForm" action="{{ route('client.classe.store') }}" method="POST">
+            @csrf
             <div class="grid grid-cols-1 gap-6">
                 <div class="space-y-1.5">
                     <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
+                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" name="nom" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
                 </div>
                 <div class="space-y-1.5">
                     <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" required>
+                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" name="etablissement_id" required>
                         <option value="">Sélectionner un établissement</option>
                         @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
                         <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
@@ -158,7 +163,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" required>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" name="niveau_id" required>
                             <option value="">Sélectionner un niveau</option>
                             @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
                             <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
@@ -167,7 +172,7 @@
                     </div>
                     <div class="space-y-1.5">
                         <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" placeholder="40" type="number">
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" name="capacite" placeholder="40" type="number">
                     </div>
                 </div>
             </div>
@@ -192,16 +197,18 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-8 space-y-6" id="editClassForm">
+        <form class="p-8 space-y-6" id="editClassForm" method="POST">
+            @csrf
+            @method('PUT')
             <input type="hidden" id="editClassId">
             <div class="grid grid-cols-1 gap-6">
                 <div class="space-y-1.5">
                     <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" type="text" required>
+                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" name="nom" type="text" required>
                 </div>
                 <div class="space-y-1.5">
                     <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" required>
+                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" name="etablissement_id" required>
                         @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
                         <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
                         @endforeach
@@ -210,7 +217,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" required>
+                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" name="niveau_id" required>
                             @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
                             <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                             @endforeach
@@ -218,7 +225,7 @@
                     </div>
                     <div class="space-y-1.5">
                         <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" type="number">
+                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" name="capacite" type="number">
                     </div>
                 </div>
             </div>
@@ -249,6 +256,42 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const classForms = ['addClassForm', 'editClassForm'];
+        classForms.forEach((formId) => {
+            const form = document.getElementById(formId);
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                HTMLFormElement.prototype.submit.call(form);
+            }, true);
+        });
+
+        document.querySelectorAll('.delete-class-btn').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'Êtes-vous sûr ?',
+                    text: `La classe "${this.dataset.name}" sera définitivement supprimée.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ba1a1a',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }, true);
+        });
+    });
+
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         const contentId = modalId + '-content';
@@ -280,26 +323,17 @@
     }
 
     function openEditModal(classData) {
+        document.getElementById('editClassForm').action = `{{ url('/client/classe') }}/${classData.id}`;
         document.getElementById('editClassId').value = classData.id;
         document.getElementById('editClassName').value = classData.name;
         document.getElementById('editClassMaxStudents').value = classData.max_students || '';
         
         // Sélectionner les options correspondantes
         const schoolSelect = document.getElementById('editClassSchool');
-        for(let i = 0; i < schoolSelect.options.length; i++) {
-            if(schoolSelect.options[i].text === classData.school) {
-                schoolSelect.selectedIndex = i;
-                break;
-            }
-        }
+        schoolSelect.value = classData.school_id;
         
         const levelSelect = document.getElementById('editClassLevel');
-        for(let i = 0; i < levelSelect.options.length; i++) {
-            if(levelSelect.options[i].text === classData.level) {
-                levelSelect.selectedIndex = i;
-                break;
-            }
-        }
+        levelSelect.value = classData.level_id;
         
         openModal('modal-edit');
     }

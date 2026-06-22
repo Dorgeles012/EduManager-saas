@@ -8,11 +8,11 @@
         <p class="text-body-md text-text-muted">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
     </div>
     <div class="flex gap-4">
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-success-green text-on-primary rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95" onclick="openModal('modal-transfer')">
+        <button class="flex items-center gap-2 px-6 py-2.5 bg-success-green text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-transfer')">
             <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
             Élève transféré
         </button>
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary-container text-on-primary rounded-lg font-label-md hover:bg-primary transition-all active:scale-95 shadow-md" onclick="openModal('modal-standard')">
+        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')">
             <span class="material-symbols-outlined text-[20px]">person_add</span>
             Nouvel élève
         </button>
@@ -46,6 +46,23 @@
     <div class="px-6 py-4 border-b border-surface-subtle bg-surface-container-low flex justify-between items-center">
         <h4 class="font-headline-md text-headline-md text-primary">Liste des élèves</h4>
     </div>
+
+    <form method="GET" action="{{ route('client.eleve') }}" class="px-6 py-4 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-4 gap-3 bg-white">
+        <input type="text" name="search" value="{{ request('search') }}" class="rounded-lg border-outline-variant" placeholder="Rechercher nom ou matricule">
+        <select name="niveau_id" class="rounded-lg border-outline-variant">
+            <option value="">Tous les niveaux</option>
+            @foreach($levels ?? [] as $level)
+                <option value="{{ $level['id'] }}" @selected((string) request('niveau_id') === (string) $level['id'])>{{ $level['name'] }}</option>
+            @endforeach
+        </select>
+        <select name="classe_id" class="rounded-lg border-outline-variant">
+            <option value="">Toutes les classes</option>
+            @foreach($classes ?? [] as $classe)
+                <option value="{{ $classe['id'] }}" @selected((string) request('classe_id') === (string) $classe['id'])>{{ $classe['name'] }}</option>
+            @endforeach
+        </select>
+        <button class="bg-primary text-white rounded-lg px-4 py-2 font-label-md" type="submit">Filtrer</button>
+    </form>
 
     @if(($students ?? collect())->isEmpty())
     <div class="min-h-[200px] flex flex-col items-center justify-center text-center p-9">
@@ -97,9 +114,13 @@
                             <button class="p-2 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
-                            <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors" onclick="confirmDelete({{ $student['id'] }}, '{{ $student['firstname'] }} {{ $student['lastname'] }}')" title="Supprimer">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
+                            <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline delete-student-form">
+                                @csrf
+                                @method('DELETE')
+                                <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -130,7 +151,18 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-8" id="form-standard">
+        <form class="p-8" id="form-standard" action="{{ route('client.eleve.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="type_eleve" value="nouveau">
+            <input type="hidden" name="nom" id="stdLastnameHidden">
+            <input type="hidden" name="prenom" id="stdFirstnameHidden">
+            <input type="hidden" name="date_naissance" id="stdBirthdateHidden">
+            <input type="hidden" name="lieu_naissance" id="stdBirthPlaceHidden">
+            <input type="hidden" name="niveau_id" id="stdLevelHidden">
+            <input type="hidden" name="parent_nom" id="parentLastnameHidden">
+            <input type="hidden" name="parent_prenom" id="parentFirstnameHidden">
+            <input type="hidden" name="parent_telephone" id="parentPhoneHidden">
+            <input type="hidden" name="parent_email" id="parentEmailHidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Section Élève -->
                 <div class="space-y-6">
@@ -164,7 +196,7 @@
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
                                 <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
                                     @foreach($levels ?? ['CP1', 'CP2', 'CE1', 'CE2', 'CM1', 'CM2'] as $level)
-                                    <option>{{ $level }}</option>
+                                    <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -237,7 +269,19 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-8" id="form-transfer">
+        <form class="p-8" id="form-transfer" action="{{ route('client.eleve.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="type_eleve" value="transfere">
+            <input type="hidden" name="nom" id="trfLastnameHidden">
+            <input type="hidden" name="prenom" id="trfFirstnameHidden">
+            <input type="hidden" name="matricule" id="trfMatriculeHidden">
+            <input type="hidden" name="date_naissance" id="trfBirthdateHidden">
+            <input type="hidden" name="ancien_etablissement" id="trfPreviousSchoolHidden">
+            <input type="hidden" name="niveau_id" id="trfLevelHidden">
+            <input type="hidden" name="parent_nom" id="trfParentLastnameHidden">
+            <input type="hidden" name="parent_prenom" id="trfParentFirstnameHidden">
+            <input type="hidden" name="parent_telephone" id="trfParentPhoneHidden">
+            <input type="hidden" name="parent_email" id="trfParentEmailHidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Section Élève -->
                 <div class="space-y-6">
@@ -270,7 +314,7 @@
                             <label class="block text-label-sm text-on-surface mb-1.5">Niveau Actuel</label>
                             <select class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfLevel">
                                 @foreach($levels ?? ['CP1', 'CP2', 'CE1', 'CE2', 'CM1', 'CM2'] as $level)
-                                <option>{{ $level }}</option>
+                                <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -338,6 +382,59 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const standardForm = document.getElementById('form-standard');
+        if (standardForm) {
+            standardForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (!validateAge($('#birthdate-std').val(), 'age-warning-std')) return;
+                document.getElementById('stdLastnameHidden').value = document.getElementById('stdLastname').value;
+                document.getElementById('stdFirstnameHidden').value = document.getElementById('stdFirstname').value;
+                document.getElementById('stdBirthdateHidden').value = document.getElementById('birthdate-std').value;
+                document.getElementById('stdBirthPlaceHidden').value = document.getElementById('stdBirthPlace').value;
+                document.getElementById('stdLevelHidden').value = document.getElementById('stdLevel').value;
+                document.getElementById('parentLastnameHidden').value = document.getElementById('parentLastname').value;
+                document.getElementById('parentFirstnameHidden').value = document.getElementById('parentFirstname').value;
+                document.getElementById('parentPhoneHidden').value = document.getElementById('parentPhone').value;
+                document.getElementById('parentEmailHidden').value = document.getElementById('parentEmail').value;
+                HTMLFormElement.prototype.submit.call(standardForm);
+            }, true);
+        }
+
+        const transferForm = document.getElementById('form-transfer');
+        if (transferForm) {
+            transferForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (!validateAge($('#birthdate-trf').val(), 'age-warning-trf')) return;
+                const names = document.getElementById('trfFullname').value.trim().split(/\s+/);
+                document.getElementById('trfLastnameHidden').value = names.shift() || '';
+                document.getElementById('trfFirstnameHidden').value = names.join(' ');
+                document.getElementById('trfMatriculeHidden').value = document.getElementById('trfMatricule').value;
+                document.getElementById('trfBirthdateHidden').value = document.getElementById('birthdate-trf').value;
+                document.getElementById('trfPreviousSchoolHidden').value = document.getElementById('trfPreviousSchool').value;
+                document.getElementById('trfLevelHidden').value = document.getElementById('trfLevel').value;
+                const parentNames = document.getElementById('trfParentName').value.trim().split(/\s+/);
+                document.getElementById('trfParentLastnameHidden').value = parentNames.shift() || '';
+                document.getElementById('trfParentFirstnameHidden').value = parentNames.join(' ');
+                document.getElementById('trfParentPhoneHidden').value = document.getElementById('trfParentPhone').value;
+                document.getElementById('trfParentEmailHidden').value = document.getElementById('trfParentEmail').value;
+                HTMLFormElement.prototype.submit.call(transferForm);
+            }, true);
+        }
+
+        document.querySelectorAll('.delete-student-btn').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (confirm(`Supprimer l'élève "${this.dataset.name}" ?`)) {
+                    this.closest('form').submit();
+                }
+            }, true);
+        });
+    });
+
     // Modal functions with animation
     function openModal(id) {
         const modal = document.getElementById(id);
