@@ -10,7 +10,8 @@ class ParentEleve extends Model
 {
     use HasFactory;
 
-    protected $table = 'parents';
+    // Model conservé pour compatibilité, mais la table `parents` n'est plus utilisée.
+    protected $table = 'users';
 
     protected $fillable = [
         'tenant_id',
@@ -30,5 +31,11 @@ class ParentEleve extends Model
     public function eleves(): HasMany
     {
         return $this->hasMany(Eleve::class, 'parent_id');
+    }
+
+    // S'assurer que l'utilisateur correspondant a bien le rôle parent.
+    public function scopeParent($query)
+    {
+        return $query->whereRaw('LOWER(role) = ?', ['parent']);
     }
 }

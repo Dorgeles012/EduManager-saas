@@ -29,10 +29,6 @@
                     <span class="material-symbols-outlined text-primary text-base">shield_person</span>
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-1.5 text-success-green text-sm">
-                <span class="material-symbols-outlined text-sm">trending_up</span>
-                <span>+{{ $newThisMonth ?? 0 }} ce mois-ci</span>
-            </div>
         </div>
         <div class="col-span-12 md:col-span-4 bg-white p-4 rounded-lg ambient-shadow border border-slate-100">
             <div class="flex justify-between items-start">

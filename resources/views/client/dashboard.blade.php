@@ -65,9 +65,6 @@
                         <div class="p-2 bg-primary/10 rounded-lg">
                             <span class="material-symbols-outlined text-primary">payments</span>
                         </div>
-                        <span class="text-green-600 font-label-xs text-label-xs flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                            <span class="material-symbols-outlined text-[12px]">trending_up</span> +12.5%
-                        </span>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Revenu Total</p>
                     <h3 class="font-headline-md text-headline-md text-on-surface mt-1">$124,000</h3>
@@ -91,7 +88,7 @@
                         <div class="p-2 bg-yellow-100 rounded-lg">
                             <span class="material-symbols-outlined text-yellow-600">domain</span>
                         </div>
-                        <span class="text-text-muted font-label-xs text-label-xs">Sur 5 sites</span>
+                        
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Établissements</p>
                     <h3 class="font-headline-md text-headline-md text-on-surface mt-1">1</h3>
@@ -103,9 +100,7 @@
                         <div class="p-2 bg-red-100 rounded-lg">
                             <span class="material-symbols-outlined text-red-600">receipt_long</span>
                         </div>
-                        <span class="text-red-600 font-label-xs text-label-xs flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full">
-                            Attention
-                        </span>
+                       
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Factures en attente</p>
                     <h3 class="font-headline-md text-headline-md text-on-surface mt-1">12</h3>

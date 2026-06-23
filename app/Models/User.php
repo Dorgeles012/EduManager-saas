@@ -73,6 +73,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Subscription::class, 'user_id');
     }
 
+    /**
+     * Élèves rattachés à ce parent.
+     *
+     * La relation métier est : eleves.parent_id -> users.id
+     */
+    public function eleves(): HasMany
+    {
+        return $this->hasMany(Eleve::class, 'parent_id');
+    }
+
+
 
 
     public function getNameAttribute(): ?string

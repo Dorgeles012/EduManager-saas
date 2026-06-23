@@ -8,12 +8,8 @@
         <p class="text-body-md text-text-muted">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
     </div>
     <div class="flex gap-4">
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-success-green text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-transfer')">
-            <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
-            Élève transféré
-        </button>
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')">
-            <span class="material-symbols-outlined text-[20px]">person_add</span>
+        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')">
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
             Nouvel élève
         </button>
     </div>
@@ -48,20 +44,20 @@
     </div>
 
     <form method="GET" action="{{ route('client.eleve') }}" class="px-6 py-4 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-4 gap-3 bg-white">
-        <input type="text" name="search" value="{{ request('search') }}" class="rounded-lg border-outline-variant" placeholder="Rechercher nom ou matricule">
-        <select name="niveau_id" class="rounded-lg border-outline-variant">
+        <input type="text" name="search" value="{{ request('search') }}" class="rounded-lg border-outline-variant text-sm" placeholder="Rechercher nom ou matricule">
+        <select name="niveau_id" class="rounded-lg border-outline-variant text-sm">
             <option value="">Tous les niveaux</option>
             @foreach($levels ?? [] as $level)
                 <option value="{{ $level['id'] }}" @selected((string) request('niveau_id') === (string) $level['id'])>{{ $level['name'] }}</option>
             @endforeach
         </select>
-        <select name="classe_id" class="rounded-lg border-outline-variant">
+        <select name="classe_id" class="rounded-lg border-outline-variant text-sm">
             <option value="">Toutes les classes</option>
             @foreach($classes ?? [] as $classe)
                 <option value="{{ $classe['id'] }}" @selected((string) request('classe_id') === (string) $classe['id'])>{{ $classe['name'] }}</option>
             @endforeach
         </select>
-        <button class="bg-primary text-white rounded-lg px-4 py-2 font-label-md" type="submit">Filtrer</button>
+        <button class="bg-primary text-white rounded-lg px-4 py-2 font-label-md text-sm" type="submit">Filtrer</button>
     </form>
 
     @if(($students ?? collect())->isEmpty())
@@ -70,55 +66,77 @@
             <span class="material-symbols-outlined text-primary text-5xl">school</span>
         </div>
         <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Aucun élève enregistré pour le moment</h3>
-        <p class="text-body-md text-text-muted max-w-sm">Commencez par ajouter votre premier élève en utilisant les boutons d'action ci-dessus.</p>
     </div>
     @else
     <div class="overflow-x-auto">
-        <table class="w-full text-left">
-            <thead class="bg-surface-container-low text-label-sm uppercase tracking-wider text-text-muted">
+        <table class="w-full text-left text-[14px]">
+            <thead class="bg-surface-container-low text-[13px] uppercase tracking-wider text-text-muted">
                 <tr>
-                    <th class="px-6 py-4">#</th>
-                    <th class="px-6 py-4">Nom &amp; Prénoms</th>
-                    <th class="px-6 py-4">Niveau</th>
-                    <th class="px-6 py-4">Matricule</th>
-                    <th class="px-6 py-4">Date de naissance</th>
-                    <th class="px-6 py-4">Parents</th>
-                    <th class="px-6 py-4 text-right">Actions</th>
+                    <th class="px-5 py-4 font-semibold">#</th>
+                    <th class="px-5 py-4 font-semibold">Nom &amp; Prénoms</th>
+                    <th class="px-5 py-4 font-semibold">Matricule</th>
+                    <th class="px-5 py-4 font-semibold">Sexe</th>
+                    <th class="px-5 py-4 font-semibold">Classe</th>
+                    <th class="px-5 py-4 font-semibold">Niveau</th>
+                    <th class="px-5 py-4 font-semibold">Date de naissance</th>
+                    <th class="px-5 py-4 font-semibold text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-subtle">
                 @foreach($students as $student)
                 <tr class="hover:bg-surface-container-low transition-colors">
-                    <td class="px-6 py-4 text-body-sm">{{ $loop->iteration }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-[18px]">person</span>
-                            </div>
-                            <span class="font-body-md font-medium">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
+                    <td class="px-5 py-3.5 text-[14px]">{{ $loop->iteration }}</td>
+                    
+                    <td class="px-5 py-3.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-[14px]">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
+                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['matricule'] ?? 'N/A' }}</td>
+                    
+                    <!-- Colonne Sexe -->
+                    <td class="px-5 py-3.5">
+                        @php
+                            $sexe = strtolower(trim($student['sexe'] ?? ''));
+                            $badgeClass = '';
+                            $displaySexe = 'N/A';
+                            
+                            if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) {
+                                $badgeClass = 'bg-blue-100 text-blue-700';
+                                $displaySexe = 'Masculin';
+                            } elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme', 'f'])) {
+                                $badgeClass = 'bg-pink-100 text-pink-700';
+                                $displaySexe = 'Féminin';
+                            } else {
+                                $badgeClass = 'bg-gray-100 text-gray-700';
+                                $displaySexe = 'N/A';
+                            }
+                        @endphp
+                        <span class="px-3 py-1 rounded-full text-[12px] font-medium {{ $badgeClass }}">
+                            {{ $displaySexe }}
+                        </span>
+                    </td>
+                    
+                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
+                    <td class="px-5 py-3.5">
+                        <span class="px-3 py-1 rounded-full text-[12px] font-medium bg-secondary-container/20 text-on-secondary-container">
                             {{ $student['level'] }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $student['matricule'] ?? 'N/A' }}</td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $student['birthdate'] }}</td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $student['parent_name'] }}</td>
-                    <td class="px-6 py-4 text-right">
+                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['birthdate'] }}</td>
+                    <td class="px-5 py-3.5 text-right">
                         <div class="flex justify-end gap-2">
-                            <button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="viewStudent({{ $student['id'] }})" title="Voir">
-                                <span class="material-symbols-outlined">visibility</span>
+                            <button class="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="viewStudent({{ json_encode($student) }})" title="Voir">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
-                            <button class="p-2 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier">
-                                <span class="material-symbols-outlined">edit</span>
+                            <button class="p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
                             </button>
                             <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline delete-student-form">
                                 @csrf
                                 @method('DELETE')
-                                <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
-                                    <span class="material-symbols-outlined">delete</span>
+                                <button class="p-1.5 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
                                 </button>
                             </form>
                         </div>
@@ -131,10 +149,10 @@
     
     <!-- Pagination -->
     <div class="px-6 py-4 border-t border-surface-subtle bg-surface-container-low/30 flex items-center justify-between">
-        <span class="text-label-sm text-text-muted">
+        <span class="text-[13px] text-text-muted">
             Affichage de {{ $students->firstItem() ?? 0 }} à {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }} élèves
         </span>
-        <div class="flex gap-2">
+        <div class="flex gap-2 text-sm">
             {{ $students->links() ?? '' }}
         </div>
     </div>
@@ -148,36 +166,59 @@
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0">
             <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE</h3>
             <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')">
-                <span class="material-symbols-outlined">close</span>
+                <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
-        <form class="p-8" id="form-standard" action="{{ route('client.eleve.store') }}" method="POST">
+        <form class="p-8" id="form-standard" action="{{ route('client.eleve.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="type_eleve" value="nouveau">
             <input type="hidden" name="nom" id="stdLastnameHidden">
             <input type="hidden" name="prenom" id="stdFirstnameHidden">
+            <input type="hidden" name="matricule" id="stdMatriculeHidden">
+            <input type="hidden" name="sexe" id="stdSexeHidden">
             <input type="hidden" name="date_naissance" id="stdBirthdateHidden">
             <input type="hidden" name="lieu_naissance" id="stdBirthPlaceHidden">
+            <input type="hidden" name="classe_id" id="stdClasseHidden">
             <input type="hidden" name="niveau_id" id="stdLevelHidden">
             <input type="hidden" name="parent_nom" id="parentLastnameHidden">
             <input type="hidden" name="parent_prenom" id="parentFirstnameHidden">
             <input type="hidden" name="parent_telephone" id="parentPhoneHidden">
             <input type="hidden" name="parent_email" id="parentEmailHidden">
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Section Élève -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
-                        <span class="material-symbols-outlined">person</span>
+                        <span class="material-symbols-outlined text-[20px]">person</span>
                         INFORMATIONS DE L'ÉLÈVE
                     </h4>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" placeholder="Ex: TRAORE" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" placeholder="Ex: Moussa" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdMatricule" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
+                            <div class="flex gap-6 mt-1">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="sexe" value="Masculin" class="w-4 h-4 text-primary focus:ring-primary focus:ring-2 border-outline-variant" checked>
+                                    <span class="text-body-sm text-on-surface">Masculin</span>
+                                    <span class="material-symbols-outlined text-[20px] text-primary/60">male</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="sexe" value="Féminin" class="w-4 h-4 text-primary focus:ring-primary focus:ring-2 border-outline-variant">
+                                    <span class="text-body-sm text-on-surface">Féminin</span>
+                                    <span class="material-symbols-outlined text-[20px] text-primary/60">female</span>
+                                </label>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
@@ -189,20 +230,38 @@
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" placeholder="Ex: Abidjan" type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" type="text">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
-                                    @foreach($levels ?? ['CP1', 'CP2', 'CE1', 'CE2', 'CM1', 'CM2'] as $level)
-                                    <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required>
+                                    <option value="">Sélectionner une classe</option>
+                                    @foreach($classes ?? [] as $classe)
+                                    <option value="{{ $classe['id'] }}">{{ $classe['name'] }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Année Académique</label>
-                                <input class="w-full rounded-lg bg-surface-subtle border-outline-variant text-text-muted" disabled type="text" value="{{ $currentAcademicYear ?? '2024-2025' }}">
+                                <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
+                                    <option value="">Sélectionner un niveau</option>
+                                    @foreach($levels ?? [] as $level)
+                                    <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-20 h-20 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-std">
+                                    <span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>
+                                </div>
+                                <div class="flex-1">
+                                    <input class="w-full text-body-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-label-md file:bg-primary-fixed file:text-primary hover:file:bg-primary-fixed/80" id="stdPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-std')">
+                                    <p class="text-[11px] text-text-muted mt-1">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -210,7 +269,7 @@
                 <!-- Section Parent -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
-                        <span class="material-symbols-outlined">family_restroom</span>
+                        <span class="material-symbols-outlined text-[20px]">family_restroom</span>
                         INFORMATIONS DU PARENT
                     </h4>
                     <div class="space-y-4">
@@ -238,11 +297,11 @@
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" placeholder="+225 00 00 00 00 00" required type="tel">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" required type="tel">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" placeholder="parent@email.com" type="email">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" type="email">
                         </div>
                     </div>
                 </div>
@@ -259,101 +318,306 @@
     </div>
 </div>
 
-<!-- Modal: Transferred Addition -->
-<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-transfer">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-transfer')"></div>
-    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-transfer-content">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green text-white sticky top-0">
-            <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE TRANSFÉRÉ</h3>
-            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-transfer')">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+<!-- Modal: View (Details) - PHOTO RONDE ET SANS BADGE SEXE -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-view">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-view')"></div>
+    <div class="relative glass-card w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="modal-view-content">
+        <!-- Icônes en arrière-plan -->
+        <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+            <span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">school</span>
         </div>
-        <form class="p-8" id="form-transfer" action="{{ route('client.eleve.store') }}" method="POST">
-            @csrf
-            <input type="hidden" name="type_eleve" value="transfere">
-            <input type="hidden" name="nom" id="trfLastnameHidden">
-            <input type="hidden" name="prenom" id="trfFirstnameHidden">
-            <input type="hidden" name="matricule" id="trfMatriculeHidden">
-            <input type="hidden" name="date_naissance" id="trfBirthdateHidden">
-            <input type="hidden" name="ancien_etablissement" id="trfPreviousSchoolHidden">
-            <input type="hidden" name="niveau_id" id="trfLevelHidden">
-            <input type="hidden" name="parent_nom" id="trfParentLastnameHidden">
-            <input type="hidden" name="parent_prenom" id="trfParentFirstnameHidden">
-            <input type="hidden" name="parent_telephone" id="trfParentPhoneHidden">
-            <input type="hidden" name="parent_email" id="trfParentEmailHidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Section Élève -->
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-success-green flex items-center gap-2 border-b border-secondary-container pb-2">
-                        <span class="material-symbols-outlined">person</span>
-                        INFORMATIONS DE L'ÉLÈVE
-                    </h4>
-                    <div class="space-y-4">
-                        <div class="col-span-2">
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom complet <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfFullname" placeholder="Ex: KOFFI Kouassi" required type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Matricule National <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfMatricule" placeholder="Ex: 12345678A" required type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="birthdate-trf" required type="date">
-                            <p class="hidden text-[11px] text-alert-red mt-1 flex items-center gap-1" id="age-warning-trf">
-                                <span class="material-symbols-outlined text-[14px]">warning</span>
-                                L'âge minimum requis est de 5 ans.
-                            </p>
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Ancien Établissement <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfPreviousSchool" placeholder="Nom de l'école précédente" required type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Niveau Actuel</label>
-                            <select class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfLevel">
-                                @foreach($levels ?? ['CP1', 'CP2', 'CE1', 'CE2', 'CM1', 'CM2'] as $level)
-                                <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+        <div class="absolute -left-4 -bottom-4 opacity-5 pointer-events-none rotate-12">
+            <span class="material-symbols-outlined text-[180px]" style="font-variation-settings: 'FILL' 1;">badge</span>
+        </div>
+
+        <!-- Bannière de statut - Fixe -->
+        <div class="px-5 py-2.5 bg-gradient-to-r from-primary/5 to-primary-container/5 border-b border-outline-variant/30 flex justify-between items-center flex-shrink-0 bg-white/95 backdrop-blur-sm z-10 rounded-t-2xl">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[16px]">info</span>
+                <span class="text-label-sm text-[11px] text-text-muted">Informations générales</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="absolute inline-flex h-full w-full rounded-full bg-success-green opacity-75 animate-ping"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-green"></span>
+                </span>
+                <span class="text-label-sm text-[11px] font-semibold text-success-green">Actif</span>
+            </div>
+        </div>
+
+        <!-- Contenu principal - Scrollable -->
+        <div class="flex-1 overflow-y-auto p-5 md:p-6" id="modal-view-scroll">
+            <!-- En-tête avec avatar et nom - PHOTO RONDE -->
+            <div class="flex flex-col md:flex-row md:items-start gap-6 pb-5 border-b border-outline-variant/30">
+                <div class="relative">
+                    <!-- Photo rendue RONDE avec rounded-full -->
+                    <div class="w-28 h-28 rounded-full bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center shadow-md relative z-10 overflow-hidden" id="viewStudentPhotoContainer">
+                        <span class="material-symbols-outlined text-5xl text-primary/40">account_circle</span>
+                    </div>
+                    <div class="absolute -right-2 -bottom-2 opacity-20">
+                        <span class="material-symbols-outlined text-2xl">person</span>
                     </div>
                 </div>
-                <!-- Section Parent -->
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-success-green flex items-center gap-2 border-b border-secondary-container pb-2">
-                        <span class="material-symbols-outlined">family_restroom</span>
-                        INFORMATIONS DU PARENT
-                    </h4>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom &amp; Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfParentName" required type="text">
+                <div class="flex-1 relative">
+                    <!-- Nom en plus grand -->
+                    <h3 class="font-headline-xl text-[28px] text-on-surface mb-2 flex items-center gap-2" id="viewStudentFullName">
+                        -
+                        <span class="material-symbols-outlined text-primary text-2xl opacity-60" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    </h3>
+                    <!-- Badges sans celui du sexe -->
+                    <div class="flex flex-wrap gap-2">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary-fixed/30 text-primary rounded-full text-[12px]">
+                            <span class="material-symbols-outlined text-[14px]">badge</span>
+                            Matricule: <span id="viewStudentMatricule">-</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-[12px]">
+                            <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Né(e) le <span id="viewStudentBirthdate">-</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille des informations détaillées - TEXTES AGRANDIS -->
+            <div class="pt-5">
+                <h4 class="font-headline-md text-[20px] text-on-surface mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[22px]">contact_mail</span>
+                    Informations scolaires
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Classe -->
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-[22px]">class</span>
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Email du Parent</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfParentEmail" type="email">
+                        <div class="flex-1">
+                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Classe</p>
+                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentClasse">-</p>
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-success-green focus:border-success-green" id="trfParentPhone" required type="tel">
+                    </div>
+
+                    <!-- Niveau -->
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-[22px]">account_tree</span>
                         </div>
-                        <div class="bg-surface-container-low p-4 rounded-lg">
-                            <p class="text-body-sm text-on-secondary-container">
-                                <strong>Note :</strong> Pour les élèves transférés, le dossier scolaire complet doit être numérisé et joint ultérieurement dans la fiche de l'élève.
-                            </p>
+                        <div class="flex-1">
+                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Niveau</p>
+                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentNiveau">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Sexe -->
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-[22px]">wc</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Sexe</p>
+                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentSexeDetail">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Lieu de naissance (pleine largeur) -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                                <span class="material-symbols-outlined text-primary text-[22px]">location_on</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Lieu de naissance</p>
+                                <p class="font-body-md text-[16px] text-on-surface" id="viewStudentBirthplace">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parents (pleine largeur) -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                                <span class="material-symbols-outlined text-primary text-[22px]">family_restroom</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Parents / Tuteurs</p>
+                                <div class="mt-1 space-y-1">
+                                    <p class="font-body-md text-[16px] text-on-surface">Nom : <span id="viewStudentParentLastname">-</span></p>
+                                    <p class="font-body-md text-[16px] text-on-surface">Prénom : <span id="viewStudentParentFirstname">-</span></p>
+                                    <p class="font-body-md text-[16px] text-on-surface">Téléphone : <span id="viewStudentParentPhone">-</span></p>
+                                    <p class="font-body-md text-[16px] text-on-surface">Email : <span id="viewStudentParentEmail">-</span></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Pied de page - Fixe -->
+        <div class="mt-auto pt-4 pb-4 px-5 md:px-6 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 bg-white/95 rounded-b-2xl">
+            <div class="flex items-center gap-4 text-text-muted">
+                <span class="text-label-sm text-[12px] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">event_note</span>
+                    Créé: <span id="viewStudentCreatedAt" class="text-on-surface font-medium">-</span>
+                </span>
+                <span class="text-label-sm text-[12px] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">update</span>
+                    Modifié: <span id="viewStudentUpdatedAt" class="text-on-surface font-medium">-</span>
+                </span>
+            </div>
+            <div class="flex gap-2">
+                <button class="px-4 py-2 bg-warning-amber text-white rounded-lg font-label-md text-[14px] hover:bg-warning-amber/90 transition-all flex items-center gap-2" onclick="window.print()">
+                    <span class="material-symbols-outlined text-[18px]">print</span>
+                    Imprimer
+                </button>
+                <button class="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-[14px] hover:bg-primary/90 transition-all flex items-center gap-2" onclick="closeModal('modal-view')">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-edit">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-edit')"></div>
+    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-warning-amber text-white sticky top-0">
+            <h3 class="font-headline-md text-headline-md">MODIFIER L'ÉLÈVE</h3>
+            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-edit')">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <form class="p-8" id="form-edit" action="" method="POST" enctype="multipart/form-data">
+            @csrf
+            <input type="hidden" name="_method" value="PUT" />
+            <input type="hidden" name="editEleveId" id="editEleveId" value="" />
+
+            <input type="hidden" name="type_eleve" value="nouveau" />
+            <input type="hidden" name="nom" id="editLastnameHidden">
+            <input type="hidden" name="prenom" id="editFirstnameHidden">
+            <input type="hidden" name="matricule" id="editMatriculeHidden">
+            <input type="hidden" name="sexe" id="editSexeHidden">
+            <input type="hidden" name="date_naissance" id="editBirthdateHidden">
+            <input type="hidden" name="lieu_naissance" id="editBirthPlaceHidden">
+            <input type="hidden" name="classe_id" id="editClasseHidden">
+            <input type="hidden" name="niveau_id" id="editLevelHidden">
+            <input type="hidden" name="parent_nom" id="editParentLastnameHidden">
+            <input type="hidden" name="parent_prenom" id="editParentFirstnameHidden">
+            <input type="hidden" name="parent_telephone" id="editParentPhoneHidden">
+            <input type="hidden" name="parent_email" id="editParentEmailHidden">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Section Élève -->
+                <div class="space-y-6">
+                    <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
+                        <span class="material-symbols-outlined text-[20px]">person</span>
+                        INFORMATIONS DE L'ÉLÈVE
+                    </h4>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLastname" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editFirstname" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editMatricule" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
+                            <div class="flex gap-6 mt-1">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="edit_sexe" value="Masculin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
+                                    <span class="text-body-sm text-on-surface">Masculin</span>
+                                    <span class="material-symbols-outlined text-[20px] text-warning-amber/60">male</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="edit_sexe" value="Féminin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
+                                    <span class="text-body-sm text-on-surface">Féminin</span>
+                                    <span class="material-symbols-outlined text-[20px] text-warning-amber/60">female</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthdate" required type="date">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" type="text">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required>
+                                    <option value="">Sélectionner une classe</option>
+                                    @foreach($classes ?? [] as $classe)
+                                        <option value="{{ $classe['id'] }}">{{ $classe['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLevel">
+                                    <option value="">Sélectionner un niveau</option>
+                                    @foreach($levels ?? [] as $level)
+                                        <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-20 h-20 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-edit">
+                                    <span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>
+                                </div>
+                                <div class="flex-1">
+                                    <input class="w-full text-body-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-label-md file:bg-warning-amber/20 file:text-warning-amber hover:file:bg-warning-amber/30" id="editPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-edit')">
+                                    <p class="text-[11px] text-text-muted mt-1">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Parent -->
+                <div class="space-y-6">
+                    <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
+                        <span class="material-symbols-outlined text-[20px]">family_restroom</span>
+                        INFORMATIONS DU PARENT
+                    </h4>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentLastname" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentFirstname" required type="text">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentPhone" required type="tel">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentEmail" type="email">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-10 flex justify-end gap-4 pt-6 border-t border-outline-variant">
-                <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-transfer')" type="button">
-                    Annuler
-                </button>
-                <button class="px-8 py-2 bg-success-green text-white rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">
-                    Valider le transfert
-                </button>
+                <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-edit')" type="button">Annuler</button>
+                <button class="px-8 py-2 bg-warning-amber text-white rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">Mettre à jour</button>
             </div>
         </form>
     </div>
@@ -373,15 +637,86 @@
     }
     
     /* Animation styles for modals */
-    #modal-standard, #modal-transfer {
+    #modal-standard, #modal-view, #modal-edit {
         transition: opacity 0.3s ease;
+    }
+
+    /* Animation ping pour le statut */
+    @keyframes ping {
+        75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    .animate-ping {
+        animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    /* Style de la scrollbar verticale pour le modal view */
+    #modal-view-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #modal-view-scroll::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+    }
+
+    #modal-view-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+
+    #modal-view-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Firefox */
+    #modal-view-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    /* Supprimer la scrollbar horizontale sur les tables */
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 0px;
+        width: 0px;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: transparent;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .overflow-x-auto {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
     }
 </style>
 @endsection
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Photo preview function
+    function previewPhoto(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Photo" class="w-full h-full object-cover">`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.innerHTML = `<span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>`;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const standardForm = document.getElementById('form-standard');
         if (standardForm) {
@@ -389,10 +724,17 @@
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 if (!validateAge($('#birthdate-std').val(), 'age-warning-std')) return;
+                
+                const selectedSexe = document.querySelector('input[name="sexe"]:checked');
+                const sexeValue = selectedSexe ? selectedSexe.value : '';
+                
                 document.getElementById('stdLastnameHidden').value = document.getElementById('stdLastname').value;
                 document.getElementById('stdFirstnameHidden').value = document.getElementById('stdFirstname').value;
+                document.getElementById('stdMatriculeHidden').value = document.getElementById('stdMatricule').value;
+                document.getElementById('stdSexeHidden').value = sexeValue;
                 document.getElementById('stdBirthdateHidden').value = document.getElementById('birthdate-std').value;
                 document.getElementById('stdBirthPlaceHidden').value = document.getElementById('stdBirthPlace').value;
+                document.getElementById('stdClasseHidden').value = document.getElementById('stdClasse').value;
                 document.getElementById('stdLevelHidden').value = document.getElementById('stdLevel').value;
                 document.getElementById('parentLastnameHidden').value = document.getElementById('parentLastname').value;
                 document.getElementById('parentFirstnameHidden').value = document.getElementById('parentFirstname').value;
@@ -402,25 +744,31 @@
             }, true);
         }
 
-        const transferForm = document.getElementById('form-transfer');
-        if (transferForm) {
-            transferForm.addEventListener('submit', function(e) {
+        const editForm = document.getElementById('form-edit');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                if (!validateAge($('#birthdate-trf').val(), 'age-warning-trf')) return;
-                const names = document.getElementById('trfFullname').value.trim().split(/\s+/);
-                document.getElementById('trfLastnameHidden').value = names.shift() || '';
-                document.getElementById('trfFirstnameHidden').value = names.join(' ');
-                document.getElementById('trfMatriculeHidden').value = document.getElementById('trfMatricule').value;
-                document.getElementById('trfBirthdateHidden').value = document.getElementById('birthdate-trf').value;
-                document.getElementById('trfPreviousSchoolHidden').value = document.getElementById('trfPreviousSchool').value;
-                document.getElementById('trfLevelHidden').value = document.getElementById('trfLevel').value;
-                const parentNames = document.getElementById('trfParentName').value.trim().split(/\s+/);
-                document.getElementById('trfParentLastnameHidden').value = parentNames.shift() || '';
-                document.getElementById('trfParentFirstnameHidden').value = parentNames.join(' ');
-                document.getElementById('trfParentPhoneHidden').value = document.getElementById('trfParentPhone').value;
-                document.getElementById('trfParentEmailHidden').value = document.getElementById('trfParentEmail').value;
-                HTMLFormElement.prototype.submit.call(transferForm);
+
+                if (!validateAge($('#editBirthdate').val(), 'age-warning-std')) return;
+
+                const selectedSexe = document.querySelector('input[name="edit_sexe"]:checked');
+                const sexeValue = selectedSexe ? selectedSexe.value : '';
+
+                document.getElementById('editLastnameHidden').value = document.getElementById('editLastname').value;
+                document.getElementById('editFirstnameHidden').value = document.getElementById('editFirstname').value;
+                document.getElementById('editMatriculeHidden').value = document.getElementById('editMatricule').value;
+                document.getElementById('editSexeHidden').value = sexeValue;
+                document.getElementById('editBirthdateHidden').value = document.getElementById('editBirthdate').value;
+                document.getElementById('editBirthPlaceHidden').value = document.getElementById('editBirthPlace').value;
+                document.getElementById('editClasseHidden').value = document.getElementById('editClasse').value;
+                document.getElementById('editLevelHidden').value = document.getElementById('editLevel').value;
+                document.getElementById('editParentLastnameHidden').value = document.getElementById('editParentLastname').value;
+                document.getElementById('editParentFirstnameHidden').value = document.getElementById('editParentFirstname').value;
+                document.getElementById('editParentPhoneHidden').value = document.getElementById('editParentPhone').value;
+                document.getElementById('editParentEmailHidden').value = document.getElementById('editParentEmail').value;
+
+                HTMLFormElement.prototype.submit.call(editForm);
             }, true);
         }
 
@@ -428,11 +776,57 @@
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                if (confirm(`Supprimer l'élève "${this.dataset.name}" ?`)) {
-                    this.closest('form').submit();
-                }
+                Swal.fire({
+                    title: 'Êtes-vous sûr ?',
+                    text: `L'élève "${this.dataset.name}" sera définitivement supprimé.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ba1a1a',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler',
+                    borderRadius: '12px'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.closest('form').submit();
+                    }
+                });
             }, true);
         });
+
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: @json(session('success')),
+                toast: false,
+                position: 'center',
+                showConfirmButton: false,
+                confirmButtonText: 'Fermer',
+                timer: 2500,
+                timerProgressBar: false,
+                customClass: {
+                    popup: 'rounded-2xl'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: @json(session('error')),
+                toast: false,
+                position: 'center',
+                showConfirmButton: false,
+                confirmButtonText: 'Fermer',
+                timer: 3000,
+                timerProgressBar: false,
+                customClass: {
+                    popup: 'rounded-2xl'
+                }
+            });
+        @endif
     });
 
     // Modal functions with animation
@@ -466,27 +860,167 @@
         }, 300);
     }
 
-    function viewStudent(id) {
-        Swal.fire({
-            title: 'Fiche élève',
-            text: `Affichage des détails de l'élève ID: ${id}`,
-            icon: 'info',
-            confirmButtonColor: '#1f108e',
-            borderRadius: '12px'
-        });
+    function openViewModal(student) {
+        const fullName = `${student.firstname ?? ''} ${student.lastname ?? ''}`.trim();
+        document.getElementById('viewStudentFullName').textContent = fullName || '-';
+        document.getElementById('viewStudentMatricule').textContent = student.matricule ?? 'N/A';
+        document.getElementById('viewStudentBirthdate').textContent = student.birthdate ?? 'N/A';
+        document.getElementById('viewStudentBirthplace').textContent = student.birthplace ?? 'N/A';
+        document.getElementById('viewStudentClasse').textContent = student.classe ?? student.class ?? 'N/A';
+        document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
+        
+        // Photo: sécuriser l'URL si jamais backend renvoie un chemin (par prudence)
+        if (student.photo && !String(student.photo).startsWith('/storage/') && !String(student.photo).startsWith('http')) {
+            // si c'est du type "eleves/xxx.jpg" ou "storage/eleves/xxx.jpg" => on essaie de reconstruire
+            const p = String(student.photo).replace(/^\/storage\//,'').replace(/^storage\//,'');
+            student.photo = `/storage/${p}`;
+        }
+
+        // Formatage du sexe pour l'affichage
+        const sexeRaw = (student.sexe ?? '').toString().trim();
+
+        const sexeLower = sexeRaw.toLowerCase();
+        let sexeDisplay = 'Non renseigné';
+
+        const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
+
+        if (masculinValues.includes(sexeLower)) {
+            sexeDisplay = 'Masculin';
+        } else if (femininValues.includes(sexeLower)) {
+            sexeDisplay = 'Féminin';
+        } else if (sexeRaw === 'Masculin' || sexeRaw === 'MASCULIN') {
+            sexeDisplay = 'Masculin';
+        } else if (sexeRaw === 'Féminin' || sexeRaw === 'FEMININ' || sexeRaw === 'FÉMININ') {
+            sexeDisplay = 'Féminin';
+        }
+
+        // Mise à jour du sexe dans la grille (pas de badge en haut)
+        document.getElementById('viewStudentSexeDetail').textContent = sexeDisplay;
+
+        const parentLastname = student.parent_lastname ?? null;
+        const parentFirstname = student.parent_firstname ?? null;
+        const parentPhone = student.parent_phone ?? null;
+        const parentEmail = student.parent_email ?? null;
+
+        const hasSeparatedParents = parentLastname || parentFirstname || parentPhone || parentEmail;
+
+        document.getElementById('viewStudentParentLastname').textContent = parentLastname ?? '-';
+        document.getElementById('viewStudentParentFirstname').textContent = parentFirstname ?? '-';
+        document.getElementById('viewStudentParentPhone').textContent = parentPhone ?? '-';
+        document.getElementById('viewStudentParentEmail').textContent = parentEmail ?? '-';
+
+        if (!hasSeparatedParents) {
+            const parentName = student.parent_name ?? 'N/A';
+            document.getElementById('viewStudentParentLastname').textContent = parentName;
+            document.getElementById('viewStudentParentFirstname').textContent = '-';
+            document.getElementById('viewStudentParentPhone').textContent = '-';
+            document.getElementById('viewStudentParentEmail').textContent = '-';
+        }
+
+        document.getElementById('viewStudentCreatedAt').textContent = student.created_at ?? 'N/A';
+        document.getElementById('viewStudentUpdatedAt').textContent = student.updated_at ?? 'N/A';
+
+        const photoContainer = document.getElementById('viewStudentPhotoContainer');
+
+        if (student.photo_debug) {
+            const d = student.photo_debug;
+            photoContainer.innerHTML = `
+                <div class="w-full h-full flex flex-col">
+                    <div class="flex-1 rounded-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 overflow-hidden">
+                        ${student.photo ? `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover"/>` : `
+                            <div class="flex items-center justify-center w-full h-full">
+                                <span class="text-3xl font-bold text-primary">
+                                    ${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}
+                                </span>
+                            </div>
+                        `}
+                    </div>
+                    <div class="mt-2 text-[10px] text-text-muted leading-tight px-2">
+                        <div><span class="font-semibold">photo DB:</span> ${d.photo_db ?? '-'}</div>
+                        <div><span class="font-semibold">path:</span> ${d.normalized_path ?? '-'}</div>
+                        <div><span class="font-semibold">physique:</span> ${d.physical_path ?? '-'}</div>
+                        <div><span class="font-semibold">exists:</span> ${d.exists ? 'false' : 'false'}</div>
+                        <div><span class="font-semibold">url:</span> ${d.url_generated ?? '-'}</div>
+                    </div>
+                </div>
+            `;
+            openModal('modal-view');
+            return;
+        }
+
+        if (student.photo) {
+            photoContainer.innerHTML = `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover">`;
+        } else {
+            const initials = `${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}`.toUpperCase();
+            photoContainer.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full">
+                    <span class="text-3xl font-bold text-primary">${initials || '?'}</span>
+                </div>
+            `;
+        }
+
+        openModal('modal-view');
+    }
+
+    function openEditModal(student) {
+        document.getElementById('editEleveId').value = student.id;
+        document.getElementById('editLastname').value = student.lastname ?? '';
+        document.getElementById('editFirstname').value = student.firstname ?? '';
+        document.getElementById('editMatricule').value = student.matricule ?? '';
+        document.getElementById('editBirthdate').value = student.birthdate_raw ?? '';
+        document.getElementById('editBirthPlace').value = student.birthplace ?? '';
+        document.getElementById('editClasse').value = student.class_id ?? '';
+        document.getElementById('editLevel').value = student.level_id ?? '';
+        document.getElementById('editParentLastname').value = student.parent_lastname ?? '';
+        document.getElementById('editParentFirstname').value = student.parent_firstname ?? '';
+        document.getElementById('editParentPhone').value = student.parent_phone ?? '';
+        document.getElementById('editParentEmail').value = student.parent_email ?? '';
+
+        const sexe = student.sexe ?? '';
+        const sexeLower = sexe.toLowerCase();
+        const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
+
+        if (masculinValues.includes(sexeLower) || sexe === 'Masculin') {
+            document.querySelector('input[name="edit_sexe"][value="Masculin"]').checked = true;
+        } else if (femininValues.includes(sexeLower) || sexe === 'Féminin' || sexe === 'FEMININ') {
+            document.querySelector('input[name="edit_sexe"][value="Féminin"]').checked = true;
+        }
+
+        document.getElementById('editLastnameHidden').value = student.lastname ?? '';
+        document.getElementById('editFirstnameHidden').value = student.firstname ?? '';
+        document.getElementById('editMatriculeHidden').value = student.matricule ?? '';
+        document.getElementById('editSexeHidden').value = sexe;
+        document.getElementById('editBirthdateHidden').value = student.birthdate_raw ?? '';
+        document.getElementById('editBirthPlaceHidden').value = student.birthplace ?? '';
+        document.getElementById('editClasseHidden').value = student.class_id ?? '';
+        document.getElementById('editLevelHidden').value = student.level_id ?? '';
+        document.getElementById('editParentLastnameHidden').value = student.parent_lastname ?? '';
+        document.getElementById('editParentFirstnameHidden').value = student.parent_firstname ?? '';
+        document.getElementById('editParentPhoneHidden').value = student.parent_phone ?? '';
+        document.getElementById('editParentEmailHidden').value = student.parent_email ?? '';
+
+        document.getElementById('form-edit').action = `/client/eleve/${student.id}`;
+
+        const photoPreviewEdit = document.getElementById('photo-preview-edit');
+        if (student.photo) {
+            photoPreviewEdit.innerHTML = `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover">`;
+        } else {
+            photoPreviewEdit.innerHTML = `<span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>`;
+        }
+
+        openModal('modal-edit');
+    }
+
+    function viewStudent(student) {
+        openViewModal(student);
     }
 
     function editStudent(student) {
-        Swal.fire({
-            title: 'Modifier',
-            text: `Modification de l'élève ${student.firstname} ${student.lastname}`,
-            icon: 'info',
-            confirmButtonColor: '#D97706',
-            borderRadius: '12px'
-        });
+        openEditModal(student);
     }
 
-    // Age Validation Logic
     function validateAge(inputDate, warningId) {
         if (!inputDate) return true;
         
@@ -507,95 +1041,14 @@
         }
     }
 
-    // Confirm Delete
-    function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: `L'élève "${name}" sera définitivement supprimé.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ba1a1a',
-            cancelButtonColor: '#64748B',
-            confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Supprimé !',
-                    text: 'L\'élève a été supprimé avec succès.',
-                    icon: 'success',
-                    confirmButtonColor: '#1f108e',
-                    borderRadius: '12px'
-                });
-            }
-        });
-    }
-
     $(document).ready(function() {
-        // Birthdate changes
         $('#birthdate-std').on('change', function() {
             validateAge($(this).val(), 'age-warning-std');
         });
-        $('#birthdate-trf').on('change', function() {
-            validateAge($(this).val(), 'age-warning-trf');
-        });
 
-        // Form Submissions
-        $('#form-standard').on('submit', function(e) {
-            e.preventDefault();
-            if (!validateAge($('#birthdate-std').val(), 'age-warning-std')) {
-                Swal.fire({
-                    title: 'Âge non valide',
-                    text: 'L\'élève doit avoir au moins 5 ans.',
-                    icon: 'error',
-                    confirmButtonColor: '#3730a3',
-                    borderRadius: '12px'
-                });
-                return;
-            }
-            
-            Swal.fire({
-                title: 'Succès !',
-                text: "L'élève a été enregistré avec succès.",
-                icon: 'success',
-                confirmButtonColor: '#3730a3',
-                borderRadius: '12px'
-            }).then(() => {
-                closeModal('modal-standard');
-                this.reset();
-            });
-        });
-
-        $('#form-transfer').on('submit', function(e) {
-            e.preventDefault();
-            if (!validateAge($('#birthdate-trf').val(), 'age-warning-trf')) {
-                Swal.fire({
-                    title: 'Âge non valide',
-                    text: 'L\'élève doit avoir au moins 5 ans.',
-                    icon: 'error',
-                    confirmButtonColor: '#059669',
-                    borderRadius: '12px'
-                });
-                return;
-            }
-
-            Swal.fire({
-                title: 'Transfert Validé !',
-                text: "L'élève transféré a été ajouté à la file d'attente de validation.",
-                icon: 'success',
-                confirmButtonColor: '#059669',
-                borderRadius: '12px'
-            }).then(() => {
-                closeModal('modal-transfer');
-                this.reset();
-            });
-        });
-
-        // Close modal on escape key
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
-                const modals = ['modal-standard', 'modal-transfer'];
+                const modals = ['modal-standard', 'modal-view', 'modal-edit'];
                 modals.forEach(id => {
                     const modal = document.getElementById(id);
                     if (modal && modal.classList.contains('flex')) {
