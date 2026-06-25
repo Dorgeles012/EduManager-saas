@@ -100,6 +100,7 @@ return new class extends Migration
             $table->unsignedBigInteger('tenant_id');
             $table->string('nom');
             $table->integer('coefficient')->default(1);
+            $table->unsignedBigInteger('serie')->nullable();
             $table->timestamps();
         });
 

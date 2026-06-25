@@ -22,27 +22,17 @@
         </div>
         <div>
             <p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Enseignants</p>
-            <p class="font-headline-md text-headline-md text-on-surface">{{ $totalTeachers ?? 1 }}</p>
+            <p class="font-headline-md text-headline-md text-on-surface" id="totalTeachers">{{ $totalTeachers ?? 1 }}</p>
         </div>
     </div>
     <!-- Card 2 -->
     <div class="bg-surface-container-lowest rounded-xl p-6 custom-shadow border border-outline-variant/30 flex items-center space-x-5">
-        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-secondary to-secondary-container flex items-center justify-center shadow-lg">
+        <div class="w-14 h-14 rounded-lg bg-orange-500 flex items-center justify-center shadow-lg">
             <span class="material-symbols-outlined text-white text-3xl">book</span>
         </div>
         <div>
             <p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Matières</p>
             <p class="font-headline-md text-headline-md text-on-surface">{{ $totalSubjects ?? 3 }}</p>
-        </div>
-    </div>
-    <!-- Card 3 -->
-    <div class="bg-surface-container-lowest rounded-xl p-6 custom-shadow border border-outline-variant/30 flex items-center space-x-5">
-        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center shadow-lg">
-            <span class="material-symbols-outlined text-white text-3xl">user_attributes</span>
-        </div>
-        <div>
-            <p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Moy. par matière</p>
-            <p class="font-headline-md text-headline-md text-on-surface">{{ $avgPerSubject ?? 0.3 }}</p>
         </div>
     </div>
 </div>
@@ -62,55 +52,47 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="teachersTable">
+        <table class="w-full text-left border-collapse text-sm" id="teachersTable">
             <thead class="bg-surface-container-low">
                 <tr>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">N°</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">Nom &amp; Prénoms</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">Email</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">Téléphone</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">Matière</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase">Statut</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Actions</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">N°</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">Nom &amp; Prénoms</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">Email</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">Téléphone</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">Matière</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs">Statut</th>
+                    <th class="px-4 py-3 font-label-sm text-label-sm text-on-surface-variant uppercase text-xs text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-surface-subtle">
-                @forelse($teachers ?? [
-                    ['id' => 1, 'firstname' => 'Die osé', 'lastname' => 'emmanuel', 'email' => 'ose@mail.com', 'phone' => '0709090909', 'subject' => 'Anglais', 'status' => 'active'],
-                    ['id' => 2, 'firstname' => 'Jean', 'lastname' => 'Kouadio', 'email' => 'jean@mail.com', 'phone' => '0709090910', 'subject' => 'Mathématiques', 'status' => 'active'],
-                    ['id' => 3, 'firstname' => 'Marie', 'lastname' => 'Koné', 'email' => 'marie@mail.com', 'phone' => '0709090911', 'subject' => 'Physique chimie', 'status' => 'active']
-                ] as $teacher)
-                <tr class="hover:bg-surface-subtle transition-colors teacher-row" data-name="{{ strtolower($teacher['firstname'] . ' ' . $teacher['lastname']) }}" data-email="{{ strtolower($teacher['email']) }}" data-subject="{{ strtolower($teacher['subject']) }}" data-position="{{ strtolower($teacher['subject']) }}">
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $loop->iteration }}</td>
-                    <td class="px-6 py-4 font-semibold text-on-surface">{{ ucfirst($teacher['firstname']) }} {{ ucfirst($teacher['lastname']) }}</td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $teacher['email'] }}</td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $teacher['phone'] }}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">{{ $teacher['subject'] }}</span>
+            <tbody class="divide-y divide-surface-subtle" id="teachersTableBody">
+                @forelse($teachers ?? [] as $teacher)
+                <tr class="hover:bg-surface-subtle transition-colors teacher-row text-sm" id="teacher-row-{{ $teacher['id'] }}" data-name="{{ strtolower($teacher['firstname'] . ' ' . $teacher['lastname']) }}" data-email="{{ strtolower($teacher['email']) }}" data-subject="{{ strtolower($teacher['subject']) }}" data-position="{{ strtolower($teacher['subject']) }}">
+                    <td class="px-4 py-3 text-on-surface-variant text-sm">{{ $loop->iteration }}</td>
+                    <td class="px-4 py-3 font-semibold text-on-surface text-sm">{{ ucfirst($teacher['firstname']) }} {{ ucfirst($teacher['lastname']) }}</td>
+                    <td class="px-4 py-3 text-on-surface-variant text-sm">{{ $teacher['email'] }}</td>
+                    <td class="px-4 py-3 text-on-surface-variant text-sm">{{ $teacher['phone'] }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">{{ $teacher['subject'] }}</span>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 bg-success-green/10 text-success-green text-xs font-bold rounded-full">
+                    <td class="px-4 py-3">
+                        <span class="px-2.5 py-1 bg-success-green/10 text-success-green text-xs font-bold rounded-full">
                             {{ ucfirst($teacher['status']) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end space-x-2">
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end space-x-1.5">
                             <button class="w-8 h-8 flex items-center justify-center text-warning-amber hover:bg-warning-amber/10 rounded-full transition-all" onclick="openEditModal({{ json_encode($teacher) }})" title="Modifier">
-                                <span class="material-symbols-outlined">edit</span>
+                                <span class="material-symbols-outlined text-base">edit</span>
                             </button>
-                            <form action="{{ route('client.enseignant.destroy', $teacher['id']) }}" method="POST" class="inline delete-teacher-form">
-                                @csrf
-                                @method('DELETE')
-                                <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all delete-teacher-btn" data-name="{{ $teacher['firstname'] }} {{ $teacher['lastname'] }}" type="button" title="Supprimer">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </form>
+                            <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all delete-teacher-btn" data-id="{{ $teacher['id'] }}" data-name="{{ $teacher['firstname'] }} {{ $teacher['lastname'] }}" type="button" title="Supprimer">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                            </button>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-on-surface-variant">
+                <tr id="emptyRow">
+                    <td colspan="7" class="px-4 py-12 text-center text-on-surface-variant text-sm">
                         <div class="flex flex-col items-center gap-4">
                             <span class="material-symbols-outlined text-5xl text-outline">school</span>
                             <p>Aucun enseignant trouvé</p>
@@ -142,7 +124,7 @@
     </div>
 </div>
 
-<!-- Modal: Ajouter Enseignant (avec scrollbar interne et animation) -->
+<!-- Modal: Ajouter Enseignant -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="add-teacher-modal">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('add-teacher-modal')"></div>
     <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="add-modal-content">
@@ -160,34 +142,29 @@
                     <p class="text-xs text-primary/70">L'enseignant pourra modifier ce mot de passe lors de sa première connexion.</p>
                 </div>
             </div>
-            <form class="space-y-5" id="addTeacherForm" action="{{ route('client.enseignant.store') }}" method="POST">
+            <form class="space-y-5" id="addTeacherForm">
                 @csrf
-                <input type="hidden" name="nom" id="teacherLastnameHidden">
-                <input type="hidden" name="prenoms" id="teacherFirstnameHidden">
-                <input type="hidden" name="email" id="teacherEmailHidden">
-                <input type="hidden" name="telephone" id="teacherPhoneHidden">
-                <input type="hidden" name="matiere_id" id="teacherSubjectHidden">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="block font-label-md text-label-md text-on-surface">Nom <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherLastname" placeholder="Entrez le nom" required type="text">
+                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="addLastName" placeholder="Entrez le nom" required type="text">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block font-label-md text-label-md text-on-surface">Prénoms <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherFirstname" placeholder="Entrez les prénoms" required type="text">
+                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="addFirstName" placeholder="Entrez les prénoms" required type="text">
                     </div>
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Email <span class="text-alert-red">*</span></label>
-                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherEmail" placeholder="exemple@mail.com" required type="email">
+                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="addEmail" placeholder="exemple@mail.com" required type="email">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Téléphone <span class="text-alert-red">*</span></label>
-                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherPhone" placeholder="01 02 03 04 05" required type="tel">
+                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="addPhone" placeholder="01 02 03 04 05" required type="tel">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Matière enseignée <span class="text-alert-red">*</span></label>
-                    <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="teacherSubject" required>
+                    <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="addSubject" required>
                         <option value="">Sélectionnez une matière</option>
                         @foreach($subjects ?? ['Anglais', 'Mathématiques', 'Physique chimie'] as $subject)
                         <option value="{{ is_array($subject) ? $subject['id'] : $subject }}">{{ is_array($subject) ? $subject['name'] : $subject }}</option>
@@ -198,12 +175,12 @@
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
             <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('add-teacher-modal')" type="button">Annuler</button>
-            <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" type="submit" form="addTeacherForm">Enregistrer</button>
+            <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" id="addTeacherBtn" type="button">Enregistrer</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Modifier Enseignant (avec scrollbar interne et animation) -->
+<!-- Modal: Modifier Enseignant -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="edit-teacher-modal">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('edit-teacher-modal')"></div>
     <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="edit-modal-content">
@@ -214,36 +191,32 @@
             </button>
         </div>
         <div class="flex-1 overflow-y-auto p-8">
-            <form class="space-y-5" id="editTeacherForm" method="POST">
+            <form class="space-y-5" id="editTeacherForm">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="nom" id="editTeacherLastnameHidden">
-                <input type="hidden" name="prenoms" id="editTeacherFirstnameHidden">
-                <input type="hidden" name="email" id="editTeacherEmailHidden">
-                <input type="hidden" name="telephone" id="editTeacherPhoneHidden">
-                <input type="hidden" name="matiere_id" id="editTeacherSubjectHidden">
                 <input type="hidden" id="editTeacherId">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="block font-label-md text-label-md text-on-surface">Nom <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherLastname" required type="text">
+                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editLastName" required type="text">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block font-label-md text-label-md text-on-surface">Prénoms <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherFirstname" required type="text">
+                        <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editFirstName" required type="text">
                     </div>
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Email <span class="text-alert-red">*</span></label>
-                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherEmail" required type="email">
+                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editEmail" required type="email">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Téléphone <span class="text-alert-red">*</span></label>
-                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherPhone" required type="tel">
+                    <input class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editPhone" required type="tel">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block font-label-md text-label-md text-on-surface">Matière enseignée <span class="text-alert-red">*</span></label>
-                    <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editTeacherSubject" required>
+                    <select class="w-full px-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="editSubject" required>
+                        <option value="">Sélectionnez une matière</option>
                         @foreach($subjects ?? ['Anglais', 'Mathématiques', 'Physique chimie'] as $subject)
                         <option value="{{ is_array($subject) ? $subject['id'] : $subject }}">{{ is_array($subject) ? $subject['name'] : $subject }}</option>
                         @endforeach
@@ -253,7 +226,7 @@
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
             <button class="px-6 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" onclick="closeModal('edit-teacher-modal')" type="button">Annuler</button>
-            <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" type="submit" form="editTeacherForm">Enregistrer</button>
+            <button class="px-8 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 shadow-md active:scale-95 transition-all" id="editTeacherBtn" type="button">Enregistrer</button>
         </div>
     </div>
 </div>
@@ -268,7 +241,6 @@
         box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04);
     }
     
-    /* Personnalisation de la scrollbar pour les modals */
     .overflow-y-auto::-webkit-scrollbar {
         width: 6px;
     }
@@ -291,7 +263,6 @@
         transition: backdrop-filter 0.3s ease;
     }
     
-    /* Animation styles for modals */
     #add-teacher-modal, #edit-teacher-modal {
         transition: opacity 0.3s ease;
     }
@@ -299,61 +270,547 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const addTeacherForm = document.getElementById('addTeacherForm');
-        if (addTeacherForm) {
-            addTeacherForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                document.getElementById('teacherLastnameHidden').value = document.getElementById('teacherLastname').value;
-                document.getElementById('teacherFirstnameHidden').value = document.getElementById('teacherFirstname').value;
-                document.getElementById('teacherEmailHidden').value = document.getElementById('teacherEmail').value;
-                document.getElementById('teacherPhoneHidden').value = document.getElementById('teacherPhone').value;
-                document.getElementById('teacherSubjectHidden').value = document.getElementById('teacherSubject').value;
-                HTMLFormElement.prototype.submit.call(addTeacherForm);
-            }, true);
+document.addEventListener('DOMContentLoaded', function () {
+    // Variables
+    let rowCounter = document.querySelectorAll('.teacher-row').length;
+
+    // ============ AJOUT ============
+    document.getElementById('addTeacherBtn').addEventListener('click', function() {
+        const lastName = document.getElementById('addLastName').value.trim();
+        const firstName = document.getElementById('addFirstName').value.trim();
+        const email = document.getElementById('addEmail').value.trim();
+        const phone = document.getElementById('addPhone').value.trim();
+        const subject = document.getElementById('addSubject').value;
+
+        // Validation simple
+        if (!lastName || !firstName || !email || !phone || !subject) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Veuillez remplir tous les champs',
+                showConfirmButton: false,
+                timer: 2000,
+                position: 'center'
+            });
+            return;
         }
 
-        const editTeacherForm = document.getElementById('editTeacherForm');
-        if (editTeacherForm) {
-            editTeacherForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                document.getElementById('editTeacherLastnameHidden').value = document.getElementById('editTeacherLastname').value;
-                document.getElementById('editTeacherFirstnameHidden').value = document.getElementById('editTeacherFirstname').value;
-                document.getElementById('editTeacherEmailHidden').value = document.getElementById('editTeacherEmail').value;
-                document.getElementById('editTeacherPhoneHidden').value = document.getElementById('editTeacherPhone').value;
-                document.getElementById('editTeacherSubjectHidden').value = document.getElementById('editTeacherSubject').value;
-                HTMLFormElement.prototype.submit.call(editTeacherForm);
-            }, true);
-        }
+        const formData = new FormData();
+        formData.append('nom', lastName);
+        formData.append('prenoms', firstName);
+        formData.append('email', email);
+        formData.append('telephone', phone);
+        formData.append('matiere_id', subject);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
 
-        document.querySelectorAll('.delete-teacher-btn').forEach((button) => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (confirm(`Supprimer l'enseignant "${this.dataset.name}" ?`)) {
-                    this.closest('form').submit();
-                }
-            }, true);
+        // Désactiver le bouton
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Enregistrement...';
+
+        fetch('{{ route("client.enseignant.store") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ajouter la ligne dans le tableau
+                addTeacherRow(data.teacher);
+                
+                // Mettre à jour le compteur
+                updateTotalTeachers(1);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès !',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    borderRadius: '12px',
+                    position: 'center'
+                });
+                
+                // Fermer le modal et réinitialiser le formulaire
+                closeModal('add-teacher-modal');
+                document.getElementById('addTeacherForm').reset();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: data.message || 'Une erreur est survenue',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    borderRadius: '12px',
+                    position: 'center'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Une erreur est survenue lors de l\'ajout',
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '12px',
+                position: 'center'
+            });
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'Enregistrer';
         });
     });
 
-    // Fonction de recherche
+    // ============ MODIFICATION ============
+    document.getElementById('editTeacherBtn').addEventListener('click', function() {
+        const id = document.getElementById('editTeacherId').value;
+        const lastName = document.getElementById('editLastName').value.trim();
+        const firstName = document.getElementById('editFirstName').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const phone = document.getElementById('editPhone').value.trim();
+        const subject = document.getElementById('editSubject').value;
+
+        if (!lastName || !firstName || !email || !phone || !subject) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Veuillez remplir tous les champs',
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '12px',
+                position: 'center'
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('nom', lastName);
+        formData.append('prenoms', firstName);
+        formData.append('email', email);
+        formData.append('telephone', phone);
+        formData.append('matiere_id', subject);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
+        formData.append('_method', 'PUT');
+
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Modification...';
+
+        fetch(`{{ url("/client/enseignant") }}/${id}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mettre à jour la ligne dans le tableau
+                updateTeacherRow(data.teacher);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès !',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    borderRadius: '12px',
+                    position: 'center'
+                });
+                
+                closeModal('edit-teacher-modal');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: data.message || 'Une erreur est survenue',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    borderRadius: '12px',
+                    position: 'center'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Une erreur est survenue lors de la modification',
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '12px',
+                position: 'center'
+            });
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'Enregistrer';
+        });
+    });
+
+    // ============ SUPPRESSION ============
+    document.querySelectorAll('.delete-teacher-btn').forEach((button) => {
+        button.addEventListener('click', function() {
+            const teacherId = this.dataset.id;
+            const teacherName = this.dataset.name;
+
+            Swal.fire({
+                title: 'Confirmer la suppression',
+                text: `Êtes-vous sûr de vouloir supprimer l'enseignant "${teacherName}" ?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+                borderRadius: '12px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const btn = this;
+                    btn.disabled = true;
+
+                    fetch(`{{ url("/client/enseignant") }}/${teacherId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Supprimer la ligne du tableau
+                            const row = document.getElementById(`teacher-row-${teacherId}`);
+                            if (row) {
+                                row.remove();
+                            }
+                            
+                            // Mettre à jour le compteur
+                            updateTotalTeachers(-1);
+                            
+                            // Vérifier si le tableau est vide
+                            checkEmptyTable();
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Supprimé !',
+                                text: data.message,
+                                showConfirmButton: false,
+                                timer: 2000,
+                                borderRadius: '12px',
+                                position: 'center'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: data.message || 'Une erreur est survenue',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                borderRadius: '12px',
+                                position: 'center'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: 'Une erreur est survenue lors de la suppression',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            borderRadius: '12px',
+                            position: 'center'
+                        });
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                    });
+                }
+            });
+        });
+    });
+
+    // ============ FONCTIONS UTILITAIRES ============
+    
+    // Ajouter une ligne dans le tableau
+    function addTeacherRow(teacher) {
+        const tbody = document.getElementById('teachersTableBody');
+        const emptyRow = document.getElementById('emptyRow');
+        if (emptyRow) emptyRow.remove();
+
+        const rowCount = tbody.querySelectorAll('.teacher-row').length + 1;
+        
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-surface-subtle transition-colors teacher-row text-sm';
+        row.id = `teacher-row-${teacher.id}`;
+        row.setAttribute('data-name', `${teacher.firstname} ${teacher.lastname}`.toLowerCase());
+        row.setAttribute('data-email', teacher.email.toLowerCase());
+        row.setAttribute('data-subject', teacher.subject.toLowerCase());
+        row.setAttribute('data-position', teacher.subject.toLowerCase());
+
+        row.innerHTML = `
+            <td class="px-4 py-3 text-on-surface-variant text-sm">${rowCount}</td>
+            <td class="px-4 py-3 font-semibold text-on-surface text-sm">${teacher.firstname} ${teacher.lastname}</td>
+            <td class="px-4 py-3 text-on-surface-variant text-sm">${teacher.email}</td>
+            <td class="px-4 py-3 text-on-surface-variant text-sm">${teacher.phone}</td>
+            <td class="px-4 py-3">
+                <span class="px-2.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">${teacher.subject}</span>
+            </td>
+            <td class="px-4 py-3">
+                <span class="px-2.5 py-1 bg-success-green/10 text-success-green text-xs font-bold rounded-full">${teacher.status}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end space-x-1.5">
+                    <button class="w-8 h-8 flex items-center justify-center text-warning-amber hover:bg-warning-amber/10 rounded-full transition-all" onclick='openEditModal(${JSON.stringify(teacher).replace(/'/g, "&#39;")})' title="Modifier">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all delete-teacher-btn" data-id="${teacher.id}" data-name="${teacher.firstname} ${teacher.lastname}" type="button" title="Supprimer">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                </div>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+
+        // Re-attacher l'événement de suppression
+        row.querySelector('.delete-teacher-btn').addEventListener('click', function() {
+            handleDeleteClick(this);
+        });
+
+        // Réinitialiser les numéros de ligne
+        renumberRows();
+    }
+
+    // Mettre à jour une ligne du tableau
+    function updateTeacherRow(teacher) {
+        const row = document.getElementById(`teacher-row-${teacher.id}`);
+        if (row) {
+            row.setAttribute('data-name', `${teacher.firstname} ${teacher.lastname}`.toLowerCase());
+            row.setAttribute('data-email', teacher.email.toLowerCase());
+            row.setAttribute('data-subject', teacher.subject.toLowerCase());
+            row.setAttribute('data-position', teacher.subject.toLowerCase());
+
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 6) {
+                cells[0].textContent = row.rowIndex;
+                cells[1].textContent = `${teacher.firstname} ${teacher.lastname}`;
+                cells[2].textContent = teacher.email;
+                cells[3].textContent = teacher.phone;
+                cells[4].innerHTML = `<span class="px-2.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">${teacher.subject}</span>`;
+                cells[5].innerHTML = `<span class="px-2.5 py-1 bg-success-green/10 text-success-green text-xs font-bold rounded-full">${teacher.status}</span>`;
+            }
+        }
+    }
+
+    // Mettre à jour le compteur total
+    function updateTotalTeachers(change) {
+        const totalSpan = document.getElementById('totalTeachers');
+        if (totalSpan) {
+            let current = parseInt(totalSpan.textContent) || 0;
+            totalSpan.textContent = current + change;
+        }
+    }
+
+    // Renuméroter les lignes
+    function renumberRows() {
+        const rows = document.querySelectorAll('.teacher-row');
+        rows.forEach((row, index) => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) {
+                cells[0].textContent = index + 1;
+            }
+        });
+    }
+
+    // Vérifier si le tableau est vide
+    function checkEmptyTable() {
+        const tbody = document.getElementById('teachersTableBody');
+        const rows = tbody.querySelectorAll('.teacher-row');
+        if (rows.length === 0) {
+            // Supprimer l'ancien empty row s'il existe
+            const oldEmpty = document.getElementById('emptyRow');
+            if (oldEmpty) oldEmpty.remove();
+            
+            const emptyRow = document.createElement('tr');
+            emptyRow.id = 'emptyRow';
+            emptyRow.innerHTML = `
+                <td colspan="7" class="px-4 py-12 text-center text-on-surface-variant text-sm">
+                    <div class="flex flex-col items-center gap-4">
+                        <span class="material-symbols-outlined text-5xl text-outline">school</span>
+                        <p>Aucun enseignant trouvé</p>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(emptyRow);
+        }
+    }
+
+    // Gestion du clic sur suppression (pour les nouveaux éléments)
+    function handleDeleteClick(button) {
+        const teacherId = button.dataset.id;
+        const teacherName = button.dataset.name;
+
+        Swal.fire({
+            title: 'Confirmer la suppression',
+            text: `Êtes-vous sûr de vouloir supprimer l'enseignant "${teacherName}" ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true,
+            borderRadius: '12px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const btn = button;
+                btn.disabled = true;
+
+                fetch(`{{ url("/client/enseignant") }}/${teacherId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = document.getElementById(`teacher-row-${teacherId}`);
+                        if (row) {
+                            row.remove();
+                        }
+                        updateTotalTeachers(-1);
+                        checkEmptyTable();
+                        renumberRows();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Supprimé !',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 2000,
+                            borderRadius: '12px',
+                            position: 'center'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: data.message || 'Une erreur est survenue',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            borderRadius: '12px',
+                            position: 'center'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Une erreur est survenue lors de la suppression',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        borderRadius: '12px',
+                        position: 'center'
+                    });
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                });
+            }
+        });
+    }
+
+    // ============ OPEN / CLOSE MODAL ============
+    window.openModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
+        const content = document.getElementById(contentId);
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
+        const content = document.getElementById(contentId);
+
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
+    };
+
+    window.openEditModal = function(teacher) {
+        // Remplir les champs du formulaire de modification
+        document.getElementById('editTeacherId').value = teacher.id;
+        document.getElementById('editLastName').value = teacher.lastname || '';
+        document.getElementById('editFirstName').value = teacher.firstname || '';
+        document.getElementById('editEmail').value = teacher.email || '';
+        document.getElementById('editPhone').value = teacher.phone || '';
+
+        // Sélectionner la matière
+        const subjectSelect = document.getElementById('editSubject');
+        if (subjectSelect) {
+            // Parcourir toutes les options pour trouver celle qui correspond
+            let found = false;
+            for (let i = 0; i < subjectSelect.options.length; i++) {
+                if (subjectSelect.options[i].value == teacher.subject_id) {
+                    subjectSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            // Si non trouvé, sélectionner la première option vide ou la première
+            if (!found) {
+                subjectSelect.selectedIndex = 0;
+            }
+        }
+
+        // Ouvrir le modal
+        openModal('edit-teacher-modal');
+    };
+
+    // Recherche
     const searchInput = document.getElementById('searchTeacher');
     if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
+        searchInput.addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('.teacher-row');
             let visibleCount = 0;
-            
+
             rows.forEach(row => {
-                const name = row.getAttribute('data-name');
-                const email = row.getAttribute('data-email');
-                const subject = row.getAttribute('data-subject');
-                const position = row.getAttribute('data-position');
-                
+                const name = row.getAttribute('data-name') || '';
+                const email = row.getAttribute('data-email') || '';
+                const subject = row.getAttribute('data-subject') || '';
+                const position = row.getAttribute('data-position') || '';
+
                 if (name.includes(searchTerm) || email.includes(searchTerm) || subject.includes(searchTerm) || position.includes(searchTerm)) {
                     row.style.display = '';
                     visibleCount++;
@@ -361,163 +818,17 @@
                     row.style.display = 'none';
                 }
             });
-            
-            // Mettre à jour le texte de pagination
+
             const paginationSpan = document.getElementById('paginationInfo');
             if (paginationSpan && !paginationSpan.innerHTML.includes('Précédent')) {
-                if (visibleCount === 1) {
-                    paginationSpan.textContent = `Affichage de 1 sur ${visibleCount} enseignant`;
-                } else {
-                    paginationSpan.textContent = `Affichage de ${visibleCount} sur ${visibleCount} enseignants`;
-                }
+                paginationSpan.textContent = visibleCount === 1
+                    ? `Affichage de 1 sur ${visibleCount} enseignant`
+                    : `Affichage de ${visibleCount} sur ${visibleCount} enseignants`;
             }
         });
     }
 
-    // Fonctions d'ouverture/fermeture avec animation
-    function openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
-        const content = document.getElementById(contentId);
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-        
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
-        const content = document.getElementById(contentId);
-        
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 300);
-    }
-
-    function openEditModal(teacher) {
-        document.getElementById('editTeacherForm').action = `{{ url('/client/enseignant') }}/${teacher.id}`;
-        document.getElementById('editTeacherId').value = teacher.id;
-        document.getElementById('editTeacherLastname').value = teacher.lastname;
-        document.getElementById('editTeacherFirstname').value = teacher.firstname;
-        document.getElementById('editTeacherEmail').value = teacher.email;
-        document.getElementById('editTeacherPhone').value = teacher.phone;
-        
-        const subjectSelect = document.getElementById('editTeacherSubject');
-        for(let i = 0; i < subjectSelect.options.length; i++) {
-            if(subjectSelect.options[i].value == teacher.subject_id) {
-                subjectSelect.selectedIndex = i;
-                break;
-            }
-        }
-        
-        openModal('edit-teacher-modal');
-    }
-
-    function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            html: `L'enseignant <strong>${name}</strong> sera définitivement supprimé.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#1f108e',
-            cancelButtonColor: '#E11D48',
-            confirmButtonText: 'Oui, supprimer !',
-            cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Supprimé !',
-                    text: 'L\'enseignant a été supprimé avec succès.',
-                    icon: 'success',
-                    confirmButtonColor: '#1f108e',
-                    borderRadius: '12px'
-                });
-            }
-        });
-    }
-
-    // Add Teacher Form
-    const addForm = document.getElementById('addTeacherForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('teacherFirstname').value + ' ' + document.getElementById('teacherLastname').value;
-            
-            Swal.fire({
-                title: 'Confirmation',
-                text: `Souhaitez-vous ajouter l'enseignant "${name}" ?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#1f108e',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Oui, ajouter',
-                cancelButtonText: 'Annuler',
-                borderRadius: '12px'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Succès !',
-                        text: 'L\'enseignant a été ajouté avec succès.',
-                        icon: 'success',
-                        confirmButtonColor: '#1f108e',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        borderRadius: '12px'
-                    });
-                    closeModal('add-teacher-modal');
-                    addForm.reset();
-                }
-            });
-        });
-    }
-
-    // Edit Teacher Form
-    const editForm = document.getElementById('editTeacherForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('editTeacherFirstname').value + ' ' + document.getElementById('editTeacherLastname').value;
-            
-            Swal.fire({
-                title: 'Confirmation',
-                text: `Souhaitez-vous modifier l'enseignant "${name}" ?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#D97706',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Oui, modifier',
-                cancelButtonText: 'Annuler',
-                borderRadius: '12px'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Modifié !',
-                        text: 'Les modifications ont été enregistrées avec succès.',
-                        icon: 'success',
-                        confirmButtonColor: '#D97706',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        borderRadius: '12px'
-                    });
-                    closeModal('edit-teacher-modal');
-                }
-            });
-        });
-    }
-
-    // Close modal on escape key
+    // Escape pour fermer les modals
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             const modals = ['add-teacher-modal', 'edit-teacher-modal'];
@@ -529,5 +840,6 @@
             });
         }
     });
+});
 </script>
 @endpush

@@ -71,7 +71,29 @@ class EnseignantController extends Controller
             $enseignant->matieres()->sync([$validated['matiere_id']]);
         });
 
-        return back()->with('success', 'Enseignant créé avec succès. Mot de passe par défaut: 12345678');
+        $teacher = Enseignant::with('matiere')
+            ->where('tenant_id', $user->tenant_id)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Enseignant créé avec succès.',
+                'teacher' => [
+                    'id' => $teacher?->id,
+                    'firstname' => $teacher?->prenoms ?? '',
+                    'lastname' => $teacher?->nom ?? '',
+                    'email' => $teacher?->email ?? '',
+                    'phone' => $teacher?->telephone ?? '',
+                    'subject_id' => $teacher?->matiere_id,
+                    'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
+                    'status' => $teacher?->statut ?? 'active',
+                ],
+            ]);
+        }
+
+        return back()->with('success', 'Enseignant créé avec succès.');
     }
 
     public function update(Request $request, Enseignant $enseignant)
@@ -92,6 +114,25 @@ class EnseignantController extends Controller
             $enseignant->matieres()->sync([$validated['matiere_id']]);
         });
 
+        $teacher = Enseignant::with('matiere')->find($enseignant->id);
+
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Enseignant mis à jour avec succès.',
+                'teacher' => [
+                    'id' => $teacher?->id,
+                    'firstname' => $teacher?->prenoms ?? '',
+                    'lastname' => $teacher?->nom ?? '',
+                    'email' => $teacher?->email ?? '',
+                    'phone' => $teacher?->telephone ?? '',
+                    'subject_id' => $teacher?->matiere_id,
+                    'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
+                    'status' => $teacher?->statut ?? 'active',
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Enseignant mis à jour avec succès.');
     }
 
@@ -100,6 +141,13 @@ class EnseignantController extends Controller
         $this->authorizeTenant($enseignant);
         $enseignant->matieres()->detach();
         $enseignant->delete();
+
+        if (request()->wantsJson() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Enseignant supprimé avec succès.',
+            ]);
+        }
 
         return back()->with('success', 'Enseignant supprimé avec succès.');
     }

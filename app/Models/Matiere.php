@@ -16,7 +16,9 @@ class Matiere extends Model
         'tenant_id',
         'nom',
         'coefficient',
+        'serie',
     ];
+
 
     protected $casts = [
         'tenant_id' => 'integer',
@@ -27,5 +29,25 @@ class Matiere extends Model
     {
         return $this->hasMany(Enseignant::class, 'matiere_id');
     }
+
+    // Si `matieres.serie` contient l'id de `series.id` (cas récent), alors cette relation marche.
+    // La filtration "par série" est appliquée côté contrôleur pour gérer aussi l'ancien schéma.
+    public function serieModel()
+    {
+        return $this->belongsTo(Series::class, 'serie', 'id');
+    }
+
+
+
+    protected static function booted()
+    {
+        static::addGlobalScope('tenant', function ($builder) {
+            if (auth()->check()) {
+                $builder->where('tenant_id', auth()->user()->tenant_id);
+            }
+        });
+    }
+
 }
+
 

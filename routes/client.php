@@ -13,7 +13,9 @@ use App\Http\Controllers\Client\NiveauxController;
 use App\Http\Controllers\Client\NoteController;
 use App\Http\Controllers\Client\ParametresController;
 use App\Http\Controllers\Client\PersonnelController;
+use App\Http\Controllers\Client\SeriesController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::middleware(['auth', 'client'])
     ->prefix('client')
@@ -61,9 +63,14 @@ Route::middleware(['auth', 'client'])
         Route::delete('/enseignant/{enseignant}', [EnseignantController::class, 'destroy'])->name('enseignant.destroy');
 
         Route::get('/matiere', [MatiereController::class, 'index'])->name('matiere');
+        Route::get('/matiere/by-serie/{serieId}', [MatiereController::class, 'getBySerie'])->name('matiere.bySerie');
+        Route::get('/matiere/all', [MatiereController::class, 'getAll'])->name('matiere.all');
         Route::post('/matiere', [MatiereController::class, 'store'])->name('matiere.store');
         Route::put('/matiere/{matiere}', [MatiereController::class, 'update'])->name('matiere.update');
         Route::delete('/matiere/{matiere}', [MatiereController::class, 'destroy'])->name('matiere.destroy');
+
+
+        Route::resource('series', SeriesController::class)->except(['show', 'create', 'edit']);
 
         Route::get('/niveaux', [NiveauxController::class, 'index'])->name('niveaux');
         Route::post('/niveaux', [NiveauxController::class, 'store'])->name('niveaux.store');

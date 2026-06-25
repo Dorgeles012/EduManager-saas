@@ -242,6 +242,11 @@
                 <span class="font-label-md text-label-md">Personnel</span>
             </a>
 
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
+                <span class="material-symbols-outlined">folder_shared</span>
+                <span class="font-label-md text-label-md">Séries</span>
+            </a>
+
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.niveaux' || str_starts_with($currentRoute, 'client.niveaux') ? 'nav-active' : '' }}" href="{{ route('client.niveaux') }}">
                 <span class="material-symbols-outlined">leaderboard</span>
                 <span class="font-label-md text-label-md">Niveau</span>
