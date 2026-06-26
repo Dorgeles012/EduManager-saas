@@ -212,9 +212,14 @@
 <body class="font-body-md text-body-md overflow-x-hidden">
     <!-- SideNavBar -->
     <aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest flex flex-col border-r border-outline-variant z-50">
-        <div class="p-6 flex-shrink-0">
-            <h1 class="font-headline-lg text-headline-lg font-bold text-primary">EduManager</h1>
-        </div>
+        <div class="p-6 flex-shrink-0 flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+    </div>
+    <div>
+        <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+    </div>
+</div>
         
         <!-- Scrollable navigation -->
         <nav class="sidebar-nav mt-2">

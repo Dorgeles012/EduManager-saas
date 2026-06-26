@@ -128,12 +128,12 @@
     <!-- Barre latérale de navigation -->
     <aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest sidebar-shadow flex flex-col py-6 px-4 z-50">
         <div class="mb-10 px-2 flex items-center gap-3">
-            <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
-                <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">school</span>
-            </div>
-            <div>
-                <h1 class="font-headline-md text-headline-md font-bold text-primary">EduManager</h1>
-            </div>
+          <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+    </div>
+    <div>
+        <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+    </div>
         </div>
 
         <nav class="flex-1 space-y-1">
