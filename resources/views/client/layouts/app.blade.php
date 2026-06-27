@@ -282,7 +282,7 @@
                 <span class="font-label-md text-label-md">Note(s)</span>
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.bulletin' || str_starts_with($currentRoute, 'client.bulletin') ? 'nav-active' : '' }}" href="{{ route('client.bulletin') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
                 <span class="material-symbols-outlined">description</span>
                 <span class="font-label-md text-label-md">Bulletin</span>
             </a>

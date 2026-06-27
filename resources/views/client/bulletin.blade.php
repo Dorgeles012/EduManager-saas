@@ -7,10 +7,11 @@
         <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Bulletins Scolaires</h2>
         <p class="font-body-md text-body-md text-on-surface-variant">Consultez et gérez les bulletins des élèves</p>
     </div>
-    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="toggleModal(true)">
+    <a href="{{ route('client.bulletin.create') }}"
+       class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow">
         <span class="material-symbols-outlined">add</span>
         Générer un bulletin
-    </button>
+    </a>
 </div>
 
 <!-- Stats Grid -->
@@ -98,22 +99,22 @@
                             <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
                                 <span class="material-symbols-outlined text-[18px]">person</span>
                             </div>
-                            <span class="font-body-md font-medium">{{ $report['student_name'] }}</span>
+                            <span class="font-body-md font-medium">{{ $report['student_name'] ?? 'N/A' }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $report['class_name'] }}</td>
+                    <td class="px-6 py-4 text-on-surface-variant">{{ $report['class_name'] ?? 'N/A' }}</td>
                     <td class="px-6 py-4">
                         <span class="px-3 py-1 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
-                            {{ $report['period'] }}
+                            {{ $report['period'] ?? 'N/A' }}
                         </span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="font-bold text-primary">{{ $report['average'] }}</span>
+                        <span class="font-bold text-primary">{{ $report['average'] ?? '0' }}</span>
                         <span class="text-on-surface-variant">/20</span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-label-sm {{ $report['appreciation_class'] }}">
-                            {{ $report['appreciation'] }}
+                        <span class="px-3 py-1 rounded-full text-label-sm {{ $report['appreciation_class'] ?? 'appreciation-average' }}">
+                            {{ $report['appreciation'] ?? 'N/A' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">
@@ -140,13 +141,13 @@
     </div>
 
     <!-- Pagination -->
-    @if(($reportCards ?? collect())->isNotEmpty())
+    @if(($reportCards ?? collect())->isNotEmpty() && method_exists($reportCards, 'links'))
     <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
         <span class="text-label-sm text-text-muted">
             Affichage de {{ $reportCards->firstItem() ?? 1 }} à {{ $reportCards->lastItem() ?? count($reportCards ?? []) }} sur {{ $reportCards->total() ?? count($reportCards ?? []) }} bulletins
         </span>
         <div class="flex gap-2">
-            {{ $reportCards->links() ?? '' }}
+            {{ $reportCards->links() }}
         </div>
     </div>
     @endif
@@ -265,45 +266,52 @@
     }
 
     function openReportModal(report) {
+        if (!report) return;
+        
         currentReport = report;
         
-        // Remplir les données du modal
-        document.getElementById('modalStudentName').textContent = report.student_name;
-        document.getElementById('modalStudentMatricule').textContent = report.matricule || '#2024-0012';
-        document.getElementById('modalClassName').textContent = report.class_name;
-        document.getElementById('modalPeriod').textContent = report.period;
-        document.getElementById('modalAverage').textContent = report.average;
+        // Remplir les données du modal avec des valeurs par défaut sécurisées
+        document.getElementById('modalStudentName').textContent = report.student_name || 'Nom non disponible';
+        document.getElementById('modalStudentMatricule').textContent = report.matricule || '#Non spécifié';
+        document.getElementById('modalClassName').textContent = report.class_name || 'Classe non spécifiée';
+        document.getElementById('modalPeriod').textContent = report.period || 'Période non spécifiée';
+        document.getElementById('modalAverage').textContent = report.average || '--';
         document.getElementById('modalRank').textContent = report.rank || '--';
-        document.getElementById('modalTotalStudents').textContent = `/ ${report.total_students || 35}`;
+        document.getElementById('modalTotalStudents').textContent = report.total_students ? `/ ${report.total_students}` : '/ --';
         
         // Appréciation avec style
         const appreciationDiv = document.getElementById('modalAppreciation');
-        appreciationDiv.textContent = report.appreciation;
-        appreciationDiv.className = `px-6 py-3 rounded-full text-center font-bold text-headline-md ${report.appreciation_class || 'appreciation-excellent'}`;
+        appreciationDiv.textContent = report.appreciation || 'Aucune appréciation';
+        appreciationDiv.className = `px-6 py-3 rounded-full text-center font-bold text-headline-md ${report.appreciation_class || 'appreciation-average'}`;
         
+        // Afficher le modal
         const modal = document.getElementById('viewBulletinModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            modal.querySelector('div').classList.remove('scale-95');
-        }, 10);
+        // Forcer un reflow pour que l'animation fonctionne
+        void modal.offsetWidth;
+        modal.querySelector('.scale-95').classList.remove('scale-95');
     }
 
     function closeReportModal() {
         const modal = document.getElementById('viewBulletinModal');
+        if (!modal || modal.classList.contains('hidden')) return;
+        
         modal.classList.add('opacity-0');
-        modal.querySelector('div').classList.add('scale-95');
+        modal.querySelector('.scale-95').classList.add('scale-95');
         setTimeout(() => {
-            modal.classList.remove('flex');
+            modal.classList.remove('flex', 'opacity-0');
             modal.classList.add('hidden');
-            modal.classList.remove('opacity-0');
         }, 300);
     }
 
     function resetFilters() {
         document.getElementById('filterClass').value = '';
         document.getElementById('filterPeriod').value = 't1';
+        
+        // Déclencher un événement de changement pour appliquer les filtres
+        document.getElementById('filterClass').dispatchEvent(new Event('change'));
+        document.getElementById('filterPeriod').dispatchEvent(new Event('change'));
         
         Swal.fire({
             title: 'Filtres réinitialisés',
@@ -319,10 +327,17 @@
         if (currentReport) {
             Swal.fire({
                 title: 'Téléchargement',
-                text: `Téléchargement du bulletin de ${currentReport.student_name} en cours...`,
+                text: `Téléchargement du bulletin de ${currentReport.student_name || 'l\'élève'} en cours...`,
                 icon: 'info',
                 timer: 2000,
                 showConfirmButton: false,
+                confirmButtonColor: '#1f108e'
+            });
+        } else {
+            Swal.fire({
+                title: 'Aucun bulletin sélectionné',
+                text: 'Veuillez d\'abord ouvrir un bulletin.',
+                icon: 'warning',
                 confirmButtonColor: '#1f108e'
             });
         }
@@ -332,10 +347,17 @@
         if (currentReport) {
             Swal.fire({
                 title: 'Impression',
-                text: `Préparation de l'impression du bulletin de ${currentReport.student_name}...`,
+                text: `Préparation de l'impression du bulletin de ${currentReport.student_name || 'l\'élève'}...`,
                 icon: 'info',
                 timer: 2000,
                 showConfirmButton: false,
+                confirmButtonColor: '#1f108e'
+            });
+        } else {
+            Swal.fire({
+                title: 'Aucun bulletin sélectionné',
+                text: 'Veuillez d\'abord ouvrir un bulletin.',
+                icon: 'warning',
                 confirmButtonColor: '#1f108e'
             });
         }
@@ -352,11 +374,11 @@
     });
 
     // Close modal on click outside
-    window.onclick = function(event) {
+    document.addEventListener('click', function(event) {
         const modal = document.getElementById('viewBulletinModal');
-        if (event.target === modal) {
+        if (modal && !modal.classList.contains('hidden') && event.target === modal) {
             closeReportModal();
         }
-    }
+    });
 </script>
 @endpush

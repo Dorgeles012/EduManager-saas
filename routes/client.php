@@ -35,6 +35,9 @@ Route::middleware(['auth', 'client'])
         Route::resource('annee', AnneeController::class);
         Route::resource('personnel', PersonnelController::class);
 
+        // Bulletin (module complet)
+
+
         Route::patch('/personnel/{personnel}/block', [PersonnelController::class, 'block'])
             ->name('personnel.block');
         Route::patch('/personnel/{personnel}/unblock', [PersonnelController::class, 'unblock'])
@@ -77,6 +80,19 @@ Route::middleware(['auth', 'client'])
         Route::put('/niveaux/{niveau}', [NiveauxController::class, 'update'])->name('niveaux.update');
         Route::delete('/niveaux/{niveau}', [NiveauxController::class, 'destroy'])->name('niveaux.destroy');
         Route::get('/note', [NoteController::class, 'index'])->name('note');
-        Route::get('/bulletin', [BulletinController::class, 'index'])->name('bulletin');
+
+        Route::prefix('bulletin')->name('bulletin.')->group(function () {
+            Route::get('/', [BulletinController::class, 'index'])->name('index');
+            Route::get('/create', [BulletinController::class, 'create'])->name('create');
+            Route::post('/', [BulletinController::class, 'store'])->name('store');
+            Route::get('/{bulletin}', [BulletinController::class, 'show'])->name('show');
+            Route::get('/{bulletin}/edit', [BulletinController::class, 'edit'])->name('edit');
+            Route::match(['put', 'patch'], '/{bulletin}', [BulletinController::class, 'update'])->name('update');
+            Route::delete('/{bulletin}', [BulletinController::class, 'destroy'])->name('destroy');
+            Route::get('/{bulletin}/download', [BulletinController::class, 'download'])->name('download');
+
+            Route::get('/student-data', [BulletinController::class, 'studentData'])->name('student-data');
+        });
+
         Route::get('/parametres', [ParametresController::class, 'index'])->name('parametres');
     });
