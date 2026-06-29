@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Client;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBulletinRequest extends FormRequest
 {
@@ -14,11 +15,12 @@ class StoreBulletinRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'eleve_id' => ['required', 'integer'],
-            'etablissement_id' => ['required', 'integer'],
-            'annee_academique_id' => ['required', 'integer'],
-            'classe_id' => ['nullable', 'integer'],
-            'trimestre' => ['required', 'string', 'max:10'],
+            'eleve_id' => ['required', Rule::exists('eleves', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'etablissement_id' => ['required', Rule::exists('etablissements', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'annee_academique_id' => ['required', Rule::exists('annee_academique', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'classe_id' => ['nullable', Rule::exists('classes', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'serie_id' => ['nullable', Rule::exists('series', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'trimestre' => ['required', Rule::in(['t1', 't2', 't3', 's1', 's2', 'an'])],
 
             'total_heures' => ['nullable', 'numeric', 'min:0'],
             'absences' => ['nullable', 'integer', 'min:0'],

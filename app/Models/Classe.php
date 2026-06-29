@@ -44,5 +44,11 @@ class Classe extends Model
     {
         return $this->hasMany(Eleve::class, 'classe_id');
     }
-}
 
+    public function bulletins(): HasMany { return $this->hasMany(Bulletin::class); }
+
+    public function series(): HasMany
+    {
+        return $this->hasMany(Series::class, 'id_classe');
+    }
+}

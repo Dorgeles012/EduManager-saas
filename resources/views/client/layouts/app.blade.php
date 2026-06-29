@@ -248,7 +248,7 @@
             </a>
 
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
-                <span class="material-symbols-outlined">folder_shared</span>
+                <span class="material-symbols-outlined">category</span>
                 <span class="font-label-md text-label-md">Séries</span>
             </a>
 

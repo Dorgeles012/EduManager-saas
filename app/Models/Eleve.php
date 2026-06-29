@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Eleve extends Model
@@ -17,6 +18,7 @@ class Eleve extends Model
         'tenant_id',
         'etablissement_id',
         'classe_id',
+        'id_serie',
         'niveau_id',
         'parent_id',
         'matricule',
@@ -34,6 +36,7 @@ class Eleve extends Model
         'tenant_id' => 'integer',
         'etablissement_id' => 'integer',
         'classe_id' => 'integer',
+        'id_serie' => 'integer',
         'niveau_id' => 'integer',
         'parent_id' => 'integer',
         'date_naissance' => 'date',
@@ -49,10 +52,17 @@ class Eleve extends Model
         return $this->belongsTo(Niveau::class, 'niveau_id');
     }
 
+    public function serie(): BelongsTo
+    {
+        return $this->belongsTo(Series::class, 'id_serie');
+    }
+
     public function etablissement(): BelongsTo
     {
         return $this->belongsTo(Etablissement::class, 'etablissement_id');
     }
+
+    public function bulletins(): HasMany { return $this->hasMany(Bulletin::class); }
 
     public function parent(): BelongsTo
     {

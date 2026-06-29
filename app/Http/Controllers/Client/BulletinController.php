@@ -12,6 +12,8 @@ use App\Models\Eleve;
 use App\Models\Etablissement;
 use App\Models\Enseignant;
 use App\Models\Matiere;
+use App\Models\Niveau;
+use App\Models\Series;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -20,15 +22,39 @@ use Illuminate\Support\Facades\View;
 
 class BulletinController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('client.bulletin');
+        $tenantId = auth()->user()->tenant_id;
+        $query = Bulletin::where('tenant_id', $tenantId)->with(['eleve', 'classe', 'anneeAcademique']);
+        $query->when($request->filled('classe_id'), fn ($q) => $q->where('classe_id', $request->integer('classe_id')))
+            ->when($request->filled('trimestre'), fn ($q) => $q->where('trimestre', $request->string('trimestre')))
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $term = (string) $request->string('q');
+                $q->whereHas('eleve', fn ($student) => $student->where('nom', 'like', "%{$term}%")
+                    ->orWhere('prenom', 'like', "%{$term}%")->orWhere('matricule', 'like', "%{$term}%"));
+            });
+
+        $reportCards = $query->latest()->paginate(15)->withQueryString()->through(fn (Bulletin $item) => [
+            'id' => $item->id, 'student_name' => trim($item->eleve?->nom.' '.$item->eleve?->prenom),
+            'matricule' => $item->eleve?->matricule, 'class_name' => $item->classe?->nom,
+            'period' => strtoupper($item->trimestre), 'average' => $item->moyenne_generale,
+            'appreciation' => $item->decision ?? $item->observation_conseil ?? 'Non renseignée', 'rank' => $item->rang,
+        ]);
+
+        return view('client.bulletin', [
+            'reportCards' => $reportCards,
+            'classes' => Classe::where('tenant_id', $tenantId)->orderBy('nom')->get()->map(fn ($c) => ['id' => $c->id, 'name' => $c->nom]),
+            'totalStudents' => Eleve::where('tenant_id', $tenantId)->count(),
+            'totalClasses' => Classe::where('tenant_id', $tenantId)->count(),
+            'totalPeriods' => Bulletin::where('tenant_id', $tenantId)->distinct()->count('trimestre'),
+        ]);
     }
 
-    public function show($bulletin)
+    public function show(Bulletin $bulletin)
     {
         // Non utilisé actuellement par les routes existantes
-        return view('client.bulletin', compact('bulletin'));
+        $this->ensureTenantOwns($bulletin);
+        return response()->json($bulletin->load(['eleve', 'classe', 'anneeAcademique', 'disciplines']));
     }
 
     public function edit($bulletin)
@@ -42,10 +68,12 @@ class BulletinController extends Controller
             ->with('warning', 'Mise à jour non disponible pour le moment.');
     }
 
-    public function destroy($bulletin)
+    public function destroy(Bulletin $bulletin)
     {
+        $this->ensureTenantOwns($bulletin);
+        $bulletin->delete();
         return redirect()->route('client.bulletin.index')
-            ->with('warning', 'Suppression non disponible pour le moment.');
+            ->with('success', 'Bulletin supprimé avec succès.');
     }
 
     public function download($bulletin)
@@ -71,13 +99,21 @@ class BulletinController extends Controller
 
         $classes = Classe::query()
             ->where('tenant_id', $tenantId)
+            ->when($etablissement?->id, fn ($q) => $q->where('etablissement_id', $etablissement->id))
+            ->with('niveau')
             ->orderBy('id')
+            ->get();
+
+        $niveaux = Niveau::query()
+            ->where('tenant_id', $tenantId)
+            ->when($etablissement?->id, fn ($q) => $q->where('etablissement_id', $etablissement->id))
+            ->orderBy('nom')
             ->get();
 
         $eleves = Eleve::query()
             ->where('tenant_id', $tenantId)
             ->when($etablissement?->id, fn ($q) => $q->where('etablissement_id', $etablissement->id))
-            ->with('classe')
+            ->with(['classe.niveau', 'serie'])
             ->orderBy('nom')
             ->get();
 
@@ -87,15 +123,20 @@ class BulletinController extends Controller
         // Données additionnelles (pour extensibilité)
         $matieres = Matiere::query()->where('tenant_id', $tenantId)->get();
         $enseignants = Enseignant::query()->where('tenant_id', $tenantId)->get();
+        $series = Series::query()->where('tenant_id', $tenantId)
+            ->whereIn('id_classe', $classes->pluck('id'))
+            ->orderBy('nom_serie')->get();
 
-return view('client.Bulletin.formulaire', [
+        return view('client.bulletin.formulaire', [
             'etablissement' => $etablissement,
             'eleves' => $eleves,
             'anneesAcademiques' => $anneesAcademiques,
             'classes' => $classes,
+            'niveaux' => $niveaux,
             'classeInitial' => $classeInitial,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
+            'series' => $series,
         ]);
     }
 
@@ -116,7 +157,7 @@ return view('client.Bulletin.formulaire', [
 
         $eleve = Eleve::query()
             ->where('tenant_id', $tenantId)
-            ->with(['classe'])
+            ->with(['classe.niveau', 'serie'])
             ->findOrFail($data['eleve_id']);
 
         $etablissement = Etablissement::query()
@@ -140,29 +181,192 @@ return view('client.Bulletin.formulaire', [
             }
         }
 
-        // effectif : disponible via classe_id (pas de modèle de classe/ effectif dans le repo, donc calcul minimal)
+        // effectif : disponible via classe_id (si présent)
         $effectif = $eleve->classe?->effectif ?? null;
 
-        return response()->json([
+        // 1) Si un bulletin existe déjà pour (élève + année académique + période), on charge depuis DB.
+        $bulletin = null;
+        $disciplinesFromBulletin = collect();
+
+        if (!empty($data['annee_academique_id']) && !empty($data['trimestre'])) {
+            $bulletin = Bulletin::query()
+                ->where('tenant_id', $tenantId)
+                ->where('eleve_id', $eleve->id)
+                ->where('annee_academique_id', (int) $data['annee_academique_id'])
+                ->where('trimestre', $data['trimestre'])
+                ->with('disciplines')
+                ->first();
+
+            if ($bulletin) {
+                $disciplinesFromBulletin = $bulletin->disciplines
+                    ->map(fn ($d) => [
+                        'discipline' => $d->discipline,
+                        'moyenne' => $d->moyenne,
+                        'coefficient' => $d->coefficient,
+                        'moyenne_coefficient' => $d->moyenne_coefficient,
+                        'rang' => $d->rang,
+                        'appréciation' => $d->appréciation,
+                        'professeur' => $d->professeur,
+                        'signature' => $d->signature,
+                    ]);
+            }
+        }
+
+        // 2) Si aucun bulletin n'existe : on génère les disciplines depuis la table `notes`.
+        //    NB: La table notes actuelle ne contient pas de `classe_id` proprement liée au nom de la période,
+        //    on utilise donc `periode = trimestre` et on filtre sur eleve_id + classe_id.
+        //    Rang/Appréciation: calculés approximativement à partir de la moyenne générale.
+        $generatedFromNotes = false;
+        if (!$bulletin && empty($disciplinesFromBulletin->all()) && !empty($data['trimestre'])) {
+            $classeId = $eleve->classe_id;
+
+            // matières + coefficients (via table matieres)
+            $matieres = Matiere::query()
+                ->where('tenant_id', $tenantId)
+                ->when($eleve->id_serie, fn ($q) => $q->where('serie', $eleve->id_serie))
+                ->when(! $eleve->id_serie, fn ($q) => $q->whereNull('serie'))
+                ->get();
+
+            $notes = DB::table('notes')
+                ->where('tenant_id', $tenantId)
+                ->where('eleve_id', $eleve->id)
+                ->where('classe_id', $classeId)
+                ->where('periode', $data['trimestre'])
+                ->get();
+
+            // Map note par matiere_id
+            $notesByMatiere = $notes->keyBy('matiere_id');
+
+            $disciplinesRows = [];
+            $totalCoef = 0.0;
+            $totalPoints = 0.0;
+
+            foreach ($matieres as $matiere) {
+                $noteRow = $notesByMatiere->get($matiere->id);
+                $noteValue = $noteRow?->note;
+
+                $coef = (float) ($matiere->coefficient ?? 1);
+                $moyenne = $noteValue !== null ? (float) $noteValue : null;
+
+                $mc = null;
+                if ($moyenne !== null && $coef > 0) {
+                    $mc = $moyenne * $coef;
+                    $totalCoef += $coef;
+                    $totalPoints += $mc;
+                }
+
+                $disciplinesRows[] = [
+                    'discipline' => $matiere->nom,
+                    'moyenne' => $moyenne,
+                    'coefficient' => $coef,
+                    'moyenne_coefficient' => $mc !== null ? round($mc, 2) : null,
+                    'rang' => 0,
+                    'appréciation' => $noteRow?->appreciation,
+                    'professeur' => null,
+                    'signature' => null,
+                ];
+            }
+
+            $disciplinesFromBulletin = collect($disciplinesRows);
+            $generatedFromNotes = true;
+        }
+
+        $moyenneGeneraleFromGenerated = null;
+        if (!$bulletin && $generatedFromNotes) {
+            $totalCoef = 0.0;
+            $totalPoints = 0.0;
+            foreach ($disciplinesFromBulletin as $d) {
+                $coef = isset($d['coefficient']) ? (float) $d['coefficient'] : 0.0;
+                $moyenne = isset($d['moyenne']) && $d['moyenne'] !== null ? (float) $d['moyenne'] : null;
+                if ($moyenne !== null && $coef > 0) {
+                    $totalCoef += $coef;
+                    $totalPoints += $moyenne * $coef;
+                }
+            }
+            $moyenneGeneraleFromGenerated = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
+
+            // Rang: approximation sur tous les élèves de la même classe et période.
+            // (On calcule leur moyenne à partir de notes, puis on classe.)
+            $rang = null;
+            if ($moyenneGeneraleFromGenerated !== null) {
+                $classeId = $eleve->classe_id;
+                $notesAll = DB::table('notes')
+                    ->where('tenant_id', $tenantId)
+                    ->where('classe_id', $classeId)
+                    ->where('periode', $data['trimestre'])
+                    ->get()
+                    ->groupBy('eleve_id');
+
+                // coefficients par matiere
+                $coefByMatiere = Matiere::query()->get()->mapWithKeys(fn ($m) => [(int)$m->id => (float)($m->coefficient ?? 1)]);
+
+                $moyennes = [];
+                foreach ($notesAll as $eleveId => $rows) {
+                    $tCoef = 0.0;
+                    $tPoints = 0.0;
+                    foreach ($rows as $r) {
+                        $coef = $coefByMatiere->get((int)$r->matiere_id, 1.0);
+                        $note = $r->note !== null ? (float)$r->note : null;
+                        if ($note !== null && $coef > 0) {
+                            $tCoef += $coef;
+                            $tPoints += $note * $coef;
+                        }
+                    }
+                    $moyennes[(int)$eleveId] = $tCoef > 0 ? ($tPoints / $tCoef) : null;
+                }
+
+                // Trier décroissant, gérer null
+                $sorted = collect($moyennes)->filter(fn ($v) => $v !== null)->sortDesc()->values();
+                $rankIndex = $sorted->search(function ($v) use ($moyenneGeneraleFromGenerated) {
+                    return ((float)$v) === ((float)$moyenneGeneraleFromGenerated);
+                });
+                $rang = $rankIndex === false ? null : ($rankIndex + 1);
+            }
+
+        }
+
+        $payload = [
             'etablissement_logo_url' => $logoUrl,
             'etablissement' => [
                 'nom' => $etablissement?->nom,
                 'adresse' => $etablissement?->adresse,
                 'telephone' => $etablissement?->telephone,
+                'email' => $etablissement?->email,
+                'devise' => null,
             ],
-            'annee_academique' => $annee,
+            'annee_academique' => $annee?->libelle,
+
             'nom' => $eleve->nom,
             'prenoms' => $eleve->prenom,
             'matricule' => $eleve->matricule,
             'classe_id' => $eleve->classe_id,
             'classe' => $eleve->classe?->nom,
+            'niveau' => $eleve->classe?->niveau?->nom,
+            'serie' => $eleve->serie?->nom_serie,
             'effectif' => $effectif,
             'sexe' => $eleve->sexe,
-            // champs non présents dans le modèle Eleve actuel => on renvoie null par défaut
             'nationalite' => $eleve->nationalite ?? null,
             'date_naissance' => optional($eleve->date_naissance)->format('Y-m-d'),
             'lieu_naissance' => $eleve->lieu_naissance,
-        ]);
+            'photo_url' => $eleve->getPhotoUrlAttribute(),
+
+            // bulletin
+            'bulletin_existant' => (bool) $bulletin,
+            'moyenne_generale' => $bulletin?->moyenne,
+            'rang' => $bulletin?->rang,
+            'appreciation' => $bulletin?->appreciation,
+            'disciplines' => $disciplinesFromBulletin->values()->all(),
+        ];
+
+        // Pour conserver la compatibilité JS actuelle (noms attendus)
+        $payload['niveau_id'] = $eleve->niveau_id ?? null;
+        $payload['serie_id'] = $eleve->id_serie;
+        if (! $bulletin && isset($rang)) {
+            $payload['rang'] = $rang;
+            $payload['moyenne_generale'] = $moyenneGeneraleFromGenerated;
+        }
+
+        return response()->json($payload);
     }
 
     public function store(StoreBulletinRequest $request)
@@ -206,13 +410,14 @@ return view('client.Bulletin.formulaire', [
             $moyenneGenerale = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
 
             // Résultat de classe / décision : si déjà fournis par l'utilisateur, on les garde.
-            $bulletin = Bulletin::create([
+            $bulletin = Bulletin::updateOrCreate([
                 'tenant_id' => $tenantId,
-                'etablissement_id' => $etablissementId,
-                'annee_academique_id' => (int) $payload['annee_academique_id'],
                 'eleve_id' => (int) $payload['eleve_id'],
-                'classe_id' => $classeId,
+                'annee_academique_id' => (int) $payload['annee_academique_id'],
                 'trimestre' => $payload['trimestre'],
+            ], [
+                'etablissement_id' => $etablissementId,
+                'classe_id' => $classeId,
 
                 'total_heures' => (float) ($payload['total_heures'] ?? 0),
                 'absences' => (int) ($payload['absences'] ?? 0),
@@ -228,6 +433,8 @@ return view('client.Bulletin.formulaire', [
                 'signature_directeur' => $payload['signature_directeur'] ?? null,
                 'distinctions' => $payload['distinctions'] ?? null,
             ]);
+
+            $bulletin->disciplines()->delete();
 
             foreach ($disciplines as $disc) {
                 BulletinDiscipline::create([
@@ -249,6 +456,9 @@ return view('client.Bulletin.formulaire', [
                 ->with('success', 'Bulletin enregistré avec succès.');
         });
     }
+
+    private function ensureTenantOwns(Bulletin $bulletin): void
+    {
+        abort_unless((int) $bulletin->tenant_id === (int) auth()->user()->tenant_id, 404);
+    }
 }
-
-

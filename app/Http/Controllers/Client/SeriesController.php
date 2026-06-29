@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Matiere;
+use App\Models\Classe;
+use App\Models\Eleve;
 use App\Models\Series;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,6 +18,7 @@ class SeriesController extends Controller
 
         $series = Series::query()
             ->where('tenant_id', $tenantId)
+            ->with('classe:id,nom')
             ->orderBy('nom_serie')
             ->get();
 
@@ -23,8 +26,13 @@ class SeriesController extends Controller
             'series' => $series->map(fn ($s) => [
                 'id' => $s->id,
                 'nom_serie' => $s->nom_serie,
+                'id_classe' => $s->id_classe,
+                'classe' => $s->classe?->nom ?? 'Non assignée',
             ]),
             'totalSeries' => $series->count(),
+            'classes' => Classe::query()->where('tenant_id', $tenantId)
+                ->when(auth()->user()->etablissement_id, fn ($q, $id) => $q->where('etablissement_id', $id))
+                ->orderBy('nom')->get(['id', 'nom']),
         ]);
     }
 
@@ -33,6 +41,7 @@ class SeriesController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
+            'id_classe' => ['required', Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId))],
             'nom_serie' => [
                 'required',
                 'string',
@@ -44,6 +53,7 @@ class SeriesController extends Controller
 
         Series::create([
             'tenant_id' => $tenantId,
+            'id_classe' => $validated['id_classe'],
             'nom_serie' => $validated['nom_serie'],
         ]);
 
@@ -56,6 +66,7 @@ class SeriesController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
+            'id_classe' => ['required', Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId))],
             'nom_serie' => [
                 'required',
                 'string',
@@ -82,14 +93,28 @@ class SeriesController extends Controller
             ->where('serie', $series->id)
             ->count();
 
+        $studentCount = Eleve::query()
+            ->where('tenant_id', $tenantId)
+            ->where('id_serie', $series->id)
+            ->count();
 
-        if ($count > 0) {
-            return back()->with('error', 'Impossible de supprimer la série : elle est associée à des matières.');
+
+        if ($count > 0 || $studentCount > 0) {
+            return back()->with('error', 'Impossible de supprimer la série : elle est associée à des matières ou à des élèves.');
         }
 
         $series->delete();
 
         return back()->with('success', 'Série supprimée avec succès.');
+    }
+
+    public function byClasse(Classe $classe)
+    {
+        abort_unless((int) $classe->tenant_id === (int) auth()->user()->tenant_id, 404);
+
+        return response()->json(
+            $classe->series()->orderBy('nom_serie')->get(['id', 'nom_serie'])
+        );
     }
 
     private function authorizeTenant(Series $series): void

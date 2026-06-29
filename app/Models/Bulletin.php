@@ -32,6 +32,7 @@ class Bulletin extends Model
 
         'signature_professeur_principal',
         'signature_directeur',
+        'distinctions',
     ];
 
     protected $casts = [
@@ -45,6 +46,7 @@ class Bulletin extends Model
         'rang' => 'integer',
         'moyenne_generale' => 'float',
         'date' => 'date',
+        'distinctions' => 'array',
     ];
 
     public function disciplines(): HasMany
@@ -56,5 +58,9 @@ class Bulletin extends Model
     {
         return $this->belongsTo(Eleve::class, 'eleve_id');
     }
+
+    public function classe(): BelongsTo { return $this->belongsTo(Classe::class); }
+    public function anneeAcademique(): BelongsTo { return $this->belongsTo(AnneeAcademique::class); }
+    public function etablissement(): BelongsTo { return $this->belongsTo(Etablissement::class); }
 }
 

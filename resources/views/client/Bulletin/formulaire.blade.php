@@ -1,4 +1,5 @@
 @extends('client.layouts.app')
+@php($noSidebar = true)
 
 @section('title', 'EduManager - Générer un bulletin')
 
@@ -22,19 +23,24 @@
 
                         <div class="edu-bulletin-block p-4">
                             {{-- Sélection --}}
-                            <div class="grid grid-cols-3 gap-3 mb-4">
-                                <div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
+                                <div style="order: 4">
                                     <label class="edu-label">
                                         <span class="material-symbols-outlined edu-icon">person</span>
                                         Élève
                                     </label>
                                     <select class="edu-input edu-select @error('eleve_id') edu-error-border @enderror"
-                                            name="eleve_id" id="eleve_id" required>
-                                        <option value="">-- Sélectionner --</option>
+                                            name="eleve_id" id="eleve_id" required disabled>
+                                        <option value="">-- Choisir niveau, classe et série --</option>
                                         @foreach($eleves as $eleve)
                                             <option value="{{ $eleve->id }}"
                                                     data-matricule="{{ $eleve->matricule }}"
                                                     data-classe="{{ $eleve->classe?->nom ?? '' }}"
+                                                    data-niveau="{{ $eleve->classe?->niveau?->nom ?? '' }}"
+                                                    data-serie="{{ $eleve->serie?->nom_serie ?? '' }}"
+                                                    data-niveau-id="{{ $eleve->niveau_id ?? $eleve->classe?->niveau_id }}"
+                                                    data-classe-id="{{ $eleve->classe_id }}"
+                                                    data-serie-id="{{ $eleve->id_serie }}"
                                                     data-logo="{{ $etablissement?->logo ? $etablissement?->getLogoUrlAttribute() : '' }}">
                                                 {{ $eleve->nom }} {{ $eleve->prenom }}
                                             </option>
@@ -45,7 +51,59 @@
                                     @enderror
                                 </div>
 
-                                <div>
+                                <div style="order: 2">
+                                    <label class="edu-label">
+                                        <span class="material-symbols-outlined edu-icon">class</span>
+                                        Classe
+                                    </label>
+                                    <select class="edu-input edu-select" id="classe_select" disabled>
+                                        <option value="">-- Choisir un niveau --</option>
+                                        @foreach($classes as $classe)
+                                            <option value="{{ $classe->id }}" data-niveau-id="{{ $classe->niveau_id }}">{{ $classe->nom }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div style="order: 1">
+                                    <label class="edu-label">
+                                        <span class="material-symbols-outlined edu-icon">leaderboard</span>
+                                        Niveau
+                                    </label>
+                                    <select class="edu-input edu-select @error('niveau_id') edu-error-border @enderror"
+                                            name="niveau_id" id="niveau_id">
+                                        <option value="">-- Sélectionner un niveau --</option>
+                                        @foreach($niveaux ?? [] as $niveau)
+                                            <option value="{{ $niveau->id }}" {{ old('niveau_id') == $niveau->id ? 'selected' : '' }}>
+                                                {{ $niveau->nom }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('niveau_id')
+                                        <p class="edu-error">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div style="order: 3">
+                                    <label class="edu-label">
+                                        <span class="material-symbols-outlined edu-icon">category</span>
+                                        Série
+                                    </label>
+                                    <select class="edu-input edu-select @error('serie_id') edu-error-border @enderror"
+                                            id="serie_select" disabled>
+                                        <option value="">-- Sélectionner --</option>
+                                        @foreach($series ?? [] as $serie)
+                                            <option value="{{ $serie->id }}" data-classe-id="{{ $serie->id_classe }}" {{ old('serie_id') == $serie->id ? 'selected' : '' }}>
+                                                {{ $serie->nom_serie }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="serie_id" id="serie_id" value="{{ old('serie_id') }}">
+                                    @error('serie_id')
+                                        <p class="edu-error">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div style="order: 5">
                                     <label class="edu-label">
                                         <span class="material-symbols-outlined edu-icon">event_note</span>
                                         Année
@@ -64,7 +122,7 @@
                                     @enderror
                                 </div>
 
-                                <div>
+                                <div style="order: 6">
                                     <label class="edu-label">
                                         <span class="material-symbols-outlined edu-icon">calendar_month</span>
                                         Période
@@ -82,6 +140,7 @@
                                         <p class="edu-error">{{ $message }}</p>
                                     @enderror
                                 </div>
+
                             </div>
 
                             <input type="hidden" name="etablissement_id" value="{{ $etablissement?->id }}" id="etablissement_id">
@@ -92,16 +151,12 @@
                                 <div class="flex items-center gap-4">
                                     <div class="flex-shrink-0">
                                         <div class="edu-logo" style="width: 50px; height: 50px;">
-                                            <img id="logo_etablissement" src="{{ $etablissement?->logo ? $etablissement?->getLogoUrlAttribute() : '' }}" alt="Logo" style="width: 36px; height: 36px;" />
+                                            <img id="logo_etablissement" src="{{ $etablissement?->logo ? $etablissement?->getLogoUrlAttribute() : '' }}" alt="Logo" style="width: 60px; height: 60px;" />
                                         </div>
                                     </div>
 
                                     <div class="flex-1 min-w-0">
                                         <h3 class="text-base font-bold text-on-surface truncate">{{ $etablissement?->nom ?? 'Établissement' }}</h3>
-                                        <div class="edu-small" style="font-size: 0.8rem;">
-                                            <span class="truncate">{{ $etablissement?->adresse ?? 'Adresse' }}</span>
-                                            <span>{{ $etablissement?->telephone ?? 'Tél' }}</span>
-                                        </div>
                                     </div>
 
                                     <div class="text-right flex-shrink-0">
@@ -111,7 +166,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-200">
+                                <div class="grid grid-cols-5 gap-2 mt-3 pt-3 border-t border-gray-200">
                                     <div class="edu-student-chip" style="padding: 0.5rem 0.7rem; font-size: 0.8rem;">
                                         <span class="edu-chip-title">Élève</span>
                                         <span class="edu-chip-value" id="nom_prenoms">--</span>
@@ -123,6 +178,14 @@
                                     <div class="edu-student-chip" style="padding: 0.5rem 0.7rem; font-size: 0.8rem;">
                                         <span class="edu-chip-title">Classe</span>
                                         <span class="edu-chip-value" id="classe">--</span>
+                                    </div>
+                                    <div class="edu-student-chip" style="padding: 0.5rem 0.7rem; font-size: 0.8rem;">
+                                        <span class="edu-chip-title">Niveau</span>
+                                        <span class="edu-chip-value" id="niveau_display">--</span>
+                                    </div>
+                                    <div class="edu-student-chip" style="padding: 0.5rem 0.7rem; font-size: 0.8rem;">
+                                        <span class="edu-chip-title">Série</span>
+                                        <span class="edu-chip-value" id="serie_display">--</span>
                                     </div>
                                     <div class="edu-student-chip" style="padding: 0.5rem 0.7rem; font-size: 0.8rem;">
                                         <span class="edu-chip-title">Eff.</span>
@@ -169,15 +232,15 @@
                                     <table class="w-full text-sm" id="disciplinesTable">
                                         <thead>
                                             <tr class="bg-gray-50 border-b border-gray-200">
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 240px; width: 26%;">Discipline</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 95px; width: 10%;">Moyenne</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 90px; width: 10%;">Coef.</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 90px; width: 10%;">M×C</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 70px; width: 8%;">Rang</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 185px; width: 16%;">Appréciation</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 175px; width: 12%;">Professeur</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 175px; width: 12%;">Signature</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 55px; width: 6%; text-align: center;"> </th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 200px; width: 22%;">Discipline</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Moyenne</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Coef.</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">M×C</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 65px; width: 8%;">Rang</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 160px; width: 16%;">Appréciation</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 140px; width: 12%;">Professeur</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 140px; width: 12%;">Signature</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 50px; width: 5%; text-align: center;"> </th>
                                             </tr>
                                         </thead>
                                         <tbody id="disciplinesBody" class="divide-y divide-gray-100"></tbody>
@@ -363,7 +426,7 @@
         .edu-small { display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; font-size:0.85rem; color: rgba(0,0,0,0.62); }
 
         .edu-bulletin-header { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: .75rem; }
-        .edu-student-chip { display:flex; justify-content: space-between; align-items:center; gap:.4rem; padding: .5rem .7rem; background: #fff; border: 1px solid #f3f4f6; border-radius: 10px; font-size:0.85rem; }
+        .edu-student-chip { display:flex; justify-content: space-between; align-items:center; gap:.4rem; padding: .5rem .7rem; background: #fff; border: 1px solid #f3f4f6; border-radius: 10px; font-size:0.8rem; }
         .edu-chip-title { color: rgba(0,0,0,0.56); font-weight:700; }
         .edu-chip-value { font-weight:700; }
 
@@ -407,7 +470,7 @@
 
         /* ===== STYLES OPTIMISÉS POUR LE TABLEAU DES DISCIPLINES ===== */
         #disciplinesTable {
-            min-width: 1180px;
+            min-width: 1000px;
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
@@ -415,17 +478,15 @@
 
         #disciplinesTable th,
         #disciplinesTable td {
-            padding: 0.35rem 0.6rem;
+            padding: 0.6rem 0.6rem;
             vertical-align: middle;
         }
 
-        /* === COLONNE DISCIPLINE === */
         #disciplinesTable .discipline-input {
-            min-width: 220px;
+            min-width: 190px;
             width: 100%;
             font-size: 0.95rem;
-            padding: 0.35rem 0.6rem;
-            min-height: 36px;
+            padding: 0.5rem 0.7rem;
             font-weight: 600;
             color: #1a1a2e;
             background: #f8fafc;
@@ -439,13 +500,11 @@
             background: #ffffff;
         }
 
-        /* === COLONNE MOYENNE === */
         #disciplinesTable .moyenne-input {
-            min-width: 90px;
+            min-width: 75px;
             width: 100%;
             font-size: 1rem;
-            padding: 0.35rem 0.4rem;
-            min-height: 36px;
+            padding: 0.5rem 0.4rem;
             font-weight: 700;
             text-align: center;
             background: #f0fdf4;
@@ -463,13 +522,11 @@
             border-color: #86efac;
         }
 
-        /* === COLONNE COEFFICIENT === */
         #disciplinesTable .coef-input {
-            min-width: 85px;
+            min-width: 70px;
             width: 100%;
             font-size: 0.95rem;
-            padding: 0.35rem 0.4rem;
-            min-height: 36px;
+            padding: 0.5rem 0.4rem;
             text-align: center;
             font-weight: 600;
             background: #fef3c7;
@@ -487,13 +544,11 @@
             border-color: #fbbf24;
         }
 
-        /* === COLONNE M×C === */
         #disciplinesTable .mc-output {
-            min-width: 85px;
+            min-width: 70px;
             width: 100%;
             font-size: 0.95rem;
-            padding: 0.35rem 0.4rem;
-            min-height: 36px;
+            padding: 0.5rem 0.4rem;
             text-align: center;
             font-weight: 800;
             color: var(--edu-primary);
@@ -502,13 +557,11 @@
             border-radius: 8px;
         }
 
-        /* === COLONNE RANG === */
         #disciplinesTable .rang-input {
-            min-width: 70px;
+            min-width: 60px;
             width: 100%;
             font-size: 0.9rem;
-            padding: 0.35rem 0.3rem;
-            min-height: 36px;
+            padding: 0.5rem 0.3rem;
             text-align: center;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
@@ -521,13 +574,11 @@
             background: #ffffff;
         }
 
-        /* === COLONNE APPRÉCIATION === */
         #disciplinesTable .app-input {
-            min-width: 180px;
+            min-width: 150px;
             width: 100%;
             font-size: 0.9rem;
-            padding: 0.35rem 0.6rem;
-            min-height: 36px;
+            padding: 0.5rem 0.6rem;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -539,13 +590,11 @@
             background: #ffffff;
         }
 
-        /* === COLONNE PROFESSEUR === */
         #disciplinesTable .prof-input {
-            min-width: 165px;
+            min-width: 130px;
             width: 100%;
             font-size: 0.9rem;
-            padding: 0.35rem 0.6rem;
-            min-height: 36px;
+            padding: 0.5rem 0.6rem;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -557,13 +606,11 @@
             background: #ffffff;
         }
 
-        /* === COLONNE SIGNATURE === */
         #disciplinesTable .sig-input {
-            min-width: 165px;
+            min-width: 130px;
             width: 100%;
             font-size: 0.9rem;
-            padding: 0.35rem 0.6rem;
-            min-height: 36px;
+            padding: 0.5rem 0.6rem;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -575,7 +622,6 @@
             background: #ffffff;
         }
 
-        /* === BOUTON SUPPRIMER === */
         #disciplinesTable td:last-child {
             width: 50px;
             text-align: center;
@@ -601,7 +647,6 @@
             font-size: 1.3rem;
         }
 
-        /* === EN-TÊTES === */
         #disciplinesTable thead th {
             padding: 0.7rem 0.6rem;
             font-size: 0.7rem;
@@ -621,7 +666,6 @@
             border-top-right-radius: 10px;
         }
 
-        /* === LIGNES ALTERNÉES ET SURVOL === */
         #disciplinesBody tr:nth-child(even) {
             background: #fafbfc;
         }
@@ -633,7 +677,6 @@
             transition: background 0.2s ease;
         }
 
-        /* === MOYENNE GÉNÉRALE === */
         #moyenne_generale_display {
             font-size: 1.1rem !important;
             font-weight: 800 !important;
@@ -645,29 +688,41 @@
             border-radius: 10px !important;
         }
 
-        /* === SCROLL ET RESPONSIVE === */
         .edu-bulletin-block .overflow-x-auto {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             padding-bottom: 4px;
         }
 
-        /* === PLACEHOLDER STYLES === */
         #disciplinesTable input::placeholder {
             color: #94a3b8;
             font-weight: 400;
             opacity: 0.7;
         }
 
-        /* === TRANSITIONS GLOBALES === */
         #disciplinesTable input {
             transition: all 0.2s ease;
         }
 
-        /* === BORDURES ARRONDIES DU TABLEAU === */
         #disciplinesTable {
             border-radius: 10px;
             overflow: hidden;
+        }
+
+        /* Ajustement pour les écrans moyens */
+        @media (max-width: 1200px) {
+            .grid-cols-5 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-5 {
+                grid-template-columns: 1fr 1fr;
+            }
+            .edu-bulletin-header .grid-cols-5 {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
     </style>
 
@@ -862,12 +917,6 @@
             function seedDefaults() {
                 disciplinesBody.innerHTML = '';
                 idx = 0;
-
-                const initialCount = 8;
-                for (let i = 0; i < initialCount; i++) {
-                    disciplinesBody.appendChild(buildRow({ coefficient: 1 }));
-                }
-                recomputeTotals();
             }
 
             addDisciplineBtn.addEventListener('click', () => {
@@ -876,6 +925,33 @@
             });
 
             seedDefaults();
+
+            function fillDisciplinesTable(disciplines = []) {
+                disciplinesBody.innerHTML = '';
+                idx = 0;
+
+                if (!Array.isArray(disciplines) || disciplines.length === 0) {
+                    // Si aucune donnée en DB, on garde le comportement “manuel” via bouton Ajouter.
+                    recomputeTotals();
+                    return;
+                }
+
+                disciplines.forEach((d) => {
+                    const row = buildRow({
+                        discipline: d.discipline ?? '',
+                        moyenne: d.moyenne ?? '',
+                        coefficient: d.coefficient ?? 1,
+                        rang: d.rang ?? '',
+                        appreciation: d.appréciation ?? d.appréciation ?? d.appreciation ?? '',
+                        professeur: d.professeur ?? '',
+                        signature: d.signature ?? '',
+                    });
+                    disciplinesBody.appendChild(row);
+                });
+
+                recomputeTotals();
+            }
+
 
             async function fetchStudentData(eleveId) {
                 const anneeId = qs('#annee_academique_id')?.value ?? '';
@@ -900,6 +976,8 @@
                 document.getElementById('nom_prenoms').textContent = [data.nom, data.prenoms].filter(Boolean).join(' ') || '--';
                 document.getElementById('matricule').textContent = data.matricule || '--';
                 document.getElementById('classe').textContent = data.classe || '--';
+                document.getElementById('niveau_display').textContent = data.niveau || '--';
+                document.getElementById('serie_display').textContent = data.serie || '--';
                 document.getElementById('effectif').textContent = data.effectif ?? '--';
                 document.getElementById('sexe').textContent = data.sexe || '--';
                 document.getElementById('nationalite').textContent = data.nationalite || '--';
@@ -910,16 +988,132 @@
 
                 const hiddenClasse = document.getElementById('classe_id');
                 if (hiddenClasse) hiddenClasse.value = data.classe_id ?? '';
+
+                // Mettre à jour les selects Niveau et Série si présents
+                if (data.niveau_id) {
+                    const niveauSelect = document.getElementById('niveau_id');
+                    if (niveauSelect) niveauSelect.value = data.niveau_id;
+                }
+                if (data.serie_id) {
+                    const serieSelect = document.getElementById('serie_select');
+                    if (serieSelect) serieSelect.value = data.serie_id;
+                    document.getElementById('serie_id').value = data.serie_id;
+                }
             }
 
+            const niveauSelect = qs('#niveau_id');
+            const classeSelect = qs('#classe_select');
+            const serieSelect = qs('#serie_select');
             const eleveSelect = qs('#eleve_id');
+
+            function filterOptions(select, predicate) {
+                Array.from(select.options).forEach((option, index) => {
+                    if (index === 0) return;
+                    const visible = predicate(option);
+                    option.hidden = !visible;
+                    option.disabled = !visible;
+                });
+            }
+
+            function resetEleves(message) {
+                eleveSelect.value = '';
+                eleveSelect.options[0].textContent = message;
+                eleveSelect.disabled = true;
+                filterOptions(eleveSelect, () => false);
+            }
+
+            function filterEleves() {
+                const classeId = classeSelect.value;
+                const serieId = serieSelect.value;
+                const hasSeries = Array.from(serieSelect.options).some((option, index) => index > 0 && !option.hidden && !option.disabled);
+                filterOptions(eleveSelect, option => {
+                    if (String(option.dataset.classeId) !== String(classeId)) return false;
+                    return hasSeries ? String(option.dataset.serieId) === String(serieId) : !option.dataset.serieId;
+                });
+                const hasStudents = Array.from(eleveSelect.options).some((option, index) => index > 0 && !option.hidden && !option.disabled);
+                eleveSelect.options[0].textContent = hasStudents ? '-- Sélectionner un élève --' : '-- Aucun élève correspondant --';
+                eleveSelect.disabled = !hasStudents || (hasSeries && !serieId);
+                if (eleveSelect.disabled) eleveSelect.value = '';
+            }
+
+            niveauSelect.addEventListener('change', () => {
+                const niveauId = niveauSelect.value;
+                classeSelect.value = '';
+                classeSelect.disabled = !niveauId;
+                classeSelect.options[0].textContent = niveauId ? '-- Sélectionner une classe --' : '-- Choisir un niveau --';
+                filterOptions(classeSelect, option => String(option.dataset.niveauId) === String(niveauId));
+                serieSelect.value = '';
+                serieSelect.disabled = true;
+                filterOptions(serieSelect, () => false);
+                document.getElementById('serie_id').value = '';
+                document.getElementById('classe_id').value = '';
+                resetEleves('-- Choisir une classe --');
+            });
+
+            classeSelect.addEventListener('change', () => {
+                const classeId = classeSelect.value;
+                document.getElementById('classe_id').value = classeId;
+                serieSelect.value = '';
+                filterOptions(serieSelect, option => String(option.dataset.classeId) === String(classeId));
+                const hasSeries = Array.from(serieSelect.options).some((option, index) => index > 0 && !option.hidden && !option.disabled);
+                serieSelect.disabled = !hasSeries;
+                serieSelect.options[0].textContent = hasSeries ? '-- Sélectionner une série --' : '-- Aucune série pour cette classe --';
+                document.getElementById('serie_id').value = '';
+                filterEleves();
+            });
+
+            serieSelect.addEventListener('change', () => {
+                document.getElementById('serie_id').value = serieSelect.value;
+                filterEleves();
+            });
+
+            filterOptions(classeSelect, () => false);
+            filterOptions(serieSelect, () => false);
+            resetEleves('-- Choisir niveau, classe et série --');
+
+            const initialNiveauId = @json(old('niveau_id'));
+            const initialClasseId = @json(old('classe_id'));
+            const initialSerieId = @json(old('serie_id'));
+            const initialEleveId = @json(old('eleve_id'));
+            if (initialNiveauId) {
+                niveauSelect.value = initialNiveauId;
+                niveauSelect.dispatchEvent(new Event('change'));
+                classeSelect.value = initialClasseId || '';
+                classeSelect.dispatchEvent(new Event('change'));
+                if (initialSerieId) {
+                    serieSelect.value = initialSerieId;
+                    serieSelect.dispatchEvent(new Event('change'));
+                }
+                if (initialEleveId && !eleveSelect.disabled) eleveSelect.value = initialEleveId;
+            }
+
             eleveSelect.addEventListener('change', async (e) => {
                 const eleveId = e.target.value;
                 if (!eleveId) return;
 
+                // Remplir les données depuis les attributs data
+                const selectedOption = eleveSelect.options[eleveSelect.selectedIndex];
+                document.getElementById('niveau_display').textContent = selectedOption.dataset.niveau || '--';
+                document.getElementById('serie_display').textContent = selectedOption.dataset.serie || '--';
+
                 try {
                     const data = await fetchStudentData(eleveId);
                     fillHeader(data);
+                    if (data.disciplines) {
+                        fillDisciplinesTable(data.disciplines);
+                    }
+                    if (data.bulletin_existant && data.moyenne_generale != null) {
+                        moyenneDisplay.value = Number(data.moyenne_generale).toFixed(2);
+                        moyenneDisplay.style.color = Number(data.moyenne_generale) >= 10 ? '#059669' : '#E11D48';
+                        const hidden = document.getElementById('moyenne_generale_hidden') || createHiddenMoyenne();
+                        hidden.value = Number(data.moyenne_generale).toFixed(2);
+                    }
+                    // Champ décision/appreciation depuis le bulletin existant (si présent)
+                    if (data.bulletin_existant) {
+                        const decisionInput = document.querySelector('input[name="decision"]');
+                        if (decisionInput) decisionInput.value = data.appreciation ?? '';
+                    }
+
                 } catch (err) {
                     console.error(err);
                 }

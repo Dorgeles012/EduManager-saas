@@ -9,6 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
         // 1) Détecter si la colonne `serie` existe encore en texte.
         // On va tenter de la convertir en FK (unsignedBigInteger).
         // NOTE: Si ta DB utilise déjà un type numérique, cette migration restera 
@@ -45,7 +48,7 @@ return new class extends Migration
             // 3) Convertir `matieres.serie` (texte) -> `matieres.serie` (FK vers series.id)
             // On remplace chaque valeur par l'id correspondant.
             // Pour éviter les soucis de type, on update par jointure implicite.
-            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            Schema::disableForeignKeyConstraints();
 
             // On modifie le type de colonne.
             // MySQL: MODIFY COLUMN. Pour compatibilité, on utilise alter table.
@@ -87,7 +90,7 @@ return new class extends Migration
                 }
             });
 
-            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            Schema::enableForeignKeyConstraints();
         });
     }
 

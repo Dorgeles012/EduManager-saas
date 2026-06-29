@@ -56,6 +56,7 @@ Route::middleware(['auth', 'client'])
         Route::delete('/classe/{classe}', [ClasseController::class, 'destroy'])->name('classe.destroy');
 
         Route::get('/eleve', [EleveController::class, 'index'])->name('eleve');
+        Route::get('/eleve/{eleve}/photo', [EleveController::class, 'photo'])->name('eleve.photo');
         Route::post('/eleve', [EleveController::class, 'store'])->name('eleve.store');
         Route::put('/eleve/{eleve}', [EleveController::class, 'update'])->name('eleve.update');
         Route::delete('/eleve/{eleve}', [EleveController::class, 'destroy'])->name('eleve.destroy');
@@ -73,6 +74,7 @@ Route::middleware(['auth', 'client'])
         Route::delete('/matiere/{matiere}', [MatiereController::class, 'destroy'])->name('matiere.destroy');
 
 
+        Route::get('/series/by-classe/{classe}', [SeriesController::class, 'byClasse'])->name('series.by-classe');
         Route::resource('series', SeriesController::class)->except(['show', 'create', 'edit']);
 
         Route::get('/niveaux', [NiveauxController::class, 'index'])->name('niveaux');
@@ -84,6 +86,7 @@ Route::middleware(['auth', 'client'])
         Route::prefix('bulletin')->name('bulletin.')->group(function () {
             Route::get('/', [BulletinController::class, 'index'])->name('index');
             Route::get('/create', [BulletinController::class, 'create'])->name('create');
+            Route::get('/student-data', [BulletinController::class, 'studentData'])->name('student-data');
             Route::post('/', [BulletinController::class, 'store'])->name('store');
             Route::get('/{bulletin}', [BulletinController::class, 'show'])->name('show');
             Route::get('/{bulletin}/edit', [BulletinController::class, 'edit'])->name('edit');
@@ -91,7 +94,6 @@ Route::middleware(['auth', 'client'])
             Route::delete('/{bulletin}', [BulletinController::class, 'destroy'])->name('destroy');
             Route::get('/{bulletin}/download', [BulletinController::class, 'download'])->name('download');
 
-            Route::get('/student-data', [BulletinController::class, 'studentData'])->name('student-data');
         });
 
         Route::get('/parametres', [ParametresController::class, 'index'])->name('parametres');

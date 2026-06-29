@@ -43,12 +43,18 @@
         <h4 class="font-headline-md text-headline-md text-primary">Liste des élèves</h4>
     </div>
 
-    <form method="GET" action="{{ route('client.eleve') }}" class="px-6 py-4 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-4 gap-3 bg-white">
+    <form method="GET" action="{{ route('client.eleve') }}" class="px-6 py-4 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-5 gap-3 bg-white">
         <input type="text" name="search" value="{{ request('search') }}" class="rounded-lg border-outline-variant text-sm" placeholder="Rechercher nom ou matricule">
         <select name="niveau_id" class="rounded-lg border-outline-variant text-sm">
             <option value="">Tous les niveaux</option>
             @foreach($levels ?? [] as $level)
                 <option value="{{ $level['id'] }}" @selected((string) request('niveau_id') === (string) $level['id'])>{{ $level['name'] }}</option>
+            @endforeach
+        </select>
+        <select name="id_serie" class="rounded-lg border-outline-variant text-sm">
+            <option value="">Toutes les séries</option>
+            @foreach($series ?? [] as $serie)
+                <option value="{{ $serie->id }}" @selected((string) request('id_serie') === (string) $serie->id)>{{ $serie->nom_serie }}</option>
             @endforeach
         </select>
         <select name="classe_id" class="rounded-lg border-outline-variant text-sm">
@@ -78,6 +84,7 @@
                     <th class="px-5 py-4 font-semibold">Sexe</th>
                     <th class="px-5 py-4 font-semibold">Classe</th>
                     <th class="px-5 py-4 font-semibold">Niveau</th>
+                    <th class="px-5 py-4 font-semibold">Série</th>
                     <th class="px-5 py-4 font-semibold">Date de naissance</th>
                     <th class="px-5 py-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -123,6 +130,7 @@
                             {{ $student['level'] }}
                         </span>
                     </td>
+                    <td class="px-5 py-3.5 text-on-surface-variant">{{ $student['serie'] ?? '—' }}</td>
                     <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['birthdate'] }}</td>
                     <td class="px-5 py-3.5 text-right">
                         <div class="flex justify-end gap-2">
@@ -234,15 +242,6 @@
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required>
-                                    <option value="">Sélectionner une classe</option>
-                                    @foreach($classes ?? [] as $classe)
-                                    <option value="{{ $classe['id'] }}">{{ $classe['name'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
                                 <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
                                     <option value="">Sélectionner un niveau</option>
@@ -251,6 +250,16 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required disabled>
+                                    <option value="">Sélectionner d’abord un niveau</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="stdSerieWrapper">
+                            <label class="block text-label-sm text-on-surface mb-1.5">Série</label>
+                            <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdSerie" name="id_serie"><option value="">Aucune série</option></select>
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
@@ -408,6 +417,12 @@
                     </div>
 
                     <!-- Sexe -->
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">category</span></div>
+                        <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Série</p><p class="font-body-md text-[16px]" id="viewStudentSerie">—</p></div>
+                    </div>
+
+                    <!-- Sexe -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg">
                             <span class="material-symbols-outlined text-primary text-[22px]">wc</span>
@@ -554,15 +569,6 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required>
-                                    <option value="">Sélectionner une classe</option>
-                                    @foreach($classes ?? [] as $classe)
-                                        <option value="{{ $classe['id'] }}">{{ $classe['name'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
                                 <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLevel">
                                     <option value="">Sélectionner un niveau</option>
@@ -571,6 +577,16 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required disabled>
+                                    <option value="">Sélectionner d’abord un niveau</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="editSerieWrapper">
+                            <label class="block text-label-sm text-on-surface mb-1.5">Série</label>
+                            <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editSerie" name="id_serie"><option value="">Aucune série</option></select>
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
@@ -702,7 +718,49 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@php
+    $availableClassesForJs = collect($classes ?? [])->values();
+    $availableSeriesForJs = ($series ?? collect())->map(function ($serie) {
+        return [
+            'id' => $serie->id,
+            'id_classe' => $serie->id_classe,
+            'nom_serie' => $serie->nom_serie,
+        ];
+    })->values();
+@endphp
 <script>
+    const availableClasses = @json($availableClassesForJs);
+    const availableSeries = @json($availableSeriesForJs);
+
+    function populateClasses(levelSelectId, classSelectId, seriesSelectId, seriesWrapperId, selectedClassId = '', selectedSeriesId = '') {
+        const levelId = document.getElementById(levelSelectId)?.value;
+        const select = document.getElementById(classSelectId);
+        if (!select) return;
+
+        const matching = availableClasses.filter(classe => String(classe.level_id) === String(levelId));
+        select.innerHTML = '<option value="">Sélectionner une classe</option>' + matching.map(classe =>
+            `<option value="${classe.id}">${classe.name}</option>`
+        ).join('');
+        select.disabled = !levelId || matching.length === 0;
+        select.value = matching.some(classe => String(classe.id) === String(selectedClassId)) ? String(selectedClassId) : '';
+        populateSeries(classSelectId, seriesSelectId, seriesWrapperId, selectedSeriesId);
+    }
+
+    function populateSeries(classSelectId, seriesSelectId, wrapperId, selectedId = '') {
+        const classId = document.getElementById(classSelectId)?.value;
+        const select = document.getElementById(seriesSelectId);
+        const wrapper = document.getElementById(wrapperId);
+        if (!select || !wrapper) return;
+
+        const matching = availableSeries.filter(serie => String(serie.id_classe) === String(classId));
+        select.innerHTML = `<option value="">${matching.length ? 'Sélectionner une série' : 'Aucune série pour cette classe'}</option>` + matching.map(serie =>
+            `<option value="${serie.id}">${serie.nom_serie}</option>`
+        ).join('');
+        wrapper.classList.remove('hidden');
+        select.disabled = !classId || matching.length === 0;
+        select.value = matching.some(serie => String(serie.id) === String(selectedId)) ? String(selectedId) : '';
+    }
+
     // Photo preview function
     function previewPhoto(input, previewId) {
         const preview = document.getElementById(previewId);
@@ -718,6 +776,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('stdLevel')?.addEventListener('change', () => populateClasses('stdLevel', 'stdClasse', 'stdSerie', 'stdSerieWrapper'));
+        document.getElementById('editLevel')?.addEventListener('change', () => populateClasses('editLevel', 'editClasse', 'editSerie', 'editSerieWrapper'));
+        document.getElementById('stdClasse')?.addEventListener('change', () => populateSeries('stdClasse', 'stdSerie', 'stdSerieWrapper'));
+        document.getElementById('editClasse')?.addEventListener('change', () => populateSeries('editClasse', 'editSerie', 'editSerieWrapper'));
+        const oldLevelId = @json(old('niveau_id'));
+        const oldClassId = @json(old('classe_id'));
+        if (oldLevelId) {
+            document.getElementById('stdLevel').value = oldLevelId;
+            populateClasses('stdLevel', 'stdClasse', 'stdSerie', 'stdSerieWrapper', oldClassId, @json(old('id_serie')));
+        }
         const standardForm = document.getElementById('form-standard');
         if (standardForm) {
             standardForm.addEventListener('submit', function(e) {
@@ -868,6 +936,7 @@
         document.getElementById('viewStudentBirthplace').textContent = student.birthplace ?? 'N/A';
         document.getElementById('viewStudentClasse').textContent = student.classe ?? student.class ?? 'N/A';
         document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
+        document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
         
         // Photo: sécuriser l'URL si jamais backend renvoie un chemin (par prudence)
         if (student.photo && !String(student.photo).startsWith('/storage/') && !String(student.photo).startsWith('http')) {
@@ -923,32 +992,6 @@
 
         const photoContainer = document.getElementById('viewStudentPhotoContainer');
 
-        if (student.photo_debug) {
-            const d = student.photo_debug;
-            photoContainer.innerHTML = `
-                <div class="w-full h-full flex flex-col">
-                    <div class="flex-1 rounded-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 overflow-hidden">
-                        ${student.photo ? `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover"/>` : `
-                            <div class="flex items-center justify-center w-full h-full">
-                                <span class="text-3xl font-bold text-primary">
-                                    ${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}
-                                </span>
-                            </div>
-                        `}
-                    </div>
-                    <div class="mt-2 text-[10px] text-text-muted leading-tight px-2">
-                        <div><span class="font-semibold">photo DB:</span> ${d.photo_db ?? '-'}</div>
-                        <div><span class="font-semibold">path:</span> ${d.normalized_path ?? '-'}</div>
-                        <div><span class="font-semibold">physique:</span> ${d.physical_path ?? '-'}</div>
-                        <div><span class="font-semibold">exists:</span> ${d.exists ? 'false' : 'false'}</div>
-                        <div><span class="font-semibold">url:</span> ${d.url_generated ?? '-'}</div>
-                    </div>
-                </div>
-            `;
-            openModal('modal-view');
-            return;
-        }
-
         if (student.photo) {
             photoContainer.innerHTML = `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover">`;
         } else {
@@ -970,8 +1013,8 @@
         document.getElementById('editMatricule').value = student.matricule ?? '';
         document.getElementById('editBirthdate').value = student.birthdate_raw ?? '';
         document.getElementById('editBirthPlace').value = student.birthplace ?? '';
-        document.getElementById('editClasse').value = student.class_id ?? '';
         document.getElementById('editLevel').value = student.level_id ?? '';
+        populateClasses('editLevel', 'editClasse', 'editSerie', 'editSerieWrapper', student.class_id ?? '', student.serie_id ?? '');
         document.getElementById('editParentLastname').value = student.parent_lastname ?? '';
         document.getElementById('editParentFirstname').value = student.parent_firstname ?? '';
         document.getElementById('editParentPhone').value = student.parent_phone ?? '';

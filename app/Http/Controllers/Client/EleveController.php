@@ -7,6 +7,7 @@ use App\Models\Classe;
 use App\Models\Eleve;
 use App\Models\Etablissement;
 use App\Models\Niveau;
+use App\Models\Series;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class EleveController extends Controller
     {
         $user = auth()->user();
 
-        $query = Eleve::with(['classe.niveau', 'niveau', 'parent'])
+        $query = Eleve::with(['classe.niveau', 'niveau', 'serie', 'parent'])
             ->where('tenant_id', $user->tenant_id)
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->when($request->filled('search'), function ($q) use ($request) {
@@ -34,6 +35,7 @@ class EleveController extends Controller
             })
             ->when($request->filled('niveau_id'), fn ($q) => $q->where('niveau_id', $request->integer('niveau_id')))
             ->when($request->filled('classe_id'), fn ($q) => $q->where('classe_id', $request->integer('classe_id')))
+            ->when($request->filled('id_serie'), fn ($q) => $q->where('id_serie', $request->integer('id_serie')))
             ->latest();
 
         $students = $query->paginate(10)->withQueryString();
@@ -57,11 +59,12 @@ class EleveController extends Controller
                 'firstname' => $student->prenom,
                 'level_id' => $student->niveau_id,
                 'class_id' => $student->classe_id,
+                'serie_id' => $student->id_serie,
+                'serie' => $student->serie?->nom_serie,
                 'level' => $student->niveau?->nom ?? $student->classe?->niveau?->nom ?? 'Non assigné',
 'classe' => $student->classe?->nom ?? 'Non assignée',
                 // Debug photo: valeur DB, chemin physique, URL générée, existence fichier
-                'photo' => $student->photo ? $this->resolvePhotoUrl($student->photo) : null,
-                'photo_debug' => $student->photo ? $this->buildPhotoDebug($student->photo) : null,
+                'photo' => $student->photo ? $this->resolvePhotoUrl($student->photo, $student->id) : null,
 
                 'matricule' => $student->matricule,
                 'birthdate' => $student->date_naissance?->format('d/m/Y') ?? 'N/A',
@@ -80,6 +83,8 @@ class EleveController extends Controller
             'activeClasses' => $classes->count(),
             'levels' => $levels->map(fn ($level) => ['id' => $level->id, 'name' => $level->nom]),
             'classes' => $classes->map(fn ($classe) => ['id' => $classe->id, 'name' => $classe->nom, 'level_id' => $classe->niveau_id]),
+            'series' => Series::query()->where('tenant_id', $user->tenant_id)
+                ->orderBy('nom_serie')->get(['id', 'id_classe', 'nom_serie']),
             'currentAcademicYear' => now()->year . '-' . now()->addYear()->year,
         ]);
     }
@@ -129,6 +134,7 @@ class EleveController extends Controller
                 'tenant_id' => $user->tenant_id,
                 'etablissement_id' => $validated['etablissement_id'],
                 'classe_id' => $validated['classe_id'] ?? null,
+                'id_serie' => $validated['id_serie'] ?? null,
                 'niveau_id' => $validated['niveau_id'],
                 'parent_id' => $parent->id,
                 'matricule' => $validated['matricule'] ?? $this->generateMatricule($user->tenant_id),
@@ -180,6 +186,7 @@ class EleveController extends Controller
             $eleve->update([
                 'etablissement_id' => $validated['etablissement_id'],
                 'classe_id' => $validated['classe_id'] ?? null,
+                'id_serie' => $validated['id_serie'] ?? null,
                 'niveau_id' => $validated['niveau_id'],
                 'matricule' => $validated['matricule'] ?? $eleve->matricule,
                 'nom' => $validated['nom'],
@@ -232,6 +239,17 @@ class EleveController extends Controller
     }
 
 
+    public function photo(Eleve $eleve)
+    {
+        $this->authorizeTenant($eleve);
+        abort_unless($eleve->photo, 404);
+
+        $path = $this->normalizePhotoPath($eleve->photo);
+        abort_unless(Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path);
+    }
+
     private function validateEleve(Request $request, ?Eleve $eleve = null): array
     {
         $user = auth()->user();
@@ -266,6 +284,12 @@ class EleveController extends Controller
                 Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
             ],
             'parent_nom' => ['required', 'string', 'max:255'],
+            'id_serie' => [
+                'nullable',
+                Rule::exists('series', 'id')->where(fn ($q) => $q
+                    ->where('tenant_id', $user->tenant_id)
+                    ->where('id_classe', $request->input('classe_id'))),
+            ],
             'parent_prenom' => ['nullable', 'string', 'max:255'],
             'parent_email' => ['nullable', 'email', 'max:255'],
             'parent_telephone' => ['required', 'string', 'max:50'],
@@ -325,7 +349,7 @@ class EleveController extends Controller
         ];
     }
 
-    private function resolvePhotoUrl(string $photo): ?string
+    private function resolvePhotoUrl(string $photo, int $eleveId): ?string
     {
         // Objectif: garantir que $student.photo renvoie une URL directement exploitable dans <img src="...">
         if (empty($photo)) {
@@ -348,7 +372,7 @@ class EleveController extends Controller
 
         // Si on a un chemin relatif à "public" et que le fichier existe, on génère une URL.
         if ($disk->exists($normalized)) {
-            return $disk->url($normalized); // => /storage/eleves/xxx.jpg
+            return route('client.eleve.photo', $eleveId, false);
         }
 
         // Fallback: parfois la base peut contenir déjà un chemin avec "eleves/..." mais avec des préfixes inattendus.
@@ -356,7 +380,7 @@ class EleveController extends Controller
         if (str_contains($normalized, 'eleves/')) {
             $candidate = strstr($normalized, 'eleves/');
             if (is_string($candidate) && $disk->exists($candidate)) {
-                return $disk->url($candidate);
+                return route('client.eleve.photo', $eleveId, false);
             }
         }
 
