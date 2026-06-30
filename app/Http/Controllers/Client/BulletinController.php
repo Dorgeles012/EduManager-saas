@@ -124,7 +124,8 @@ class BulletinController extends Controller
         $matieres = Matiere::query()->where('tenant_id', $tenantId)->get();
         $enseignants = Enseignant::query()->where('tenant_id', $tenantId)->get();
         $series = Series::query()->where('tenant_id', $tenantId)
-            ->whereIn('id_classe', $classes->pluck('id'))
+            ->whereHas('classes', fn ($q) => $q->whereIn('classes.id', $classes->pluck('id')))
+            ->with('classes:id')
             ->orderBy('nom_serie')->get();
 
         return view('client.bulletin.formulaire', [

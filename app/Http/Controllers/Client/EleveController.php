@@ -84,7 +84,8 @@ class EleveController extends Controller
             'levels' => $levels->map(fn ($level) => ['id' => $level->id, 'name' => $level->nom]),
             'classes' => $classes->map(fn ($classe) => ['id' => $classe->id, 'name' => $classe->nom, 'level_id' => $classe->niveau_id]),
             'series' => Series::query()->where('tenant_id', $user->tenant_id)
-                ->orderBy('nom_serie')->get(['id', 'id_classe', 'nom_serie']),
+                ->with('classes:id')
+                ->orderBy('nom_serie')->get(['id', 'nom_serie']),
             'currentAcademicYear' => now()->year . '-' . now()->addYear()->year,
         ]);
     }
@@ -286,9 +287,8 @@ class EleveController extends Controller
             'parent_nom' => ['required', 'string', 'max:255'],
             'id_serie' => [
                 'nullable',
-                Rule::exists('series', 'id')->where(fn ($q) => $q
-                    ->where('tenant_id', $user->tenant_id)
-                    ->where('id_classe', $request->input('classe_id'))),
+                Rule::exists('classe_serie', 'serie_id')->where(fn ($q) => $q
+                    ->where('classe_id', $request->input('classe_id'))),
             ],
             'parent_prenom' => ['nullable', 'string', 'max:255'],
             'parent_email' => ['nullable', 'email', 'max:255'],

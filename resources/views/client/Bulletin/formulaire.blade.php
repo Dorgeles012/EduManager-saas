@@ -92,7 +92,7 @@
                                             id="serie_select" disabled>
                                         <option value="">-- Sélectionner --</option>
                                         @foreach($series ?? [] as $serie)
-                                            <option value="{{ $serie->id }}" data-classe-id="{{ $serie->id_classe }}" {{ old('serie_id') == $serie->id ? 'selected' : '' }}>
+                                            <option value="{{ $serie->id }}" data-classe-ids="{{ $serie->classes->pluck('id')->implode(',') }}" {{ old('serie_id') == $serie->id ? 'selected' : '' }}>
                                                 {{ $serie->nom_serie }}
                                             </option>
                                         @endforeach
@@ -1054,7 +1054,7 @@
                 const classeId = classeSelect.value;
                 document.getElementById('classe_id').value = classeId;
                 serieSelect.value = '';
-                filterOptions(serieSelect, option => String(option.dataset.classeId) === String(classeId));
+                filterOptions(serieSelect, option => (option.dataset.classeIds ?? '').split(',').includes(String(classeId)));
                 const hasSeries = Array.from(serieSelect.options).some((option, index) => index > 0 && !option.hidden && !option.disabled);
                 serieSelect.disabled = !hasSeries;
                 serieSelect.options[0].textContent = hasSeries ? '-- Sélectionner une série --' : '-- Aucune série pour cette classe --';

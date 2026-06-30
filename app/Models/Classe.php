@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Classe extends Model
 {
@@ -45,10 +46,21 @@ class Classe extends Model
         return $this->hasMany(Eleve::class, 'classe_id');
     }
 
-    public function bulletins(): HasMany { return $this->hasMany(Bulletin::class); }
-
-    public function series(): HasMany
+    public function bulletins(): HasMany
     {
-        return $this->hasMany(Series::class, 'id_classe');
+        return $this->hasMany(Bulletin::class);
+    }
+
+    /**
+     * Nouvelle relation: une classe peut être associée à plusieurs séries.
+     */
+    public function series(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Series::class,
+            'classe_serie',
+            'classe_id',
+            'serie_id'
+        )->withTimestamps();
     }
 }

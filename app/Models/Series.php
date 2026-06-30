@@ -15,6 +15,7 @@ class Series extends Model
 
     protected $fillable = [
         'tenant_id',
+        // Backward-compat: l'ancien schéma utilisait `id_classe` (1 série → 1 classe)
         'id_classe',
         'nom_serie',
     ];
@@ -29,6 +30,22 @@ class Series extends Model
         return $this->hasMany(Matiere::class, 'serie', 'id');
     }
 
+    /**
+     * Nouvelle relation: une série peut être associée à plusieurs classes.
+     */
+    public function classes(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            Classe::class,
+            'classe_serie',
+            'serie_id',
+            'classe_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Ancien lien 1→1 (laissé pour compatibilité).
+     */
     public function classe(): BelongsTo
     {
         return $this->belongsTo(Classe::class, 'id_classe');

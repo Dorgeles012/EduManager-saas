@@ -73,7 +73,7 @@
                     <td class="px-6 py-4 text-on-surface-variant">{{ $s['classe'] }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end gap-2">
-                            <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), {{ $s['id_classe'] ?? 'null' }})" title="Modifier">
+                            <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), @js($s['id_classes']))" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
                             <form action="{{ route('client.series.destroy', $s['id']) }}" method="POST" class="inline delete-series-form">
@@ -110,12 +110,15 @@
         <form class="p-6 space-y-5" id="addSeriesForm" action="{{ route('client.series.store') }}" method="POST">
             @csrf
             <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Classe</label>
-                <select name="id_classe" required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant">
-                    <option value="">Sélectionner une classe</option>
-                    @foreach($classes as $classe)<option value="{{ $classe->id }}" @selected(old('id_classe') == $classe->id)>{{ $classe->nom }}</option>@endforeach
+                <label class="font-label-md text-on-surface">Classes</label>
+                <select name="id_classes[]" multiple required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant" size="5">
+                    @foreach($classes as $classe)
+                        <option value="{{ $classe->id }}" @selected(collect(old('id_classes'))->contains($classe->id))>{{ $classe->nom }}</option>
+                    @endforeach
                 </select>
+                <p class="text-[11px] text-text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs classes.</p>
             </div>
+
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Nom de la série</label>
                 <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="nom_serie" placeholder="Ex: Série A1" required type="text">
@@ -145,11 +148,12 @@
             @csrf
             @method('PUT')
             <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Classe</label>
-                <select id="editSerieClasse" name="id_classe" required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant">
+                <label class="font-label-md text-on-surface">Classes</label>
+                <select id="editSerieClasses" name="id_classes[]" multiple required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant" size="5">
                     @foreach($classes as $classe)<option value="{{ $classe->id }}">{{ $classe->nom }}</option>@endforeach
                 </select>
             </div>
+
             <div class="space-y-2">
                 <label class="font-label-md text-on-surface">Nom de la série</label>
                 <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editNomSerie" name="nom_serie" required type="text">
@@ -236,12 +240,22 @@
         }, 300);
     }
 
-    function editSeries(id, nomSerie, classeId) {
+    function editSeries(id, nomSerie, classeIds) {
+        // Pour la compat UI: classeId = première classe (si série multi-classes)
         document.getElementById('editSeriesForm').action = `{{ url('/client/series') }}/${id}`;
         document.getElementById('editNomSerie').value = nomSerie;
-        document.getElementById('editSerieClasse').value = classeId ?? '';
+
+        const select = document.getElementById('editSerieClasses');
+        if (select) {
+            const selectedIds = (classeIds ?? []).map(String);
+            Array.from(select.options).forEach(opt => {
+                opt.selected = selectedIds.includes(String(opt.value));
+            });
+        }
+
         openModal('editModal');
     }
+
 
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.delete-series-btn').forEach((button) => {

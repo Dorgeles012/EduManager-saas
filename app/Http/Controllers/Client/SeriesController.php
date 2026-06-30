@@ -18,17 +18,25 @@ class SeriesController extends Controller
 
         $series = Series::query()
             ->where('tenant_id', $tenantId)
-            ->with('classe:id,nom')
+            ->with(['classes' => function ($q) {
+                $q->select('classes.id', 'classes.nom');
+            }])
             ->orderBy('nom_serie')
             ->get();
 
+
         return view('client.series', [
-            'series' => $series->map(fn ($s) => [
-                'id' => $s->id,
-                'nom_serie' => $s->nom_serie,
-                'id_classe' => $s->id_classe,
-                'classe' => $s->classe?->nom ?? 'Non assignée',
-            ]),
+            'series' => $series->map(function ($s) {
+                $classIds = $s->classes->pluck('id')->all();
+                return [
+                    'id' => $s->id,
+                    'nom_serie' => $s->nom_serie,
+                    // Pour compat UI (édition) on prend la 1ère classe si existante
+                    'id_classe' => $classIds[0] ?? null,
+                    'classe' => $s->classes->isEmpty() ? 'Non assignée' : $s->classes->pluck('nom')->join(', '),
+                    'id_classes' => $classIds,
+                ];
+            }),
             'totalSeries' => $series->count(),
             'classes' => Classe::query()->where('tenant_id', $tenantId)
                 ->when(auth()->user()->etablissement_id, fn ($q, $id) => $q->where('etablissement_id', $id))
@@ -41,7 +49,11 @@ class SeriesController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
-            'id_classe' => ['required', Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId))],
+            'id_classes' => ['required', 'array', 'min:1'],
+            'id_classes.*' => [
+                'integer',
+                Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
+            ],
             'nom_serie' => [
                 'required',
                 'string',
@@ -51,14 +63,18 @@ class SeriesController extends Controller
             ],
         ]);
 
-        Series::create([
+        $series = Series::create([
             'tenant_id' => $tenantId,
-            'id_classe' => $validated['id_classe'],
+            // Backward-compat: conserve la 1ère classe dans l'ancienne colonne
+            'id_classe' => $validated['id_classes'][0] ?? null,
             'nom_serie' => $validated['nom_serie'],
         ]);
 
+        $series->classes()->sync($validated['id_classes']);
+
         return back()->with('success', 'Série créée avec succès.');
     }
+
 
     public function update(Request $request, Series $series)
     {
@@ -66,7 +82,11 @@ class SeriesController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
-            'id_classe' => ['required', Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId))],
+            'id_classes' => ['required', 'array', 'min:1'],
+            'id_classes.*' => [
+                'integer',
+                Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
+            ],
             'nom_serie' => [
                 'required',
                 'string',
@@ -77,10 +97,17 @@ class SeriesController extends Controller
             ],
         ]);
 
-        $series->update($validated);
+        $series->update([
+            'nom_serie' => $validated['nom_serie'],
+            // compat 1ère classe pour les modules non migrés
+            'id_classe' => $validated['id_classes'][0] ?? null,
+        ]);
+
+        $series->classes()->sync($validated['id_classes']);
 
         return back()->with('success', 'Série mise à jour avec succès.');
     }
+
 
     public function destroy(Series $series)
     {
@@ -113,7 +140,7 @@ class SeriesController extends Controller
         abort_unless((int) $classe->tenant_id === (int) auth()->user()->tenant_id, 404);
 
         return response()->json(
-            $classe->series()->orderBy('nom_serie')->get(['id', 'nom_serie'])
+            $classe->series()->orderBy('nom_serie')->get(['series.id', 'series.nom_serie'])
         );
     }
 

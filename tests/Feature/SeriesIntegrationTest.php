@@ -13,25 +13,58 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-it('relie les séries aux classes et aux élèves avec des colonnes facultatives', function () {
-    expect(Schema::hasColumn('series', 'id_classe'))->toBeTrue()
-        ->and(Schema::hasColumn('eleves', 'id_serie'))->toBeTrue();
-
+it('relie les séries à plusieurs classes via pivot (classe_serie)', function () {
     $tenant = Tenant::factory()->create();
     $school = Etablissement::factory()->create(['tenant_id' => $tenant->id]);
     $level = Niveau::create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'nom' => 'Terminale']);
-    $class = Classe::create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'niveau_id' => $level->id, 'nom' => 'Terminale A']);
-    $serie = Series::create(['tenant_id' => $tenant->id, 'id_classe' => $class->id, 'nom_serie' => 'D']);
-    $student = Eleve::create([
-        'tenant_id' => $tenant->id, 'etablissement_id' => $school->id,
-        'niveau_id' => $level->id, 'classe_id' => $class->id, 'id_serie' => $serie->id,
-        'matricule' => 'SERIE-001', 'nom' => 'Test',
+
+    $classA = Classe::create([
+        'tenant_id' => $tenant->id,
+        'etablissement_id' => $school->id,
+        'niveau_id' => $level->id,
+        'nom' => 'Terminale A'
     ]);
 
-    expect($class->series->first()->is($serie))->toBeTrue()
-        ->and($serie->classe->is($class))->toBeTrue()
-        ->and($serie->eleves->first()->is($student))->toBeTrue()
-        ->and($student->serie->is($serie))->toBeTrue();
+    $classB = Classe::create([
+        'tenant_id' => $tenant->id,
+        'etablissement_id' => $school->id,
+        'niveau_id' => $level->id,
+        'nom' => 'Terminale B'
+    ]);
+
+    $serie = Series::create([
+        'tenant_id' => $tenant->id,
+        // compat 1ère classe
+        'id_classe' => $classA->id,
+        'nom_serie' => 'D'
+    ]);
+
+    $serie->classes()->sync([$classA->id, $classB->id]);
+
+    expect($classA->series->pluck('id')->contains($serie->id))->toBeTrue();
+    expect($classB->series->pluck('id')->contains($serie->id))->toBeTrue();
+});
+
+
+it('crée une série attribuée à plusieurs classes depuis le formulaire client', function () {
+    $tenant = Tenant::factory()->create();
+    $school = Etablissement::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'role' => 'CLIENT']);
+    $level = Niveau::create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'nom' => 'Terminale']);
+    $classes = collect(['A', 'B'])->map(fn ($suffix) => Classe::create([
+        'tenant_id' => $tenant->id,
+        'etablissement_id' => $school->id,
+        'niveau_id' => $level->id,
+        'nom' => "Terminale {$suffix}",
+    ]));
+
+    $this->actingAs($user)->post(route('client.series.store'), [
+        'nom_serie' => 'C',
+        'id_classes' => $classes->pluck('id')->all(),
+    ])->assertSessionHasNoErrors();
+
+    $serie = Series::where('tenant_id', $tenant->id)->where('nom_serie', 'C')->firstOrFail();
+    expect($serie->classes()->count())->toBe(2);
 });
 
 it('ne retourne que les séries de la classe et du tenant authentifié', function () {
@@ -40,7 +73,8 @@ it('ne retourne que les séries de la classe et du tenant authentifié', functio
     $user = User::factory()->create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'role' => 'CLIENT']);
     $level = Niveau::create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'nom' => 'Terminale']);
     $class = Classe::create(['tenant_id' => $tenant->id, 'etablissement_id' => $school->id, 'niveau_id' => $level->id, 'nom' => 'Terminale A']);
-    Series::create(['tenant_id' => $tenant->id, 'id_classe' => $class->id, 'nom_serie' => 'D']);
+    $serie = Series::create(['tenant_id' => $tenant->id, 'id_classe' => $class->id, 'nom_serie' => 'D']);
+    $serie->classes()->sync([$class->id]);
     Series::create(['tenant_id' => $tenant->id, 'id_classe' => null, 'nom_serie' => 'Historique']);
 
     $this->actingAs($user)

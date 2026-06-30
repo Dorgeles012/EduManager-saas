@@ -8,7 +8,7 @@
         <p class="text-body-md text-text-muted">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
     </div>
     <div class="flex gap-4">
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')">
+        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')" type="button">
             <span class="material-symbols-outlined text-[18px]">person_add</span>
             Nouvel élève
         </button>
@@ -74,35 +74,35 @@
         <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Aucun élève enregistré pour le moment</h3>
     </div>
     @else
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-[14px]">
+    <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-[14px] border-separate border-spacing-y-2">
             <thead class="bg-surface-container-low text-[13px] uppercase tracking-wider text-text-muted">
                 <tr>
-                    <th class="px-5 py-4 font-semibold">#</th>
-                    <th class="px-5 py-4 font-semibold">Nom &amp; Prénoms</th>
-                    <th class="px-5 py-4 font-semibold">Matricule</th>
-                    <th class="px-5 py-4 font-semibold">Sexe</th>
-                    <th class="px-5 py-4 font-semibold">Classe</th>
-                    <th class="px-5 py-4 font-semibold">Niveau</th>
-                    <th class="px-5 py-4 font-semibold">Série</th>
-                    <th class="px-5 py-4 font-semibold">Date de naissance</th>
-                    <th class="px-5 py-4 font-semibold text-right">Actions</th>
+                    <th class="px-3 py-4 font-semibold">#</th>
+                    <th class="px-4 py-4 font-semibold min-w-[200px]">Nom &amp; Prénoms</th>
+                    <th class="px-3 py-4 font-semibold">Matricule</th>
+                    <th class="px-3 py-4 font-semibold">Sexe</th>
+                    <th class="px-3 py-4 font-semibold">Classe</th>
+                    <th class="px-3 py-4 font-semibold">Niveau</th>
+                    <th class="px-3 py-4 font-semibold min-w-[100px]">Série</th>
+                    <th class="px-3 py-4 font-semibold min-w-[110px]">Date de naissance</th>
+                    <th class="px-3 py-4 font-semibold text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-subtle">
                 @foreach($students as $student)
-                <tr class="hover:bg-surface-container-low transition-colors">
-                    <td class="px-5 py-3.5 text-[14px]">{{ $loop->iteration }}</td>
+                <tr class="hover:bg-surface-container-low transition-colors rounded-lg shadow-sm bg-white">
+                    <td class="px-3 py-4 text-[14px] align-middle">{{ $loop->iteration }}</td>
                     
-                    <td class="px-5 py-3.5">
+                    <td class="px-4 py-4 min-w-[200px] align-middle">
                         <div class="flex items-center gap-2">
-                            <span class="font-medium text-[14px]">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
+                            <span class="font-medium text-[14px] whitespace-nowrap">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
                         </div>
                     </td>
-                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['matricule'] ?? 'N/A' }}</td>
+                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['matricule'] ?? 'N/A' }}</td>
                     
                     <!-- Colonne Sexe -->
-                    <td class="px-5 py-3.5">
+                    <td class="px-3 py-4 align-middle">
                         @php
                             $sexe = strtolower(trim($student['sexe'] ?? ''));
                             $badgeClass = '';
@@ -119,25 +119,25 @@
                                 $displaySexe = 'N/A';
                             }
                         @endphp
-                        <span class="px-3 py-1 rounded-full text-[12px] font-medium {{ $badgeClass }}">
+                        <span class="px-3 py-1.5 rounded-full text-[12px] font-medium {{ $badgeClass }}">
                             {{ $displaySexe }}
                         </span>
                     </td>
                     
-                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
-                    <td class="px-5 py-3.5">
-                        <span class="px-3 py-1 rounded-full text-[12px] font-medium bg-secondary-container/20 text-on-secondary-container">
+                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
+                    <td class="px-3 py-4 align-middle">
+                        <span class="px-3 py-1.5 rounded-full text-[12px] font-medium bg-secondary-container/20 text-on-secondary-container">
                             {{ $student['level'] }}
                         </span>
                     </td>
-                    <td class="px-5 py-3.5 text-on-surface-variant">{{ $student['serie'] ?? '—' }}</td>
-                    <td class="px-5 py-3.5 text-[14px] text-on-surface-variant">{{ $student['birthdate'] }}</td>
-                    <td class="px-5 py-3.5 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button class="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="viewStudent({{ json_encode($student) }})" title="Voir">
+                    <td class="px-3 py-4 text-on-surface-variant align-middle min-w-[100px]">{{ $student['serie'] ?? '—' }}</td>
+                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle min-w-[110px]">{{ $student['birthdate'] }}</td>
+                    <td class="px-3 py-4 text-right align-middle">
+                        <div class="flex justify-end items-center gap-1">
+                            <button class="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="viewStudent({{ json_encode($student) }})" title="Voir" type="button">
                                 <span class="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
-                            <button class="p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier">
+                            <button class="p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier" type="button">
                                 <span class="material-symbols-outlined text-[20px]">edit</span>
                             </button>
                             <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline delete-student-form">
@@ -154,7 +154,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <!-- Pagination -->
     <div class="px-6 py-4 border-t border-surface-subtle bg-surface-container-low/30 flex items-center justify-between">
         <span class="text-[13px] text-text-muted">
@@ -167,13 +167,14 @@
     @endif
 </div>
 
+<!-- MODALS (inchangées) -->
 <!-- Modal: Standard Addition -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-standard">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-standard')"></div>
     <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-standard-content">
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0">
             <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE</h3>
-            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')">
+            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')" type="button">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
@@ -253,7 +254,7 @@
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
                                 <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required disabled>
-                                    <option value="">Sélectionner d’abord un niveau</option>
+                                    <option value="">Sélectionner d'abord un niveau</option>
                                 </select>
                             </div>
                         </div>
@@ -416,7 +417,7 @@
                         </div>
                     </div>
 
-                    <!-- Sexe -->
+                    <!-- Série -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">category</span></div>
                         <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Série</p><p class="font-body-md text-[16px]" id="viewStudentSerie">—</p></div>
@@ -480,11 +481,11 @@
                 </span>
             </div>
             <div class="flex gap-2">
-                <button class="px-4 py-2 bg-warning-amber text-white rounded-lg font-label-md text-[14px] hover:bg-warning-amber/90 transition-all flex items-center gap-2" onclick="window.print()">
+                <button class="px-4 py-2 bg-warning-amber text-white rounded-lg font-label-md text-[14px] hover:bg-warning-amber/90 transition-all flex items-center gap-2" onclick="window.print()" type="button">
                     <span class="material-symbols-outlined text-[18px]">print</span>
                     Imprimer
                 </button>
-                <button class="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-[14px] hover:bg-primary/90 transition-all flex items-center gap-2" onclick="closeModal('modal-view')">
+                <button class="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-[14px] hover:bg-primary/90 transition-all flex items-center gap-2" onclick="closeModal('modal-view')" type="button">
                     <span class="material-symbols-outlined text-[18px]">close</span>
                     Fermer
                 </button>
@@ -499,7 +500,7 @@
     <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-warning-amber text-white sticky top-0">
             <h3 class="font-headline-md text-headline-md">MODIFIER L'ÉLÈVE</h3>
-            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-edit')">
+            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-edit')" type="button">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
@@ -580,7 +581,7 @@
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
                                 <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required disabled>
-                                    <option value="">Sélectionner d’abord un niveau</option>
+                                    <option value="">Sélectionner d'abord un niveau</option>
                                 </select>
                             </div>
                         </div>
@@ -651,13 +652,11 @@
     .modal-overlay {
         transition: backdrop-filter 0.3s ease;
     }
-    
-    /* Animation styles for modals */
+
     #modal-standard, #modal-view, #modal-edit {
         transition: opacity 0.3s ease;
     }
 
-    /* Animation ping pour le statut */
     @keyframes ping {
         75%, 100% {
             transform: scale(2);
@@ -668,7 +667,6 @@
         animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
 
-    /* Style de la scrollbar verticale pour le modal view */
     #modal-view-scroll::-webkit-scrollbar {
         width: 6px;
     }
@@ -688,29 +686,84 @@
         background: #94a3b8;
     }
 
-    /* Firefox */
     #modal-view-scroll {
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
     }
 
-    /* Supprimer la scrollbar horizontale sur les tables */
-    .overflow-x-auto::-webkit-scrollbar {
-        height: 0px;
-        width: 0px;
+    /* Custom Scrollbar pour le tableau */
+    .custom-scrollbar {
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        padding-bottom: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+        margin: 0 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Uniformiser l'alignement vertical de toutes les cellules */
+    tbody tr td {
+        vertical-align: middle !important;
+    }
+
+    /* Assurer une hauteur minimale pour toutes les lignes */
+    tbody tr {
+        height: 60px;
+    }
+
+    /* Pour les badges et autres éléments inline */
+    tbody tr td .flex,
+    tbody tr td .inline-flex {
+        align-items: center;
+    }
+
+    /* Style pour espacer les lignes du tableau */
+    .border-separate {
+        border-collapse: separate;
+    }
+
+    .border-spacing-y-2 {
+        border-spacing: 0 8px;
     }
     
-    .overflow-x-auto::-webkit-scrollbar-thumb {
-        background: transparent;
+    tbody tr {
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    tbody tr:first-child td:first-child {
+        border-top-left-radius: 8px;
+    }
+
+    tbody tr:first-child td:last-child {
+        border-top-right-radius: 8px;
+    }
+
+    tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 8px;
     }
     
-    .overflow-x-auto::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    .overflow-x-auto {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
+    tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 8px;
     }
 </style>
 @endsection
@@ -723,7 +776,7 @@
     $availableSeriesForJs = ($series ?? collect())->map(function ($serie) {
         return [
             'id' => $serie->id,
-            'id_classe' => $serie->id_classe,
+            'class_ids' => $serie->classes->pluck('id')->values(),
             'nom_serie' => $serie->nom_serie,
         ];
     })->values();
@@ -752,7 +805,7 @@
         const wrapper = document.getElementById(wrapperId);
         if (!select || !wrapper) return;
 
-        const matching = availableSeries.filter(serie => String(serie.id_classe) === String(classId));
+        const matching = availableSeries.filter(serie => (serie.class_ids ?? []).map(String).includes(String(classId)));
         select.innerHTML = `<option value="">${matching.length ? 'Sélectionner une série' : 'Aucune série pour cette classe'}</option>` + matching.map(serie =>
             `<option value="${serie.id}">${serie.nom_serie}</option>`
         ).join('');
@@ -761,7 +814,6 @@
         select.value = matching.some(serie => String(serie.id) === String(selectedId)) ? String(selectedId) : '';
     }
 
-    // Photo preview function
     function previewPhoto(input, previewId) {
         const preview = document.getElementById(previewId);
         if (input.files && input.files[0]) {
@@ -897,7 +949,6 @@
         @endif
     });
 
-    // Modal functions with animation
     function openModal(id) {
         const modal = document.getElementById(id);
         const contentId = id + '-content';
@@ -938,16 +989,7 @@
         document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
         document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
         
-        // Photo: sécuriser l'URL si jamais backend renvoie un chemin (par prudence)
-        if (student.photo && !String(student.photo).startsWith('/storage/') && !String(student.photo).startsWith('http')) {
-            // si c'est du type "eleves/xxx.jpg" ou "storage/eleves/xxx.jpg" => on essaie de reconstruire
-            const p = String(student.photo).replace(/^\/storage\//,'').replace(/^storage\//,'');
-            student.photo = `/storage/${p}`;
-        }
-
-        // Formatage du sexe pour l'affichage
         const sexeRaw = (student.sexe ?? '').toString().trim();
-
         const sexeLower = sexeRaw.toLowerCase();
         let sexeDisplay = 'Non renseigné';
 
@@ -964,7 +1006,6 @@
             sexeDisplay = 'Féminin';
         }
 
-        // Mise à jour du sexe dans la grille (pas de badge en haut)
         document.getElementById('viewStudentSexeDetail').textContent = sexeDisplay;
 
         const parentLastname = student.parent_lastname ?? null;
@@ -992,13 +1033,22 @@
 
         const photoContainer = document.getElementById('viewStudentPhotoContainer');
 
-        if (student.photo) {
-            photoContainer.innerHTML = `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover">`;
+        const photoUrl = student.photo_url ?? student.photo ?? null;
+        const initials = `${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}`.toUpperCase() || '?';
+
+        if (photoUrl) {
+            const image = document.createElement('img');
+            image.src = photoUrl;
+            image.alt = `Photo de ${fullName || 'l’élève'}`;
+            image.className = 'w-full h-full object-cover';
+            image.addEventListener('error', () => {
+                photoContainer.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full"><span class="text-3xl font-bold text-primary">${initials}</span></div>`;
+            }, { once: true });
+            photoContainer.replaceChildren(image);
         } else {
-            const initials = `${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}`.toUpperCase();
             photoContainer.innerHTML = `
                 <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full">
-                    <span class="text-3xl font-bold text-primary">${initials || '?'}</span>
+                    <span class="text-3xl font-bold text-primary">${initials}</span>
                 </div>
             `;
         }
@@ -1047,10 +1097,9 @@
         document.getElementById('form-edit').action = `/client/eleve/${student.id}`;
 
         const photoPreviewEdit = document.getElementById('photo-preview-edit');
-        if (student.photo) {
-            photoPreviewEdit.innerHTML = `<img src="${student.photo}" alt="Photo" class="w-full h-full object-cover">`;
-        } else {
-            photoPreviewEdit.innerHTML = `<span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>`;
+        const photoUrlEdit = student.photo_url ?? student.photo ?? null;
+        if (photoUrlEdit) {
+            photoPreviewEdit.innerHTML = `<img src="${photoUrlEdit}" alt="Photo" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\"material-symbols-outlined text-3xl text-text-muted\">photo_camera</span>';">`;
         }
 
         openModal('modal-edit');
