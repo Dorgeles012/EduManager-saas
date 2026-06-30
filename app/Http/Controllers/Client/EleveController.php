@@ -63,8 +63,10 @@ class EleveController extends Controller
                 'serie' => $student->serie?->nom_serie,
                 'level' => $student->niveau?->nom ?? $student->classe?->niveau?->nom ?? 'Non assigné',
 'classe' => $student->classe?->nom ?? 'Non assignée',
-                // Debug photo: valeur DB, chemin physique, URL générée, existence fichier
+                // Photo publique exploitable directement dans le front
                 'photo' => $student->photo ? $this->resolvePhotoUrl($student->photo, $student->id) : null,
+                'photo_url' => $student->photo ? $this->resolvePhotoUrl($student->photo, $student->id) : null,
+                'photo_path' => $student->photo ? $this->normalizePhotoPath($student->photo) : null,
 
                 'matricule' => $student->matricule,
                 'birthdate' => $student->date_naissance?->format('d/m/Y') ?? 'N/A',

@@ -590,12 +590,12 @@
                             <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editSerie" name="id_serie"><option value="">Aucune série</option></select>
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
-                            <div class="flex items-center gap-4">
-                                <div class="w-20 h-20 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-edit">
+                            <label class="block text-label-sm text-on-surface mb-3 text-center">Photo de l'élève</label>
+                            <div class="flex flex-col items-center justify-center gap-3 text-center">
+                                <div class="w-24 h-24 mx-auto shrink-0 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-edit">
                                     <span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>
                                 </div>
-                                <div class="flex-1">
+                                <div class="w-full max-w-sm mx-auto">
                                     <input class="w-full text-body-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-label-md file:bg-warning-amber/20 file:text-warning-amber hover:file:bg-warning-amber/30" id="editPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-edit')">
                                     <p class="text-[11px] text-text-muted mt-1">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
                                 </div>
@@ -819,7 +819,7 @@
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" alt="Photo" class="w-full h-full object-cover">`;
+                preview.innerHTML = `<img src="${e.target.result}" alt="Photo" class="w-full h-full object-cover object-center">`;
             };
             reader.readAsDataURL(input.files[0]);
         } else {
@@ -1040,7 +1040,7 @@
             const image = document.createElement('img');
             image.src = photoUrl;
             image.alt = `Photo de ${fullName || 'l’élève'}`;
-            image.className = 'w-full h-full object-cover';
+            image.className = 'w-full h-full object-cover object-center';
             image.addEventListener('error', () => {
                 photoContainer.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full"><span class="text-3xl font-bold text-primary">${initials}</span></div>`;
             }, { once: true });
@@ -1097,9 +1097,21 @@
         document.getElementById('form-edit').action = `/client/eleve/${student.id}`;
 
         const photoPreviewEdit = document.getElementById('photo-preview-edit');
-        const photoUrlEdit = student.photo_url ?? student.photo ?? null;
+        const photoInputEdit = document.getElementById('editPhoto');
+        photoInputEdit.value = '';
+        const photoUrlEdit = student.photo_url ?? student.photo ?? student.photo_path ?? null;
+        const editInitials = `${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}`.toUpperCase() || '?';
         if (photoUrlEdit) {
-            photoPreviewEdit.innerHTML = `<img src="${photoUrlEdit}" alt="Photo" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\"material-symbols-outlined text-3xl text-text-muted\">photo_camera</span>';">`;
+            const image = document.createElement('img');
+            image.src = photoUrlEdit;
+            image.alt = `Photo de ${student.firstname ?? ''} ${student.lastname ?? ''}`.trim();
+            image.className = 'block w-full h-full object-cover object-center rounded-full';
+            image.addEventListener('error', () => {
+                photoPreviewEdit.innerHTML = `<span class="text-2xl font-bold text-primary">${editInitials}</span>`;
+            }, { once: true });
+            photoPreviewEdit.replaceChildren(image);
+        } else {
+            photoPreviewEdit.innerHTML = `<span class="text-2xl font-bold text-primary">${editInitials}</span>`;
         }
 
         openModal('modal-edit');
