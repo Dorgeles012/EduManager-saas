@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Series extends Model
@@ -25,9 +26,16 @@ class Series extends Model
         'id_classe' => 'integer',
     ];
 
-    public function matieres(): HasMany
+    public function matieres(): BelongsToMany
     {
-        return $this->hasMany(Matiere::class, 'serie', 'id');
+        return $this->belongsToMany(Matiere::class, 'serie_matieres', 'serie_id', 'matiere_id')
+            ->withPivot('coefficient')
+            ->withTimestamps();
+    }
+
+    public function serieMatieres(): HasMany
+    {
+        return $this->hasMany(SerieMatiere::class, 'serie_id');
     }
 
     /**

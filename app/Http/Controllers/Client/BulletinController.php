@@ -201,7 +201,11 @@ class BulletinController extends Controller
             if ($bulletin) {
                 $disciplinesFromBulletin = $bulletin->disciplines
                     ->map(fn ($d) => [
+                        'matiere_id' => $d->matiere_id,
                         'discipline' => $d->discipline,
+                        'interrogation' => $d->interrogation,
+                        'devoir' => $d->devoir,
+                        'composition' => $d->composition,
                         'moyenne' => $d->moyenne,
                         'coefficient' => $d->coefficient,
                         'moyenne_coefficient' => $d->moyenne_coefficient,
@@ -222,11 +226,9 @@ class BulletinController extends Controller
             $classeId = $eleve->classe_id;
 
             // matières + coefficients (via table matieres)
-            $matieres = Matiere::query()
-                ->where('tenant_id', $tenantId)
-                ->when($eleve->id_serie, fn ($q) => $q->where('serie', $eleve->id_serie))
-                ->when(! $eleve->id_serie, fn ($q) => $q->whereNull('serie'))
-                ->get();
+            $matieres = $eleve->serie
+                ? $eleve->serie->matieres()->where('matieres.tenant_id', $tenantId)->orderBy('matieres.nom')->get()
+                : collect();
 
             $notes = DB::table('notes')
                 ->where('tenant_id', $tenantId)
@@ -246,7 +248,7 @@ class BulletinController extends Controller
                 $noteRow = $notesByMatiere->get($matiere->id);
                 $noteValue = $noteRow?->note;
 
-                $coef = (float) ($matiere->coefficient ?? 1);
+                $coef = (float) $matiere->pivot->coefficient;
                 $moyenne = $noteValue !== null ? (float) $noteValue : null;
 
                 $mc = null;
@@ -257,6 +259,7 @@ class BulletinController extends Controller
                 }
 
                 $disciplinesRows[] = [
+                    'matiere_id' => $matiere->id,
                     'discipline' => $matiere->nom,
                     'moyenne' => $moyenne,
                     'coefficient' => $coef,
@@ -294,12 +297,17 @@ class BulletinController extends Controller
                 $notesAll = DB::table('notes')
                     ->where('tenant_id', $tenantId)
                     ->where('classe_id', $classeId)
+                    ->whereIn('eleve_id', Eleve::query()
+                        ->where('tenant_id', $tenantId)
+                        ->where('classe_id', $classeId)
+                        ->where('id_serie', $eleve->id_serie)
+                        ->select('id'))
                     ->where('periode', $data['trimestre'])
                     ->get()
                     ->groupBy('eleve_id');
 
                 // coefficients par matiere
-                $coefByMatiere = Matiere::query()->get()->mapWithKeys(fn ($m) => [(int)$m->id => (float)($m->coefficient ?? 1)]);
+                $coefByMatiere = $matieres->mapWithKeys(fn ($m) => [(int) $m->id => (float) $m->pivot->coefficient]);
 
                 $moyennes = [];
                 foreach ($notesAll as $eleveId => $rows) {
@@ -353,7 +361,9 @@ class BulletinController extends Controller
 
             // bulletin
             'bulletin_existant' => (bool) $bulletin,
-            'moyenne_generale' => $bulletin?->moyenne,
+            'moyenne_generale' => $bulletin?->moyenne_generale,
+            'total_coefficients' => $bulletin?->total_coefficients,
+            'total_points' => $bulletin?->total_points,
             'rang' => $bulletin?->rang,
             'appreciation' => $bulletin?->appreciation,
             'disciplines' => $disciplinesFromBulletin->values()->all(),
@@ -388,9 +398,37 @@ class BulletinController extends Controller
 
             $disciplines = Arr::get($payload, 'disciplines', []);
 
+            // La configuration de la série est la source de vérité : toutes ses
+            // matières sont conservées et leurs coefficients ne viennent jamais du navigateur.
+            $configuredMatieres = $eleve->serie
+                ? $eleve->serie->matieres()
+                    ->where('matieres.tenant_id', $tenantId)
+                    ->orderBy('matieres.nom')
+                    ->get()
+                : collect();
+
+            if ($configuredMatieres->isNotEmpty()) {
+                $submittedByMatiere = collect($disciplines)->keyBy(fn ($row) => (int) ($row['matiere_id'] ?? 0));
+                $disciplines = $configuredMatieres->map(function (Matiere $matiere) use ($submittedByMatiere) {
+                    $submitted = (array) $submittedByMatiere->get($matiere->id, []);
+
+                    return array_merge($submitted, [
+                        'matiere_id' => $matiere->id,
+                        'discipline' => $matiere->nom,
+                        'coefficient' => (float) $matiere->pivot->coefficient,
+                    ]);
+                })->values()->all();
+            }
+
             foreach ($disciplines as $i => $disc) {
-                $moyenne = isset($disc['moyenne']) ? (float) $disc['moyenne'] : null;
+                $evaluations = collect(['interrogation', 'devoir', 'composition'])
+                    ->filter(fn ($field) => isset($disc[$field]) && $disc[$field] !== '')
+                    ->map(fn ($field) => (float) $disc[$field]);
+                $moyenne = $evaluations->isNotEmpty()
+                    ? round($evaluations->avg(), 2)
+                    : (isset($disc['moyenne']) && $disc['moyenne'] !== '' ? (float) $disc['moyenne'] : null);
                 $coef = isset($disc['coefficient']) ? (float) $disc['coefficient'] : null;
+                $disciplines[$i]['moyenne'] = $moyenne;
 
                 if ($moyenne !== null && $coef !== null && $coef > 0) {
                     $mc = $moyenne * $coef;
@@ -424,6 +462,8 @@ class BulletinController extends Controller
                 'absences' => (int) ($payload['absences'] ?? 0),
                 'rang' => (int) ($payload['rang'] ?? 0),
                 'moyenne_generale' => $moyenneGenerale,
+                'total_coefficients' => round($totalCoef, 2),
+                'total_points' => round($totalPoints, 2),
 
                 'resultat_classe' => $payload['resultat_classe'] ?? null,
                 'decision' => $payload['decision'] ?? null,
@@ -441,7 +481,11 @@ class BulletinController extends Controller
                 BulletinDiscipline::create([
                     'tenant_id' => $tenantId,
                     'bulletin_id' => $bulletin->id,
+                    'matiere_id' => $disc['matiere_id'] ?? null,
                     'discipline' => $disc['discipline'],
+                    'interrogation' => isset($disc['interrogation']) ? (float) $disc['interrogation'] : null,
+                    'devoir' => isset($disc['devoir']) ? (float) $disc['devoir'] : null,
+                    'composition' => isset($disc['composition']) ? (float) $disc['composition'] : null,
                     'moyenne' => isset($disc['moyenne']) ? (float) $disc['moyenne'] : null,
                     'coefficient' => (float) $disc['coefficient'],
                     'moyenne_coefficient' => isset($disc['moyenne_coefficient']) ? (float) $disc['moyenne_coefficient'] : null,

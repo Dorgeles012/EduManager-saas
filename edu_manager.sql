@@ -780,7 +780,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `image` text DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
-  `role` enum('SADMIN','CLIENT','PERSONNEL','ENSEIGNANT','PARENT') NOT NULL,
+  `role` enum('Sadmin','Client','Personnel','Enseignant','Parent') NOT NULL,
   `statut` enum('actif','bloqué') NOT NULL DEFAULT 'actif',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -792,8 +792,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `tenant_id`, `client_id`, `etablissement_id`, `nom`, `prenom`, `email`, `email_verified_at`, `telephone`, `adresse`, `ville`, `password`, `image`, `photo`, `role`, `statut`, `created_at`, `updated_at`, `remember_token`) VALUES
-(1, 1, NULL, NULL, 'Tra', 'bi dorgeles', 'sylvianneparisot8@gmail.com', NULL, '0709527852', 'Abobo pk18', 'Abidjan ', '$2y$12$iYlTNcP4KOBx0WR60kIKgO.dE4WO3JovlnVJhs925/rxkr2MstkY.', NULL, NULL, 'SADMIN', 'actif', '2026-06-23 22:43:52', '2026-06-23 22:49:07', '753xRTY4OQ5kajF2qouTMmejDXKH2sx0UYItM1d6ZJdWnwCokTcxDr0JT0FK'),
-(2, 1, NULL, 1, 'Amany', 'ange marie grace', 'dorgeles@mail.com', NULL, '0575096534', 'Yopougon toit rouge', 'Abidjan', '$2y$12$4GUVf2XzSb.NLDr7NpN5A.TUxfZlWMsGhQtf9nuBi82uh6MbslUMu', NULL, NULL, 'CLIENT', 'actif', '2026-06-23 22:51:51', '2026-06-23 22:57:51', 'cJA5vpe9YrhjJHXRrgUOrrnKvjxSMgW5a4xaT8XZu4y3m1Qha8uPkuc2P7QD');
+(1, 1, NULL, NULL, 'Tra', 'bi dorgeles', 'sylvianneparisot8@gmail.com', NULL, '0709527852', 'Abobo pk18', 'Abidjan ', '$2y$12$iYlTNcP4KOBx0WR60kIKgO.dE4WO3JovlnVJhs925/rxkr2MstkY.', NULL, NULL, 'Sadmin', 'actif', '2026-06-23 22:43:52', '2026-06-23 22:49:07', '753xRTY4OQ5kajF2qouTMmejDXKH2sx0UYItM1d6ZJdWnwCokTcxDr0JT0FK'),
+(2, 1, NULL, 1, 'Amany', 'ange marie grace', 'dorgeles@mail.com', NULL, '0575096534', 'Yopougon toit rouge', 'Abidjan', '$2y$12$4GUVf2XzSb.NLDr7NpN5A.TUxfZlWMsGhQtf9nuBi82uh6MbslUMu', NULL, NULL, 'Client', 'actif', '2026-06-23 22:51:51', '2026-06-23 22:57:51', 'cJA5vpe9YrhjJHXRrgUOrrnKvjxSMgW5a4xaT8XZu4y3m1Qha8uPkuc2P7QD');
 
 -- --------------------------------------------------------
 

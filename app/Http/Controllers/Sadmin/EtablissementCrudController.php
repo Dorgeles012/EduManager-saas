@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Sadmin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sadmin\EtablissementRequest;
 use App\Models\Etablissement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+
 
 class EtablissementCrudController extends Controller
 {
@@ -62,24 +65,26 @@ class EtablissementCrudController extends Controller
         return view('sadmin.etablissements.create');
     }
 
-    public function store(Request $request)
+    public function store(EtablissementRequest $request)
     {
         $tenantId = auth()->user()?->tenant_id ?? 1;
 
-        $validated = $request->validate([
-            'nom' => ['required', 'string', 'max:255'],
-            'acronyme' => ['nullable', 'string', 'max:100'],
-            'type_etablissement' => ['required', 'string', 'in:primaire,college,lycee,universite,grande_ecole'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'telephone' => ['nullable', 'string', 'max:50'],
-            'adresse' => ['nullable', 'string'],
-            'logo' => ['nullable', 'string'],
-            'statut' => ['nullable', 'in:active,inactive'],
-        ]);
+        $validated = $request->validated();
+        unset($validated['logo']);
+
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'png');
+            $uniqueName = Str::uuid()->toString() . '.' . $extension;
+
+            $logoPath = Storage::disk('public')->putFileAs('logos', $file, $uniqueName);
+        }
 
         try {
             Etablissement::create([
                 ...$validated,
+                'logo' => $logoPath,
                 'tenant_id' => $tenantId,
                 'statut' => $validated['statut'] ?? 'active',
             ]);
@@ -92,6 +97,10 @@ class EtablissementCrudController extends Controller
                 'tenant_id' => $tenantId,
                 'payload' => $validated,
             ]);
+
+            if ($logoPath && Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+            }
 
             return redirect()->back()
                 ->with('error', "Impossible d'ajouter l'établissement.")
@@ -113,34 +122,45 @@ class EtablissementCrudController extends Controller
         return view('sadmin.etablissements.edit', compact('etablissement'));
     }
 
-    public function update(Request $request, Etablissement $etablissement)
+    public function update(EtablissementRequest $request, Etablissement $etablissement)
     {
         $this->authorizeTenant($etablissement);
 
-        $validated = $request->validate([
-            'nom' => ['required', 'string', 'max:255'],
-            'acronyme' => ['nullable', 'string', 'max:100'],
-            'type_etablissement' => ['required', 'string', 'in:primaire,college,lycee,universite,grande_ecole'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'telephone' => ['nullable', 'string', 'max:50'],
-            'adresse' => ['nullable', 'string'],
-            'logo' => ['nullable', 'string'],
-            'statut' => ['nullable', 'in:active,inactive'],
-        ]);
+        $validated = $request->validated();
+        unset($validated['logo']);
+
+        $newLogoPath = null;
+        $oldLogoPath = $etablissement->logo;
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'png');
+            $uniqueName = Str::uuid()->toString() . '.' . $extension;
+
+            $newLogoPath = Storage::disk('public')->putFileAs('logos', $file, $uniqueName);
+        }
 
         try {
             $etablissement->update([
                 ...$validated,
+                'logo' => $newLogoPath ?? $etablissement->logo,
                 'statut' => $validated['statut'] ?? $etablissement->statut,
             ]);
 
-            // Recharge depuis MySQL (garanti côté vue)
             $etablissement = $etablissement->fresh();
+
+            if ($newLogoPath && $oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                Storage::disk('public')->delete($oldLogoPath);
+            }
 
             return redirect()
                 ->route('sadmin.etablissement')
                 ->with('success', 'Établissement modifié avec succès.');
         } catch (\Throwable $e) {
+            // Cleanup du nouveau logo si update échoue
+            if ($newLogoPath && Storage::disk('public')->exists($newLogoPath)) {
+                Storage::disk('public')->delete($newLogoPath);
+            }
+
             Log::error('EtablissementCrudController@update failed', [
                 'error' => $e->getMessage(),
                 'etablissement_id' => $etablissement->id,
@@ -157,6 +177,10 @@ class EtablissementCrudController extends Controller
         $this->authorizeTenant($etablissement);
 
         try {
+            if (! empty($etablissement->logo) && Storage::disk('public')->exists($etablissement->logo)) {
+                Storage::disk('public')->delete($etablissement->logo);
+            }
+
             $etablissement->forceDelete();
 
             return redirect()->route('sadmin.etablissement')
@@ -181,4 +205,5 @@ class EtablissementCrudController extends Controller
         }
     }
 }
+
 

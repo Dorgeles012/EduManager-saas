@@ -25,6 +25,8 @@ class Bulletin extends Model
         'absences',
         'rang',
         'moyenne_generale',
+        'total_coefficients',
+        'total_points',
         'resultat_classe',
         'decision',
         'observation_conseil',
@@ -45,6 +47,8 @@ class Bulletin extends Model
         'absences' => 'integer',
         'rang' => 'integer',
         'moyenne_generale' => 'float',
+        'total_coefficients' => 'float',
+        'total_points' => 'float',
         'date' => 'date',
         'distinctions' => 'array',
     ];

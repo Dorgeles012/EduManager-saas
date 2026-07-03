@@ -65,7 +65,7 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('telephone', 50)->nullable();
             $table->text('adresse')->nullable();
-            $table->text('logo')->nullable();
+            $table->string('logo')->nullable();
             $table->enum('statut', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

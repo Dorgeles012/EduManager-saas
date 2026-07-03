@@ -75,6 +75,10 @@ Route::middleware(['auth', 'client'])
 
 
         Route::get('/series/by-classe/{classe}', [SeriesController::class, 'byClasse'])->name('series.by-classe');
+        Route::get('/series/{series}/disciplines', [SeriesController::class, 'disciplines'])->name('series.disciplines');
+        Route::post('/series/{series}/disciplines', [SeriesController::class, 'storeDiscipline'])->name('series.disciplines.store');
+        Route::put('/series/{series}/disciplines/{matiere}', [SeriesController::class, 'updateDiscipline'])->name('series.disciplines.update');
+        Route::delete('/series/{series}/disciplines/{matiere}', [SeriesController::class, 'destroyDiscipline'])->name('series.disciplines.destroy');
         Route::resource('series', SeriesController::class)->except(['show', 'create', 'edit']);
 
         Route::get('/niveaux', [NiveauxController::class, 'index'])->name('niveaux');

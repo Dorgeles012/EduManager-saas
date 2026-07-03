@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Matiere extends Model
 {
@@ -30,6 +31,13 @@ class Matiere extends Model
         return $this->hasMany(Enseignant::class, 'matiere_id');
     }
 
+    public function series(): BelongsToMany
+    {
+        return $this->belongsToMany(Series::class, 'serie_matieres', 'matiere_id', 'serie_id')
+            ->withPivot('coefficient')
+            ->withTimestamps();
+    }
+
     // Si `matieres.serie` contient l'id de `series.id` (cas récent), alors cette relation marche.
     // La filtration "par série" est appliquée côté contrôleur pour gérer aussi l'ancien schéma.
     public function serieModel()
@@ -49,5 +57,4 @@ class Matiere extends Model
     }
 
 }
-
 

@@ -55,6 +55,7 @@
                     <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">N°</th>
                     <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Nom de la série</th>
                     <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Classe</th>
+                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Disciplines</th>
                     <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
                 </tr>
             </thead>
@@ -71,8 +72,13 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 text-on-surface-variant">{{ $s['classe'] }}</td>
+                    <td class="px-6 py-4 text-on-surface-variant">{{ $s['matieres_count'] }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end gap-2">
+                            <a href="{{ route('client.series.disciplines', $s['id']) }}" class="px-3 py-2 text-primary hover:bg-primary/10 rounded-lg transition-all flex items-center gap-1" title="Gérer les disciplines">
+                                <span class="material-symbols-outlined">menu_book</span>
+                                <span class="text-xs font-medium"></span>
+                            </a>
                             <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), @js($s['id_classes']))" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
@@ -88,7 +94,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-10 text-center text-on-surface-variant">Aucune série enregistrée</td>
+                    <td colspan="5" class="px-6 py-10 text-center text-on-surface-variant">Aucune série enregistrée</td>
                 </tr>
                 @endforelse
             </tbody>

@@ -42,7 +42,6 @@
         </div>
     </div>
 
-
     <!-- Main Table Section -->
     <div class="bg-surface-container-lowest rounded-xl card-shadow border border-outline-variant overflow-hidden">
         <div class="px-6 py-4 border-b border-surface-subtle flex items-center justify-between bg-white">
@@ -71,6 +70,18 @@
                         <tr class="hover:bg-surface-container-low">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
+                                    <!-- Carré du logo avec gestion d'icône -->
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-outline-variant/60 bg-white flex-shrink-0 flex items-center justify-center">
+                                        @if($etablissement->logo_url && $etablissement->logo_url !== asset('images/default-school.png'))
+                                            <img 
+                                                src="{{ $etablissement->logo_url }}" 
+                                                alt="Logo établissement" 
+                                                class="w-full h-full object-cover"
+                                            >
+                                        @else
+                                            <span class="material-symbols-outlined text-2xl text-text-muted">photo</span>
+                                        @endif
+                                    </div>
                                     <div>
                                         <p class="font-label-md text-label-md text-on-surface">{{ $etablissement->nom }}</p>
                                     </div>
@@ -88,17 +99,12 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <!-- Icône Voir / Détails -->
                                     <a href="{{ route('sadmin.etablissements.show', $etablissement->id) }}" class="p-2 rounded-lg bg-surface-subtle hover:bg-primary/10 hover:text-primary transition-all" title="Voir les détails">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>
                                     </a>
-                                    
-                                    <!-- Icône Modifier -->
                                     <a href="{{ route('sadmin.etablissements.edit', $etablissement->id) }}" class="p-2 rounded-lg bg-surface-subtle hover:bg-warning-amber/10 hover:text-warning-amber transition-all" title="Modifier">
                                         <span class="material-symbols-outlined text-[18px]">edit</span>
                                     </a>
-                                    
-                                    <!-- Icône Supprimer -->
                                     <form method="POST" action="{{ route('sadmin.etablissements.destroy', $etablissement->id) }}" class="p-0 m-0" onsubmit="return confirmDeleteSweet(event, this);">
                                         @csrf
                                         @method('DELETE')
@@ -128,84 +134,115 @@
     </div>
 </div>
 
-<!-- Modal Ajouter un établissement avec animation -->
+<!-- Modal Ajouter un établissement avec import logo simplifié -->
 <div class="fixed inset-0 z-[60] hidden items-center justify-center p-4 transition-all duration-300" id="modal-add">
     <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm transition-opacity duration-300" id="modal-add-backdrop" style="opacity: 0;" onclick="closeModal('modal-add')"></div>
     
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all duration-300" id="modal-add-content" style="opacity: 0; transform: scale(0.95) translateY(-20px);">
-        <div class="px-8 py-6 border-b border-surface-subtle flex justify-between items-center bg-primary-container text-white">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-300" id="modal-add-content" style="opacity: 0; transform: scale(0.95) translateY(-20px);">
+        <!-- En-tête fixe -->
+        <div class="px-8 py-6 border-b border-surface-subtle flex justify-between items-center bg-primary-container text-white flex-shrink-0">
             <h3 class="font-headline-md text-headline-md">Nouvel Établissement</h3>
             <button class="hover:bg-white/10 rounded-full p-1 transition-all" onclick="closeModal('modal-add')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
 
-        <form method="POST" action="{{ route('sadmin.etablissements.store') }}">
-            @csrf
-            <div class="p-8 grid grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Nom de l'établissement</label>
-                    <input name="nom" value="{{ old('nom') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Ex: Lycée International" type="text">
-                    @error('nom')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
+        <!-- Corps scrollable -->
+        <div class="flex-1 overflow-y-auto">
+            <form method="POST" action="{{ route('sadmin.etablissements.store') }}" enctype="multipart/form-data" id="form-add-etablissement">
+                @csrf
+
+                <div class="p-8 grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Nom de l'établissement</label>
+                        <input name="nom" value="{{ old('nom') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Ex: Lycée International" type="text">
+                        @error('nom')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Anagramme</label>
+                        <input name="acronyme" value="{{ old('acronyme') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Ex: LI" type="text">
+                        @error('acronyme')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Téléphone</label>
+                        <input name="telephone" value="{{ old('telephone') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="+225 00 00 00 00 00" type="tel">
+                        @error('telephone')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Logo - Version avec icône photo -->
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Logo</label>
+                        <div class="flex items-center gap-4">
+                            <!-- Aperçu du logo avec icône par défaut -->
+                            <div class="w-16 h-16 rounded-xl overflow-hidden border-2 border-dashed border-outline-variant bg-surface-container-low flex-shrink-0 flex items-center justify-center">
+                                <img id="logo-preview" src="#" alt="Logo" class="w-full h-full object-cover hidden">
+                                <span id="logo-icon" class="material-symbols-outlined text-3xl text-text-muted">photo</span>
+                            </div>
+                            
+                            <!-- Bouton d'upload simplifié -->
+                            <div class="flex-1">
+                                <label class="cursor-pointer">
+                                    <div class="flex items-center gap-3 px-4 py-2.5 border border-outline-variant rounded-lg hover:border-primary hover:bg-surface-container-low transition-all">
+                                        <span class="material-symbols-outlined text-primary text-[20px]">upload_file</span>
+                                        <span class="text-body-sm text-on-surface font-body-sm">Choisir un fichier</span>
+                                    </div>
+                                    <input id="logo-input" name="logo" type="file" accept="image/*" class="hidden" onchange="previewLogo(event)" />
+                                </label>
+                                <p id="logo-filename" class="text-[12px] text-text-muted mt-1.5">Aucun fichier sélectionné</p>
+                            </div>
+                        </div>
+                        @error('logo')<p class="text-alert-red text-sm mt-1">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Type d'institution</label>
+                        <select name="type_etablissement" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm appearance-none bg-white">
+                            @php
+                                $currentType = old('type_etablissement');
+                            @endphp
+                            <option value="primaire" {{ $currentType === 'primaire' ? 'selected' : '' }}>Primaire</option>
+                            <option value="college" {{ $currentType === 'college' ? 'selected' : '' }}>Collège</option>
+                            <option value="lycee" {{ $currentType === 'lycee' ? 'selected' : '' }}>Lycée</option>
+                            <option value="grande_ecole" {{ $currentType === 'grande_ecole' ? 'selected' : '' }}>Grande École</option>
+                            <option value="universite" {{ $currentType === 'universite' ? 'selected' : '' }}>Université</option>
+                        </select>
+                        @error('type_etablissement')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="col-span-2 space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Localisation</label>
+                        <input name="adresse" value="{{ old('adresse') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Adresse complète" type="text">
+                        @error('adresse')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="col-span-2 space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface">Email de contact</label>
+                        <input name="email" value="{{ old('email') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="contact@etablissement.com" type="email">
+                        @error('email')
+                            <p class="text-alert-red text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Anagramme</label>
-                    <input name="acronyme" value="{{ old('acronyme') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Ex: LI" type="text">
-                    @error('acronyme')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
+                <!-- Pied de page fixe -->
+                <div class="px-8 py-6 bg-surface-subtle flex justify-end gap-3 border-t border-surface-subtle flex-shrink-0 sticky bottom-0">
+                    <button type="button" class="px-6 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-white transition-all" onclick="closeModal('modal-add')">Annuler</button>
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-primary-container text-white font-label-md text-label-md hover:opacity-90 transition-all">Enregistrer</button>
                 </div>
-
-                <div class="space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Téléphone</label>
-                    <input name="telephone" value="{{ old('telephone') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="+225 00 00 00 00 00" type="tel">
-                    @error('telephone')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Type d'institution</label>
-                    <select name="type_etablissement" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm appearance-none bg-white">
-                        @php
-                            $currentType = old('type_etablissement');
-                        @endphp
-                        <option value="primaire" {{ $currentType === 'primaire' ? 'selected' : '' }}>Primaire</option>
-                        <option value="college" {{ $currentType === 'college' ? 'selected' : '' }}>Collège</option>
-                        <option value="lycee" {{ $currentType === 'lycee' ? 'selected' : '' }}>Lycée</option>
-                        <option value="grande_ecole" {{ $currentType === 'grande_ecole' ? 'selected' : '' }}>Grande École</option>
-                        <option value="universite" {{ $currentType === 'universite' ? 'selected' : '' }}>Université</option>
-                    </select>
-                    @error('type_etablissement')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="col-span-2 space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Localisation</label>
-                    <input name="adresse" value="{{ old('adresse') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="Adresse complète" type="text">
-                    @error('adresse')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="col-span-2 space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface">Email de contact</label>
-                    <input name="email" value="{{ old('email') }}" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container outline-none font-body-sm text-body-sm" placeholder="contact@etablissement.com" type="email">
-                    @error('email')
-                        <p class="text-alert-red text-sm">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <div class="px-8 py-6 bg-surface-subtle flex justify-end gap-3">
-                <button type="button" class="px-6 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-white transition-all" onclick="closeModal('modal-add')">Annuler</button>
-                <button type="submit" class="px-6 py-2 rounded-lg bg-primary-container text-white font-label-md text-label-md hover:opacity-90 transition-all">Enregistrer</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -213,18 +250,44 @@
 
 @section('scripts')
 <script>
+    function previewLogo(event) {
+        const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        const preview = document.getElementById('logo-preview');
+        const icon = document.getElementById('logo-icon');
+        const filename = document.getElementById('logo-filename');
+
+        if (!file) {
+            if (preview) {
+                preview.src = '#';
+                preview.classList.add('hidden');
+            }
+            if (icon) {
+                icon.classList.remove('hidden');
+            }
+            if (filename) filename.textContent = 'Aucun fichier sélectionné';
+            return;
+        }
+
+        if (preview) {
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+        }
+        if (icon) {
+            icon.classList.add('hidden');
+        }
+        if (filename) filename.textContent = file.name;
+    }
+
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         const backdrop = document.getElementById(modalId + '-backdrop');
         const content = document.getElementById(modalId + '-content');
         
         if (modal) {
-            // Afficher le modal
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
             
-            // Déclencher l'animation après un court délai
             setTimeout(() => {
                 if (backdrop) backdrop.style.opacity = '1';
                 if (content) {
@@ -241,14 +304,12 @@
         const content = document.getElementById(modalId + '-content');
         
         if (modal) {
-            // Lancer l'animation de fermeture
             if (backdrop) backdrop.style.opacity = '0';
             if (content) {
                 content.style.opacity = '0';
                 content.style.transform = 'scale(0.95) translateY(-20px)';
             }
             
-            // Attendre la fin de l'animation pour cacher
             setTimeout(() => {
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
@@ -274,5 +335,30 @@
             closeModal('modal-add');
         }
     });
+
+    // Fonction pour la confirmation de suppression avec SweetAlert
+    function confirmDeleteSweet(event, form) {
+        event.preventDefault();
+        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: "Cette action est irréversible !",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer !',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        } else {
+            return confirm('Êtes-vous sûr de vouloir supprimer cet établissement ?');
+        }
+    }
 </script>
 @endsection

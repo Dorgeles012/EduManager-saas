@@ -48,4 +48,14 @@ class Etablissement extends Model
     {
         return $this->hasMany(Eleve::class, 'etablissement_id');
     }
+
+    public function getLogoUrlAttribute(): string
+    {
+        if (! empty($this->logo)) {
+            return asset('storage/' . ltrim($this->logo, '/'));
+        }
+
+        return asset('images/default-school.png');
+    }
 }
+

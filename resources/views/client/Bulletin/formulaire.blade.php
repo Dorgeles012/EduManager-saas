@@ -151,7 +151,7 @@
                                 <div class="flex items-center gap-4">
                                     <div class="flex-shrink-0">
                                         <div class="edu-logo" style="width: 50px; height: 50px;">
-                                            <img id="logo_etablissement" src="{{ $etablissement?->logo ? $etablissement?->getLogoUrlAttribute() : '' }}" alt="Logo" style="width: 60px; height: 60px;" />
+                                            <img id="logo_etablissement" src="{{ $etablissement?->logo_url ?? asset('images/default-school.png') }}" alt="Logo" style="width: 60px; height: 60px;" />
                                         </div>
                                     </div>
 
@@ -218,7 +218,7 @@
                                         Disciplines
                                     </h4>
 
-                                    <button type="button" class="edu-primary-btn" id="addDisciplineBtn" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+                                    <button type="button" class="edu-primary-btn hidden" id="addDisciplineBtn" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
                                         <span class="material-symbols-outlined">add</span>
                                         Ajouter
                                     </button>
@@ -233,6 +233,9 @@
                                         <thead>
                                             <tr class="bg-gray-50 border-b border-gray-200">
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 200px; width: 22%;">Discipline</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Interro</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Devoir</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Composition</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Moyenne</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Coef.</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">M×C</th>
@@ -249,7 +252,8 @@
 
                                 <p class="text-on-surface-variant text-sm mt-2 flex items-center gap-1">
                                     <span class="material-symbols-outlined text-base">info</span>
-                                    Modifiables
+                                    Coefficients issus de la série — Total coefficients : <strong id="totalCoefficientsDisplay">0</strong>
+                                    — Total points : <strong id="totalPointsDisplay">0.00</strong>
                                 </p>
                             </div>
 
@@ -732,6 +736,8 @@
             const disciplinesBody = document.getElementById('disciplinesBody');
             const addDisciplineBtn = document.getElementById('addDisciplineBtn');
             const moyenneDisplay = document.getElementById('moyenne_generale_display');
+            const totalCoefficientsDisplay = document.getElementById('totalCoefficientsDisplay');
+            const totalPointsDisplay = document.getElementById('totalPointsDisplay');
 
             let idx = 0;
             const defaultDisciplines = [
@@ -778,6 +784,15 @@
                 return v;
             }
 
+            function computeSubjectAverage(tr) {
+                const values = Array.from(tr.querySelectorAll('.evaluation-input'))
+                    .map(input => input.value === '' ? null : Number(input.value))
+                    .filter(value => Number.isFinite(value));
+                const moyenneInput = qs('.moyenne-input', tr);
+                if (!values.length) return;
+                moyenneInput.value = (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2);
+            }
+
             function recomputeTotals() {
                 let totalCoef = 0;
                 let totalPoints = 0;
@@ -792,12 +807,16 @@
                 });
 
                 if (totalCoef <= 0) {
+                    totalCoefficientsDisplay.textContent = '0';
+                    totalPointsDisplay.textContent = '0.00';
                     moyenneDisplay.value = '--';
                     moyenneDisplay.style.color = '#dc2626';
                     return;
                 }
 
                 const moyenneGenerale = totalPoints / totalCoef;
+                totalCoefficientsDisplay.textContent = totalCoef.toFixed(2);
+                totalPointsDisplay.textContent = totalPoints.toFixed(2);
                 moyenneDisplay.value = moyenneGenerale.toFixed(2);
                 moyenneDisplay.style.color = moyenneGenerale >= 10 ? '#059669' : '#E11D48';
 
@@ -825,23 +844,30 @@
 
                 tr.innerHTML = `
                     <td>
+                        <input type="hidden" name="disciplines[${rowIndex}][matiere_id]" value="${rowData.matiere_id ?? ''}" />
                         <input type="text" class="discipline-input font-medium" required 
                                name="disciplines[${rowIndex}][discipline]" 
                                value="${escapeHtml(disciplineName)}" 
+                               readonly
                                placeholder="Saisir la discipline..." />
                     </td>
+                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][interrogation]" value="${rowData.interrogation ?? ''}" /></td>
+                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][devoir]" value="${rowData.devoir ?? ''}" /></td>
+                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][composition]" value="${rowData.composition ?? ''}" /></td>
                     <td>
                         <input type="number" step="0.01" min="0" max="20" 
                                class="moyenne-input text-center" 
                                name="disciplines[${rowIndex}][moyenne]" 
                                value="${rowData.moyenne ?? ''}" 
+                               readonly
                                placeholder="0,00" />
                     </td>
                     <td>
-                        <input type="number" step="0.1" min="0" max="10" 
+                        <input type="number" step="1" min="1" max="100"
                                class="coef-input text-center font-semibold" 
                                name="disciplines[${rowIndex}][coefficient]" 
                                value="${rowData.coefficient ?? 1}" 
+                               readonly
                                required />
                     </td>
                     <td>
@@ -874,7 +900,7 @@
                                placeholder="Signature" />
                     </td>
                     <td class="text-center">
-                        <button type="button" class="text-red-600 hover:text-red-700" 
+                        <button type="button" class="hidden text-red-600 hover:text-red-700"
                                 data-remove-row title="Supprimer">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
@@ -883,6 +909,14 @@
 
                 const moyenneInput = qs('.moyenne-input', tr);
                 const coefInput = qs('.coef-input', tr);
+
+                tr.querySelectorAll('.evaluation-input').forEach(input => {
+                    input.addEventListener('input', () => {
+                        computeSubjectAverage(tr);
+                        computeMC(tr);
+                        recomputeTotals();
+                    });
+                });
 
                 moyenneInput.addEventListener('input', () => {
                     computeMC(tr);
@@ -938,7 +972,11 @@
 
                 disciplines.forEach((d) => {
                     const row = buildRow({
+                        matiere_id: d.matiere_id ?? '',
                         discipline: d.discipline ?? '',
+                        interrogation: d.interrogation ?? '',
+                        devoir: d.devoir ?? '',
+                        composition: d.composition ?? '',
                         moyenne: d.moyenne ?? '',
                         coefficient: d.coefficient ?? 1,
                         rang: d.rang ?? '',

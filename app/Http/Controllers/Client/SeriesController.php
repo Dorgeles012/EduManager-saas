@@ -18,6 +18,7 @@ class SeriesController extends Controller
 
         $series = Series::query()
             ->where('tenant_id', $tenantId)
+            ->withCount('matieres')
             ->with(['classes' => function ($q) {
                 $q->select('classes.id', 'classes.nom');
             }])
@@ -35,6 +36,7 @@ class SeriesController extends Controller
                     'id_classe' => $classIds[0] ?? null,
                     'classe' => $s->classes->isEmpty() ? 'Non assignée' : $s->classes->pluck('nom')->join(', '),
                     'id_classes' => $classIds,
+                    'matieres_count' => $s->matieres_count,
                 ];
             }),
             'totalSeries' => $series->count(),
@@ -115,10 +117,7 @@ class SeriesController extends Controller
 
         $tenantId = auth()->user()->tenant_id;
 
-        $count = Matiere::query()
-            ->where('tenant_id', $tenantId)
-            ->where('serie', $series->id)
-            ->count();
+        $count = $series->matieres()->count();
 
         $studentCount = Eleve::query()
             ->where('tenant_id', $tenantId)
@@ -142,6 +141,72 @@ class SeriesController extends Controller
         return response()->json(
             $classe->series()->orderBy('nom_serie')->get(['series.id', 'series.nom_serie'])
         );
+    }
+
+    public function disciplines(Series $series)
+    {
+        $this->authorizeTenant($series);
+        $tenantId = auth()->user()->tenant_id;
+
+        $series->load(['matieres' => fn ($query) => $query->orderBy('nom')]);
+
+        return view('client.series-disciplines', [
+            'serie' => $series,
+            'disciplines' => $series->matieres,
+            'matieres' => Matiere::query()
+                ->where('tenant_id', $tenantId)
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'coefficient']),
+        ]);
+    }
+
+    public function storeDiscipline(Request $request, Series $series)
+    {
+        $this->authorizeTenant($series);
+        $tenantId = auth()->user()->tenant_id;
+
+        $validated = $request->validate([
+            'matiere_id' => [
+                'required',
+                Rule::exists('matieres', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
+                Rule::unique('serie_matieres', 'matiere_id')->where(fn ($query) => $query->where('serie_id', $series->id)),
+            ],
+            'coefficient' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $matiere = Matiere::query()->where('tenant_id', $tenantId)->findOrFail($validated['matiere_id']);
+        $series->matieres()->attach($matiere->id, [
+            'coefficient' => $validated['coefficient'] ?? max(1, (int) $matiere->coefficient),
+        ]);
+
+        return back()->with('success', 'Discipline ajoutée à la série.');
+    }
+
+    public function updateDiscipline(Request $request, Series $series, Matiere $matiere)
+    {
+        $this->authorizeTenant($series);
+        abort_unless((int) $matiere->tenant_id === (int) auth()->user()->tenant_id, 404);
+        abort_unless($series->matieres()->whereKey($matiere->id)->exists(), 404);
+
+        $validated = $request->validate([
+            'coefficient' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $series->matieres()->updateExistingPivot($matiere->id, [
+            'coefficient' => $validated['coefficient'],
+        ]);
+
+        return back()->with('success', 'Coefficient mis à jour.');
+    }
+
+    public function destroyDiscipline(Series $series, Matiere $matiere)
+    {
+        $this->authorizeTenant($series);
+        abort_unless((int) $matiere->tenant_id === (int) auth()->user()->tenant_id, 404);
+
+        $series->matieres()->detach($matiere->id);
+
+        return back()->with('success', 'Discipline retirée de la série.');
     }
 
     private function authorizeTenant(Series $series): void

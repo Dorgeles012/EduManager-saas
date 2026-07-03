@@ -15,7 +15,11 @@ class BulletinDiscipline extends Model
     protected $fillable = [
         'tenant_id',
         'bulletin_id',
+        'matiere_id',
         'discipline',
+        'interrogation',
+        'devoir',
+        'composition',
         'moyenne',
         'coefficient',
         'moyenne_coefficient',
@@ -28,7 +32,11 @@ class BulletinDiscipline extends Model
     protected $casts = [
         'tenant_id' => 'integer',
         'bulletin_id' => 'integer',
+        'matiere_id' => 'integer',
         'moyenne' => 'float',
+        'interrogation' => 'float',
+        'devoir' => 'float',
+        'composition' => 'float',
         'coefficient' => 'float',
         'moyenne_coefficient' => 'float',
         'rang' => 'integer',
@@ -37,6 +45,11 @@ class BulletinDiscipline extends Model
     public function bulletin(): BelongsTo
     {
         return $this->belongsTo(Bulletin::class, 'bulletin_id');
+    }
+
+    public function matiere(): BelongsTo
+    {
+        return $this->belongsTo(Matiere::class);
     }
 }
 

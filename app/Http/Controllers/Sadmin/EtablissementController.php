@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Etablissement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class EtablissementController extends Controller
 {
@@ -38,14 +40,25 @@ class EtablissementController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:50'],
             'adresse' => ['nullable', 'string'],
-            'logo' => ['nullable', 'string'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:4096'],
             'statut' => ['nullable', 'in:active,inactive'],
         ], [
             'type_etablissement.in' => "Le type d'établissement est invalide.",
         ]);
 
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'png');
+            $uniqueName = Str::uuid()->toString() . '.' . $extension;
+
+            $stored = Storage::disk('public')->putFileAs('logos', $file, $uniqueName);
+            $logoPath = $stored; // chemin relatif dans storage/app/public
+        }
+
         $payload = [
             ...$validated,
+            'logo' => $logoPath,
             'tenant_id' => $user?->tenant_id ?? 1,
             'statut' => $validated['statut'] ?? 'active',
         ];
@@ -63,10 +76,16 @@ class EtablissementController extends Controller
                 'user_id' => $user?->id,
             ]);
 
+            // Cleanup si on a uploadé mais que l'insertion a échoué
+            if ($logoPath && Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+            }
+
             return redirect()->route('sadmin.etablissement')
                 ->with('error', "Impossible d'ajouter l'établissement. Veuillez réessayer.")
                 ->withInput();
         }
     }
 }
+
 
