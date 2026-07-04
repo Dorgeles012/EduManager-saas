@@ -28,6 +28,7 @@ class Eleve extends Model
         'date_naissance',
         'lieu_naissance',
         'ancien_etablissement',
+        'nationalite',
         'photo',
         'statut',
     ];

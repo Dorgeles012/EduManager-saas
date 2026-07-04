@@ -182,8 +182,8 @@ class BulletinController extends Controller
             }
         }
 
-        // effectif : disponible via classe_id (si présent)
-        $effectif = $eleve->classe?->effectif ?? null;
+        // effectif : capacité de la classe associée à l'élève
+        $effectif = $eleve->classe?->capacite ?? null;
 
         // 1) Si un bulletin existe déjà pour (élève + année académique + période), on charge depuis DB.
         $bulletin = null;

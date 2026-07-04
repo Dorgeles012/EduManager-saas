@@ -241,6 +241,16 @@
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
                             <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" type="text">
                         </div>
+
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
+                            <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="nationalite" name="nationalite">
+                                <option value="">Sélectionner une nationalité</option>
+                                @foreach(config('nationalities') as $nationalite)
+                                    <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
@@ -447,6 +457,19 @@
                         </div>
                     </div>
 
+                    <!-- Nationalité -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                                <span class="material-symbols-outlined text-primary text-[22px]">flag</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Nationalité</p>
+                                <p class="font-body-md text-[16px] text-on-surface" id="viewStudentNationalite">-</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Parents (pleine largeur) -->
                     <div class="md:col-span-2">
                         <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
@@ -566,6 +589,16 @@
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
                             <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" type="text">
+                        </div>
+
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
+                            <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editNationalite" name="nationalite">
+                                <option value="">Sélectionner une nationalité</option>
+                                @foreach(config('nationalities') as $nationalite)
+                                    <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -770,6 +803,8 @@
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @php
     $availableClassesForJs = collect($classes ?? [])->values();
@@ -827,7 +862,41 @@
         }
     }
 
+    function initNationalitySelect(selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        if (window.tomSelectInstances && window.tomSelectInstances[selectId]) {
+            window.tomSelectInstances[selectId].destroy();
+        }
+
+        const instance = new TomSelect(select, {
+            create: false,
+            sortField: { field: 'text', direction: 'asc' },
+            searchField: ['text'],
+            placeholder: 'Rechercher une nationalité',
+            render: {
+                option: function(data, escape) {
+                    return '<div class="flex items-center justify-between gap-3">' +
+                        '<span>' + escape(data.text) + '</span>' +
+                        '</div>';
+                },
+                item: function(data, escape) {
+                    return '<div>' + escape(data.text) + '</div>';
+                }
+            }
+        });
+
+        if (!window.tomSelectInstances) {
+            window.tomSelectInstances = {};
+        }
+        window.tomSelectInstances[selectId] = instance;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        initNationalitySelect('nationalite');
+        initNationalitySelect('editNationalite');
+
         document.getElementById('stdLevel')?.addEventListener('change', () => populateClasses('stdLevel', 'stdClasse', 'stdSerie', 'stdSerieWrapper'));
         document.getElementById('editLevel')?.addEventListener('change', () => populateClasses('editLevel', 'editClasse', 'editSerie', 'editSerieWrapper'));
         document.getElementById('stdClasse')?.addEventListener('change', () => populateSeries('stdClasse', 'stdSerie', 'stdSerieWrapper'));
@@ -847,7 +916,10 @@
                 
                 const selectedSexe = document.querySelector('input[name="sexe"]:checked');
                 const sexeValue = selectedSexe ? selectedSexe.value : '';
-                
+
+                // Nationalité: select classique (Tom Select ou autre) -> valeur stockée dans le <select name="nationalite">
+                // Le form envoie directement via name="nationalite".
+
                 document.getElementById('stdLastnameHidden').value = document.getElementById('stdLastname').value;
                 document.getElementById('stdFirstnameHidden').value = document.getElementById('stdFirstname').value;
                 document.getElementById('stdMatriculeHidden').value = document.getElementById('stdMatricule').value;
@@ -887,6 +959,8 @@
                 document.getElementById('editParentFirstnameHidden').value = document.getElementById('editParentFirstname').value;
                 document.getElementById('editParentPhoneHidden').value = document.getElementById('editParentPhone').value;
                 document.getElementById('editParentEmailHidden').value = document.getElementById('editParentEmail').value;
+
+                // Nationalité: select classique (Tom Select ou autre) -> valeur stockée dans le <select name="nationalite">
 
                 HTMLFormElement.prototype.submit.call(editForm);
             }, true);
@@ -988,6 +1062,9 @@
         document.getElementById('viewStudentClasse').textContent = student.classe ?? student.class ?? 'N/A';
         document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
         document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
+        const nationalite = student.nationalite ?? '-';
+        document.getElementById('viewStudentNationalite').textContent = nationalite;
+
         
         const sexeRaw = (student.sexe ?? '').toString().trim();
         const sexeLower = sexeRaw.toLowerCase();
@@ -1089,6 +1166,16 @@
         document.getElementById('editBirthPlaceHidden').value = student.birthplace ?? '';
         document.getElementById('editClasseHidden').value = student.class_id ?? '';
         document.getElementById('editLevelHidden').value = student.level_id ?? '';
+
+        // Nationalité pré-sélectionnée à l'édition
+        const nationaliteSelect = document.getElementById('editNationalite');
+        if (nationaliteSelect) {
+            nationaliteSelect.value = student.nationalite ?? '';
+            if (window.tomSelectInstances?.editNationalite) {
+                window.tomSelectInstances.editNationalite.setValue(student.nationalite ?? '', true);
+            }
+        }
+
         document.getElementById('editParentLastnameHidden').value = student.parent_lastname ?? '';
         document.getElementById('editParentFirstnameHidden').value = student.parent_firstname ?? '';
         document.getElementById('editParentPhoneHidden').value = student.parent_phone ?? '';
