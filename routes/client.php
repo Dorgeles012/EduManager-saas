@@ -96,6 +96,8 @@ Route::middleware(['auth', 'client'])
             Route::get('/{bulletin}/edit', [BulletinController::class, 'edit'])->name('edit');
             Route::match(['put', 'patch'], '/{bulletin}', [BulletinController::class, 'update'])->name('update');
             Route::delete('/{bulletin}', [BulletinController::class, 'destroy'])->name('destroy');
+            Route::get('/{bulletin}/print', [BulletinController::class, 'print'])->name('print');
+            Route::get('/{bulletin}/download-pdf', [BulletinController::class, 'downloadPdf'])->name('download-pdf');
             Route::get('/{bulletin}/download', [BulletinController::class, 'download'])->name('download');
 
         });

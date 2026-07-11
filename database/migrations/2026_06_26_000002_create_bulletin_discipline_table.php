@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('moyenne_coefficient', 8, 2)->nullable();
             $table->unsignedInteger('rang')->default(0);
 
-            $table->string('appréciation')->nullable();
+            $table->string('mention')->nullable();
             $table->string('professeur')->nullable();
             $table->string('signature')->nullable();
 

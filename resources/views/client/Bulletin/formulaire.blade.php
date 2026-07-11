@@ -1,5 +1,7 @@
 @extends('client.layouts.app')
 @php($noSidebar = true)
+@php($directeur = trim(collect([auth()->user()?->nom, auth()->user()?->prenom])->filter()->implode(' ')) ?: auth()->user()?->name)
+@php($isEditing = isset($bulletin) && $bulletin)
 
 @section('title', 'EduManager - Générer un bulletin')
 
@@ -18,8 +20,9 @@
         <div class="row justify-content-center mx-0">
             <div class="col-12 col-lg-10">
                 <div class="card edu-bulletin-card">
-                    <form method="POST" action="{{ route('client.bulletin.store') }}" id="bulletinForm" novalidate>
+                    <form method="POST" action="{{ $isEditing ? route('client.bulletin.update', $bulletin) : route('client.bulletin.store') }}" id="bulletinForm" novalidate>
                         @csrf
+                        @if($isEditing) @method('PUT') @endif
 
                         <div class="edu-bulletin-block p-4">
                             {{-- Sélection --}}
@@ -112,7 +115,7 @@
                                             name="annee_academique_id" id="annee_academique_id" required>
                                         <option value="">-- Sélectionner --</option>
                                         @foreach($anneesAcademiques as $annee)
-                                            <option value="{{ $annee->id }}" {{ old('annee_academique_id') == $annee->id ? 'selected' : '' }}>
+                                            <option value="{{ $annee->id }}" {{ old('annee_academique_id', $bulletin?->annee_academique_id) == $annee->id ? 'selected' : '' }}>
                                                 {{ $annee->libelle }}
                                             </option>
                                         @endforeach
@@ -129,12 +132,9 @@
                                     </label>
                                     <select class="edu-input edu-select @error('trimestre') edu-error-border @enderror"
                                             name="trimestre" id="trimestre" required>
-                                        <option value="t1" {{ old('trimestre') === 't1' ? 'selected' : '' }}>T1</option>
-                                        <option value="t2" {{ old('trimestre') === 't2' ? 'selected' : '' }}>T2</option>
-                                        <option value="t3" {{ old('trimestre') === 't3' ? 'selected' : '' }}>T3</option>
-                                        <option value="s1" {{ old('trimestre') === 's1' ? 'selected' : '' }}>S1</option>
-                                        <option value="s2" {{ old('trimestre') === 's2' ? 'selected' : '' }}>S2</option>
-                                        <option value="an" {{ old('trimestre') === 'an' ? 'selected' : '' }}>Annuel</option>
+                                        @foreach(['t1' => 'T1', 't2' => 'T2', 't3' => 'T3', 's1' => 'S1', 's2' => 'S2', 'an' => 'Annuel'] as $value => $label)
+                                            <option value="{{ $value }}" {{ old('trimestre', $bulletin?->trimestre) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
                                     </select>
                                     @error('trimestre')
                                         <p class="edu-error">{{ $message }}</p>
@@ -233,14 +233,11 @@
                                         <thead>
                                             <tr class="bg-gray-50 border-b border-gray-200">
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 200px; width: 22%;">Discipline</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Interro</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Devoir</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider">Composition</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Moyenne</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">Coef.</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 80px; width: 10%;">M×C</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 65px; width: 8%;">Rang</th>
-                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 160px; width: 16%;">Appréciation</th>
+                                                <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 120px; width: 12%;">Mention</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 140px; width: 12%;">Professeur</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 140px; width: 12%;">Signature</th>
                                                 <th class="px-3 py-2 text-left font-semibold text-on-surface-variant text-xs uppercase tracking-wider" style="min-width: 50px; width: 5%; text-align: center;"> </th>
@@ -298,23 +295,21 @@
                                 </div>
                             </div>
 
-                            {{-- Résultat / décision / observation / date --}}
+                            {{-- Résultat / mention / décision / observation / date --}}
                             <div class="grid grid-cols-2 gap-3 mb-4">
                                 <div>
                                     <label class="edu-label" style="font-size: 0.85rem;">
-                                        <span class="material-symbols-outlined edu-icon">assessment</span>
-                                        Résultat
+                                        <span class="material-symbols-outlined edu-icon">workspace_premium</span>
+                                        Mention
                                     </label>
-                                    <input type="text" name="resultat_classe" class="edu-input" style="font-size: 0.85rem; padding: 0.5rem;" value="{{ old('resultat_classe') }}" placeholder="Admis">
-                                    @error('resultat_classe')<p class="edu-error">{{ $message }}</p>@enderror
+                                    <input type="text" id="mention" class="edu-input edu-disabled" value="--" readonly style="font-size: 0.85rem; padding: 0.5rem;">
                                 </div>
                                 <div>
                                     <label class="edu-label" style="font-size: 0.85rem;">
                                         <span class="material-symbols-outlined edu-icon">gavel</span>
                                         Décision
                                     </label>
-                                    <input type="text" name="decision" class="edu-input" style="font-size: 0.85rem; padding: 0.5rem;" value="{{ old('decision') }}" placeholder="Admis">
-                                    @error('decision')<p class="edu-error">{{ $message }}</p>@enderror
+                                    <input type="text" id="decision" class="edu-input edu-disabled" value="--" readonly style="font-size: 0.85rem; padding: 0.5rem;">
                                 </div>
                             </div>
 
@@ -324,16 +319,14 @@
                                         <span class="material-symbols-outlined edu-icon">comment</span>
                                         Observation du conseil
                                     </label>
-                                    <input type="text" name="observation_conseil" class="edu-input" style="font-size: 0.85rem; padding: 0.5rem;" value="{{ old('observation_conseil') }}" placeholder="Observations...">
-                                    @error('observation_conseil')<p class="edu-error">{{ $message }}</p>@enderror
+                                    <textarea id="observation_conseil" class="edu-input edu-disabled" rows="3" readonly style="font-size: 0.85rem; padding: 0.5rem;">--</textarea>
                                 </div>
                                 <div>
                                     <label class="edu-label" style="font-size: 0.85rem;">
                                         <span class="material-symbols-outlined edu-icon">calendar_today</span>
                                         Date
                                     </label>
-                                    <input type="date" name="date" class="edu-input" style="font-size: 0.85rem; padding: 0.5rem;" value="{{ old('date') }}">
-                                    @error('date')<p class="edu-error">{{ $message }}</p>@enderror
+                                    <input type="text" id="date_bulletin" class="edu-input edu-disabled" style="font-size: 0.85rem; padding: 0.5rem;" value="{{ now()->format('d/m/Y') }}" readonly>
                                 </div>
                             </div>
 
@@ -379,9 +372,8 @@
                                         <span class="material-symbols-outlined edu-icon">edit_note</span>
                                         Directeur
                                     </label>
-                                    <input type="text" name="signature_directeur" class="edu-input" style="font-size: 0.85rem; padding: 0.5rem;"
-                                           value="{{ old('signature_directeur') }}" placeholder="Nom">
-                                    @error('signature_directeur')<p class="edu-error">{{ $message }}</p>@enderror
+                                    <input type="text" id="signature_directeur" class="edu-input edu-disabled" style="font-size: 0.85rem; padding: 0.5rem;"
+                                           value="{{ $directeur }}" readonly>
                                 </div>
                             </div>
 
@@ -820,8 +812,39 @@
                 moyenneDisplay.value = moyenneGenerale.toFixed(2);
                 moyenneDisplay.style.color = moyenneGenerale >= 10 ? '#059669' : '#E11D48';
 
+                updateAutomaticFields(moyenneGenerale);
+
                 const hidden = document.getElementById('moyenne_generale_hidden') || createHiddenMoyenne();
                 hidden.value = moyenneGenerale.toFixed(2);
+            }
+
+            function updateAutomaticFields(moyenne) {
+                const mention = document.getElementById('mention');
+                const decision = document.getElementById('decision');
+                const observation = document.getElementById('observation_conseil');
+                if (!Number.isFinite(moyenne)) return;
+
+                const levels = [
+                    [19, 'Excellent', 'Travail exceptionnel. Résultats remarquables. Félicitations du jury. Continuez ainsi.'],
+                    [18, 'Excellent', 'Excellent travail. Très grande maîtrise des apprentissages. Toutes nos félicitations.'],
+                    [17, 'Très Bien', 'Très bon travail. Élève sérieux, appliqué et régulier. Félicitations.'],
+                    [16, 'Très Bien', 'Très bons résultats. Continuez vos efforts.'],
+                    [15, 'Bien', 'Bon travail. Ensemble satisfaisant. Encourageant pour la suite.'],
+                    [14, 'Assez Bien', 'Bons résultats. Quelques efforts supplémentaires permettront de progresser davantage.'],
+                    [13, 'Assez Bien', 'Travail satisfaisant. Continuez avec plus de régularité.'],
+                    [12, 'Passable', 'Résultats corrects. Des efforts sont encore attendus.'],
+                    [11, 'Passable', 'Ensemble acceptable mais irrégulier. Il faut travailler davantage.'],
+                    [10, 'Passable', 'Moyenne acquise de justesse. Les efforts doivent être poursuivis.'],
+                    [9, 'Insuffisant', 'Résultats insuffisants. Un travail plus sérieux est indispensable.'],
+                    [8, 'Faible', 'Travail faible. Il est nécessaire de fournir davantage d’efforts.'],
+                    [7, 'Très Faible', 'Résultats très insuffisants. Réaction rapide attendue.'],
+                    [5, 'Très Faible', 'Grandes difficultés. Travail insuffisant. Beaucoup plus d’investissement est nécessaire.'],
+                    [0, 'Très Insuffisant', 'Résultats très préoccupants. Une remise au travail est indispensable.'],
+                ];
+                const level = levels.find(([minimum]) => moyenne >= minimum);
+                mention.value = level[1];
+                decision.value = moyenne >= 10 ? 'Admis(e)' : 'Refusé(e)';
+                observation.value = level[2];
             }
 
             function createHiddenMoyenne() {
@@ -851,15 +874,11 @@
                                readonly
                                placeholder="Saisir la discipline..." />
                     </td>
-                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][interrogation]" value="${rowData.interrogation ?? ''}" /></td>
-                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][devoir]" value="${rowData.devoir ?? ''}" /></td>
-                    <td><input type="number" step="0.01" min="0" max="20" class="evaluation-input text-center" name="disciplines[${rowIndex}][composition]" value="${rowData.composition ?? ''}" /></td>
                     <td>
                         <input type="number" step="0.01" min="0" max="20" 
                                class="moyenne-input text-center" 
                                name="disciplines[${rowIndex}][moyenne]" 
                                value="${rowData.moyenne ?? ''}" 
-                               readonly
                                placeholder="0,00" />
                     </td>
                     <td>
@@ -882,10 +901,9 @@
                                placeholder="0" />
                     </td>
                     <td>
-                        <input type="text" class="app-input" 
-                               name="disciplines[${rowIndex}][appréciation]" 
-                               value="${escapeHtml(rowData.appreciation ?? rowData.appréciation ?? '')}" 
-                               placeholder="Appréciation..." />
+                        <input type="text" class="mention-input edu-disabled"
+                               value="${escapeHtml(rowData.mention ?? '')}"
+                               readonly />
                     </td>
                     <td>
                         <input type="text" class="prof-input" 
@@ -909,14 +927,6 @@
 
                 const moyenneInput = qs('.moyenne-input', tr);
                 const coefInput = qs('.coef-input', tr);
-
-                tr.querySelectorAll('.evaluation-input').forEach(input => {
-                    input.addEventListener('input', () => {
-                        computeSubjectAverage(tr);
-                        computeMC(tr);
-                        recomputeTotals();
-                    });
-                });
 
                 moyenneInput.addEventListener('input', () => {
                     computeMC(tr);
@@ -974,13 +984,10 @@
                     const row = buildRow({
                         matiere_id: d.matiere_id ?? '',
                         discipline: d.discipline ?? '',
-                        interrogation: d.interrogation ?? '',
-                        devoir: d.devoir ?? '',
-                        composition: d.composition ?? '',
                         moyenne: d.moyenne ?? '',
                         coefficient: d.coefficient ?? 1,
                         rang: d.rang ?? '',
-                        appreciation: d.appréciation ?? d.appréciation ?? d.appreciation ?? '',
+                        mention: d.mention ?? '',
                         professeur: d.professeur ?? '',
                         signature: d.signature ?? '',
                     });
@@ -1109,10 +1116,10 @@
             filterOptions(serieSelect, () => false);
             resetEleves('-- Choisir niveau, classe et série --');
 
-            const initialNiveauId = @json(old('niveau_id'));
-            const initialClasseId = @json(old('classe_id'));
-            const initialSerieId = @json(old('serie_id'));
-            const initialEleveId = @json(old('eleve_id'));
+            const initialNiveauId = @json(old('niveau_id', $bulletin?->eleve?->niveau_id));
+            const initialClasseId = @json(old('classe_id', $bulletin?->classe_id));
+            const initialSerieId = @json(old('serie_id', $bulletin?->eleve?->id_serie));
+            const initialEleveId = @json(old('eleve_id', $bulletin?->eleve_id));
             if (initialNiveauId) {
                 niveauSelect.value = initialNiveauId;
                 niveauSelect.dispatchEvent(new Event('change'));
@@ -1146,11 +1153,12 @@
                         const hidden = document.getElementById('moyenne_generale_hidden') || createHiddenMoyenne();
                         hidden.value = Number(data.moyenne_generale).toFixed(2);
                     }
-                    // Champ décision/appreciation depuis le bulletin existant (si présent)
-                    if (data.bulletin_existant) {
-                        const decisionInput = document.querySelector('input[name="decision"]');
-                        if (decisionInput) decisionInput.value = data.appreciation ?? '';
-                    }
+                    if (data.moyenne_generale != null) updateAutomaticFields(Number(data.moyenne_generale));
+                    document.getElementById('mention').value = data.mention ?? document.getElementById('mention').value;
+                    document.getElementById('decision').value = data.decision ?? document.getElementById('decision').value;
+                    document.getElementById('observation_conseil').value = data.observation_conseil ?? document.getElementById('observation_conseil').value;
+                    document.getElementById('date_bulletin').value = data.date ?? document.getElementById('date_bulletin').value;
+                    document.getElementById('signature_directeur').value = data.directeur ?? document.getElementById('signature_directeur').value;
 
                 } catch (err) {
                     console.error(err);

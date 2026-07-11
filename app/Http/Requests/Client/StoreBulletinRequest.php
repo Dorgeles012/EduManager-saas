@@ -27,12 +27,7 @@ class StoreBulletinRequest extends FormRequest
             'rang' => ['nullable', 'integer', 'min:0'],
 
             'resultat_classe' => ['nullable', 'string', 'max:255'],
-            'decision' => ['nullable', 'string', 'max:255'],
-            'observation_conseil' => ['nullable', 'string', 'max:1000'],
-            'date' => ['nullable', 'date'],
-
             'signature_professeur_principal' => ['nullable', 'string', 'max:255'],
-            'signature_directeur' => ['nullable', 'string', 'max:255'],
             'distinctions' => ['nullable', 'array'],
             'distinctions.*' => ['in:honneur,encouragement,felicitations,avertissement,blame'],
 
@@ -46,7 +41,6 @@ class StoreBulletinRequest extends FormRequest
             'disciplines.*.coefficient' => ['required', 'numeric', 'min:1', 'max:100'],
             'disciplines.*.moyenne_coefficient' => ['nullable', 'numeric'],
             'disciplines.*.rang' => ['nullable', 'integer', 'min:0'],
-            'disciplines.*.appréciation' => ['nullable', 'string', 'max:255'],
             'disciplines.*.professeur' => ['nullable', 'string', 'max:255'],
             'disciplines.*.signature' => ['nullable', 'string', 'max:255'],
         ];

@@ -25,6 +25,7 @@ class Bulletin extends Model
         'absences',
         'rang',
         'moyenne_generale',
+        'mention',
         'total_coefficients',
         'total_points',
         'resultat_classe',

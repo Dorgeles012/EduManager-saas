@@ -14,6 +14,8 @@ use App\Models\Enseignant;
 use App\Models\Matiere;
 use App\Models\Niveau;
 use App\Models\Series;
+use App\Services\BulletinService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,7 @@ class BulletinController extends Controller
             'id' => $item->id, 'student_name' => trim($item->eleve?->nom.' '.$item->eleve?->prenom),
             'matricule' => $item->eleve?->matricule, 'class_name' => $item->classe?->nom,
             'period' => strtoupper($item->trimestre), 'average' => $item->moyenne_generale,
-            'appreciation' => $item->decision ?? $item->observation_conseil ?? 'Non renseignée', 'rank' => $item->rang,
+            'mention' => $item->mention ?? 'Non renseignée', 'rank' => $item->rang,
         ]);
 
         return view('client.bulletin', [
@@ -53,18 +55,19 @@ class BulletinController extends Controller
     public function show(Bulletin $bulletin)
     {
         // Non utilisé actuellement par les routes existantes
+        return $this->renderBulletin($bulletin);
+    }
+
+    public function edit(Bulletin $bulletin)
+    {
         $this->ensureTenantOwns($bulletin);
-        return response()->json($bulletin->load(['eleve', 'classe', 'anneeAcademique', 'disciplines']));
+        return $this->createForm($bulletin);
     }
 
-    public function edit($bulletin)
+    public function update(StoreBulletinRequest $request, Bulletin $bulletin, BulletinService $bulletinService)
     {
-        return redirect()->route('client.bulletin.show', ['bulletin' => $bulletin]);
-    }
-
-    public function update(Request $request, $bulletin)
-    {
-        return redirect()->route('client.bulletin.show', ['bulletin' => $bulletin])
+        $this->ensureTenantOwns($bulletin);
+        return $this->store($request, $bulletinService)
             ->with('warning', 'Mise à jour non disponible pour le moment.');
     }
 
@@ -72,18 +75,66 @@ class BulletinController extends Controller
     {
         $this->ensureTenantOwns($bulletin);
         $bulletin->delete();
+        $this->refreshRanks($bulletin);
         return redirect()->route('client.bulletin.index')
             ->with('success', 'Bulletin supprimé avec succès.');
     }
 
     public function download($bulletin)
     {
-        return redirect()->route('client.bulletin.show', ['bulletin' => $bulletin])
-            ->with('warning', 'Téléchargement non disponible pour le moment.');
+        $bulletin = Bulletin::with(['eleve', 'classe', 'anneeAcademique', 'disciplines'])->findOrFail($bulletin);
+        $this->ensureTenantOwns($bulletin);
+
+        $lines = [
+            'BULLETIN SCOLAIRE',
+            'Élève : '.trim($bulletin->eleve?->nom.' '.$bulletin->eleve?->prenom),
+            'Matricule : '.($bulletin->eleve?->matricule ?? '-'),
+            'Classe : '.($bulletin->classe?->nom ?? '-'),
+            'Année académique : '.($bulletin->anneeAcademique?->libelle ?? '-'),
+            'Période : '.strtoupper($bulletin->trimestre),
+            'Moyenne générale : '.number_format((float) $bulletin->moyenne_generale, 2, ',', ' ').'/20',
+            'Mention : '.($bulletin->mention ?? '-'),
+            'Décision : '.($bulletin->decision ?? '-'),
+            'Observation du conseil : '.($bulletin->observation_conseil ?? '-'),
+            'Date : '.($bulletin->date?->format('d/m/Y') ?? Carbon::today()->format('d/m/Y')),
+            'Le Directeur : '.($bulletin->signature_directeur ?? $this->directeurName()),
+            '',
+            'DISCIPLINES',
+        ];
+
+        foreach ($bulletin->disciplines as $discipline) {
+            $lines[] = sprintf(
+                '%s — Moyenne : %s — Coef. : %s — Mention : %s',
+                $discipline->discipline,
+                number_format((float) $discipline->moyenne, 2, ',', ' '),
+                number_format((float) $discipline->coefficient, 2, ',', ' '),
+                $discipline->mention ?? '-'
+            );
+        }
+
+        return response($this->makePdf($lines), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="bulletin-'.$bulletin->id.'.pdf"',
+        ]);
     }
 
 
+    public function print(Bulletin $bulletin)
+    {
+        return $this->renderBulletin($bulletin, true);
+    }
+
+    public function downloadPdf(Bulletin $bulletin)
+    {
+        return $this->download($bulletin);
+    }
+
     public function create()
+    {
+        return $this->createForm();
+    }
+
+    private function createForm(?Bulletin $bulletin = null)
     {
         $tenantId = auth()->user()->tenant_id;
 
@@ -138,6 +189,7 @@ class BulletinController extends Controller
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'series' => $series,
+            'bulletin' => $bulletin,
         ]);
     }
 
@@ -145,7 +197,7 @@ class BulletinController extends Controller
      * Retourne les données nécessaires au remplissage automatique du header.
      * Exemple attendu côté JS : { nom, prenoms, matricule, classe, ... }
      */
-    public function studentData(Request $request)
+    public function studentData(Request $request, BulletinService $bulletinService)
 
     {
         $data = $request->validate([
@@ -210,7 +262,7 @@ class BulletinController extends Controller
                         'coefficient' => $d->coefficient,
                         'moyenne_coefficient' => $d->moyenne_coefficient,
                         'rang' => $d->rang,
-                        'appréciation' => $d->appréciation,
+                        'mention' => $d->mention,
                         'professeur' => $d->professeur,
                         'signature' => $d->signature,
                     ]);
@@ -220,7 +272,7 @@ class BulletinController extends Controller
         // 2) Si aucun bulletin n'existe : on génère les disciplines depuis la table `notes`.
         //    NB: La table notes actuelle ne contient pas de `classe_id` proprement liée au nom de la période,
         //    on utilise donc `periode = trimestre` et on filtre sur eleve_id + classe_id.
-        //    Rang/Appréciation: calculés approximativement à partir de la moyenne générale.
+        //    Rang : calculé approximativement à partir de la moyenne générale.
         $generatedFromNotes = false;
         if (!$bulletin && empty($disciplinesFromBulletin->all()) && !empty($data['trimestre'])) {
             $classeId = $eleve->classe_id;
@@ -265,7 +317,7 @@ class BulletinController extends Controller
                     'coefficient' => $coef,
                     'moyenne_coefficient' => $mc !== null ? round($mc, 2) : null,
                     'rang' => 0,
-                    'appréciation' => $noteRow?->appreciation,
+                    'mention' => $bulletinService->evaluation($moyenne)['mention'],
                     'professeur' => null,
                     'signature' => null,
                 ];
@@ -361,11 +413,15 @@ class BulletinController extends Controller
 
             // bulletin
             'bulletin_existant' => (bool) $bulletin,
-            'moyenne_generale' => $bulletin?->moyenne_generale,
+            'moyenne_generale' => $bulletin?->moyenne_generale ?? $moyenneGeneraleFromGenerated,
             'total_coefficients' => $bulletin?->total_coefficients,
             'total_points' => $bulletin?->total_points,
             'rang' => $bulletin?->rang,
-            'appreciation' => $bulletin?->appreciation,
+            'mention' => $bulletin?->mention ?? $bulletinService->evaluation($moyenneGeneraleFromGenerated)['mention'],
+            'decision' => $bulletin?->decision ?? $bulletinService->decision($moyenneGeneraleFromGenerated),
+            'observation_conseil' => $bulletin?->observation_conseil ?? $bulletinService->evaluation($moyenneGeneraleFromGenerated)['observation'],
+            'date' => ($bulletin?->date ?? Carbon::today())->format('d/m/Y'),
+            'directeur' => $bulletin?->signature_directeur ?? $this->directeurName(),
             'disciplines' => $disciplinesFromBulletin->values()->all(),
         ];
 
@@ -380,13 +436,13 @@ class BulletinController extends Controller
         return response()->json($payload);
     }
 
-    public function store(StoreBulletinRequest $request)
+    public function store(StoreBulletinRequest $request, BulletinService $bulletinService)
     {
         $payload = $request->validated();
 
         $tenantId = auth()->user()->tenant_id;
 
-        return DB::transaction(function () use ($payload, $tenantId) {
+        return DB::transaction(function () use ($payload, $tenantId, $bulletinService) {
 
             $eleve = Eleve::query()->where('tenant_id', $tenantId)->findOrFail($payload['eleve_id']);
 
@@ -447,6 +503,7 @@ class BulletinController extends Controller
             }
 
             $moyenneGenerale = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
+            $evaluation = $bulletinService->evaluation($moyenneGenerale);
 
             // Résultat de classe / décision : si déjà fournis par l'utilisateur, on les garde.
             $bulletin = Bulletin::updateOrCreate([
@@ -462,16 +519,17 @@ class BulletinController extends Controller
                 'absences' => (int) ($payload['absences'] ?? 0),
                 'rang' => (int) ($payload['rang'] ?? 0),
                 'moyenne_generale' => $moyenneGenerale,
+                'mention' => $evaluation['mention'],
                 'total_coefficients' => round($totalCoef, 2),
                 'total_points' => round($totalPoints, 2),
 
                 'resultat_classe' => $payload['resultat_classe'] ?? null,
-                'decision' => $payload['decision'] ?? null,
-                'observation_conseil' => $payload['observation_conseil'] ?? null,
-                'date' => $payload['date'] ?? null,
+                'decision' => $bulletinService->decision($moyenneGenerale),
+                'observation_conseil' => $evaluation['observation'],
+                'date' => Carbon::today(),
 
                 'signature_professeur_principal' => $payload['signature_professeur_principal'] ?? null,
-                'signature_directeur' => $payload['signature_directeur'] ?? null,
+                'signature_directeur' => $this->directeurName(),
                 'distinctions' => $payload['distinctions'] ?? null,
             ]);
 
@@ -490,11 +548,13 @@ class BulletinController extends Controller
                     'coefficient' => (float) $disc['coefficient'],
                     'moyenne_coefficient' => isset($disc['moyenne_coefficient']) ? (float) $disc['moyenne_coefficient'] : null,
                     'rang' => isset($disc['rang']) ? (int) $disc['rang'] : 0,
-                    'appréciation' => $disc['appréciation'] ?? null,
+                    'mention' => $bulletinService->evaluation($disc['moyenne'])['mention'],
                     'professeur' => $disc['professeur'] ?? null,
                     'signature' => $disc['signature'] ?? null,
                 ]);
             }
+
+            $this->refreshRanks($bulletin);
 
             // Optionnel: redirection vers la liste
             return redirect()->route('client.bulletin.index')
@@ -502,8 +562,98 @@ class BulletinController extends Controller
         });
     }
 
+    private function renderBulletin(Bulletin $bulletin, bool $printMode = false)
+    {
+        $this->ensureTenantOwns($bulletin);
+        $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'etablissement', 'disciplines']);
+
+        $annualBulletins = Bulletin::query()
+            ->where('tenant_id', $bulletin->tenant_id)
+            ->where('eleve_id', $bulletin->eleve_id)
+            ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->whereIn('trimestre', ['t1', 't2', 't3'])
+            ->with('disciplines')
+            ->get()
+            ->keyBy('trimestre');
+
+        if ($annualBulletins->isEmpty()) {
+            $annualBulletins = collect([$bulletin->trimestre => $bulletin]);
+        }
+
+        return view('client.Bulletin.show', compact('bulletin', 'printMode', 'annualBulletins'));
+    }
+
+    /** Dense ranking: students with the same average share the same rank. */
+    private function refreshRanks(Bulletin $bulletin): void
+    {
+        $rank = 0;
+        $previous = null;
+        Bulletin::query()
+            ->where('tenant_id', $bulletin->tenant_id)
+            ->where('classe_id', $bulletin->classe_id)
+            ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->where('trimestre', $bulletin->trimestre)
+            ->whereNotNull('moyenne_generale')
+            ->orderByDesc('moyenne_generale')->orderBy('id')
+            ->get()
+            ->each(function (Bulletin $item) use (&$rank, &$previous) {
+                if ($previous === null || (float) $item->moyenne_generale !== $previous) {
+                    $rank++;
+                    $previous = (float) $item->moyenne_generale;
+                }
+                if ($item->rang !== $rank) {
+                    $item->updateQuietly(['rang' => $rank]);
+                }
+            });
+    }
+
     private function ensureTenantOwns(Bulletin $bulletin): void
     {
         abort_unless((int) $bulletin->tenant_id === (int) auth()->user()->tenant_id, 404);
+    }
+
+    private function directeurName(): string
+    {
+        $client = auth()->user();
+
+        return trim(collect([$client?->nom, $client?->prenom])->filter()->implode(' '))
+            ?: (string) ($client?->name ?? '');
+    }
+
+    /**
+     * Génère un PDF texte autonome afin que l'export reste disponible sans dépendance externe.
+     */
+    private function makePdf(array $lines): string
+    {
+        $content = "BT\n/F1 10 Tf\n50 800 Td\n14 TL\n";
+        foreach (array_slice($lines, 0, 52) as $line) {
+            $encoded = iconv('UTF-8', 'Windows-1252//TRANSLIT', (string) $line) ?: '';
+            $escaped = str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $encoded);
+            $content .= "({$escaped}) Tj\nT*\n";
+        }
+        $content .= "ET";
+
+        $objects = [
+            '<< /Type /Catalog /Pages 2 0 R >>',
+            '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+            '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+            "<< /Length ".strlen($content)." >>\nstream\n{$content}\nendstream",
+        ];
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0];
+        foreach ($objects as $index => $object) {
+            $offsets[] = strlen($pdf);
+            $pdf .= ($index + 1)." 0 obj\n{$object}\nendobj\n";
+        }
+
+        $xref = strlen($pdf);
+        $pdf .= "xref\n0 ".(count($objects) + 1)."\n0000000000 65535 f \n";
+        foreach (array_slice($offsets, 1) as $offset) {
+            $pdf .= sprintf('%010d 00000 n ', $offset)."\n";
+        }
+
+        return $pdf."trailer\n<< /Size ".(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
     }
 }

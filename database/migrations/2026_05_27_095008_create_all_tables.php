@@ -230,7 +230,7 @@ return new class extends Migration
             $table->unsignedBigInteger('classe_id');
             $table->decimal('moyenne', 5, 2)->nullable();
             $table->integer('rang')->nullable();
-            $table->text('appreciation')->nullable();
+            $table->text('mention')->nullable();
             $table->string('trimestre', 100)->nullable();
             $table->timestamps();
         });

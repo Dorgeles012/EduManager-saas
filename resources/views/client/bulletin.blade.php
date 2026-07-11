@@ -63,9 +63,6 @@
                 <option value="t1">1er Trimestre</option>
                 <option value="t2">2ème Trimestre</option>
                 <option value="t3">3ème Trimestre</option>
-                <option value="s1">Semestre 1</option>
-                <option value="s2">Semestre 2</option>
-                <option value="an">Annuel</option>
             </select>
         </div>
         <div class="flex items-end h-full pt-6">
@@ -80,54 +77,65 @@
 <!-- Table Section -->
 <div class="bg-surface-container-lowest rounded-xl card-shadow border border-outline-variant/30 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        {{-- DIMINUTION DU FONT SIZE GLOBAL DU TABLEAU --}}
+        <table class="w-full text-left border-collapse text-[13px]">
             <thead>
                 <tr class="bg-surface-container-low border-b border-outline-variant">
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Élève</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Classe</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Période</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Moyenne Générale</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Appréciation</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Élève</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Classe</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Période</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Moyenne Générale</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Mention</th>
+                    <th class="px-4 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px] text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($reportCards ?? [] as $report)
                 <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-[18px]">person</span>
+                            <div class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-[15px]">person</span>
                             </div>
                             <span class="font-body-md font-medium">{{ $report['student_name'] ?? 'N/A' }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $report['class_name'] ?? 'N/A' }}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
+                    <td class="px-4 py-3 text-on-surface-variant">{{ $report['class_name'] ?? 'N/A' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
                             {{ $report['period'] ?? 'N/A' }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-3">
                         <span class="font-bold text-primary">{{ $report['average'] ?? '0' }}</span>
                         <span class="text-on-surface-variant">/20</span>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-label-sm {{ $report['appreciation_class'] ?? 'appreciation-average' }}">
-                            {{ $report['appreciation'] ?? 'N/A' }}
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-label-sm {{ $report['mention_class'] ?? 'mention-average' }}">
+                            {{ $report['mention'] ?? 'N/A' }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors view-action" onclick="openReportModal({{ json_encode($report) }})" title="Voir le bulletin">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
+                    <td class="px-4 py-3 text-right">
+                        {{-- DIMINUTION DE LA TAILLE DES ICÔNES ICI --}}
+                        <a class="inline-block p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" href="{{ route('client.bulletin.show', $report['id']) }}" title="Voir le bulletin">
+                            <span class="material-symbols-outlined text-[17px]">visibility</span>
+                        </a>
+                        <a class="inline-block p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" href="{{ route('client.bulletin.edit', $report['id']) }}" title="Modifier">
+                            <span class="material-symbols-outlined text-[17px]">edit</span>
+                        </a>
+                        <form class="inline" method="POST" action="{{ route('client.bulletin.destroy', $report['id']) }}" onsubmit="return confirm('Supprimer définitivement ce bulletin ?')">
+                            @csrf @method('DELETE')
+                            <button class="p-1.5 text-error hover:bg-error-container rounded-lg" title="Supprimer">
+                                <span class="material-symbols-outlined text-[17px]">delete</span>
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td class="px-6 py-20 text-center" colspan="6">
+                    <td class="px-4 py-12 text-center" colspan="6">
                         <div class="flex flex-col items-center justify-center">
-                            <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-4 text-outline">
+                            <div class="w-16 h-16 bg-surface-container-low rounded-full flex items-center justify-center mb-3 text-outline">
                                 <span class="material-symbols-outlined text-4xl">analytics</span>
                             </div>
                             <h3 class="font-headline-md text-on-surface mb-1">Aucune donnée disponible</h3>
@@ -203,8 +211,8 @@
                     </div>
                 </div>
                 <div class="flex-1 px-8">
-                    <p class="text-label-sm text-outline uppercase mb-2 text-center">Appréciation Globale</p>
-                    <div class="px-6 py-3 rounded-full text-center font-bold text-headline-md" id="modalAppreciation">
+                    <p class="text-label-sm text-outline uppercase mb-2 text-center">Mention</p>
+                    <div class="px-6 py-3 rounded-full text-center font-bold text-headline-md" id="modalMention">
                         Excellent Travail
                     </div>
                 </div>
@@ -240,11 +248,10 @@
     body { background-color: #f9f9ff; }
     .card-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
     
-    /* Appreciation classes */
-    .appreciation-excellent { background-color: #05966910; color: #059669; }
-    .appreciation-good { background-color: #D9770610; color: #D97706; }
-    .appreciation-average { background-color: #64748B10; color: #64748B; }
-    .appreciation-poor { background-color: #E11D4810; color: #E11D48; }
+    .mention-excellent { background-color: #05966910; color: #059669; }
+    .mention-good { background-color: #D9770610; color: #D97706; }
+    .mention-average { background-color: #64748B10; color: #64748B; }
+    .mention-poor { background-color: #E11D4810; color: #E11D48; }
 </style>
 @endpush
 
@@ -279,10 +286,9 @@
         document.getElementById('modalRank').textContent = report.rank || '--';
         document.getElementById('modalTotalStudents').textContent = report.total_students ? `/ ${report.total_students}` : '/ --';
         
-        // Appréciation avec style
-        const appreciationDiv = document.getElementById('modalAppreciation');
-        appreciationDiv.textContent = report.appreciation || 'Aucune appréciation';
-        appreciationDiv.className = `px-6 py-3 rounded-full text-center font-bold text-headline-md ${report.appreciation_class || 'appreciation-average'}`;
+        const mentionDiv = document.getElementById('modalMention');
+        mentionDiv.textContent = report.mention || 'Aucune mention';
+        mentionDiv.className = `px-6 py-3 rounded-full text-center font-bold text-headline-md ${report.mention_class || 'mention-average'}`;
         
         // Afficher le modal
         const modal = document.getElementById('viewBulletinModal');

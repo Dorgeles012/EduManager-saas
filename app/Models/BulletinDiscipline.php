@@ -24,7 +24,7 @@ class BulletinDiscipline extends Model
         'coefficient',
         'moyenne_coefficient',
         'rang',
-        'appréciation',
+        'mention',
         'professeur',
         'signature',
     ];
