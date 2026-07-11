@@ -80,24 +80,51 @@ class BulletinController extends Controller
             ->with('success', 'Bulletin supprimé avec succès.');
     }
 
-    public function download($bulletin)
+    public function download(Bulletin $bulletin)
     {
-        $bulletin = Bulletin::with(['eleve', 'classe', 'anneeAcademique', 'disciplines'])->findOrFail($bulletin);
         $this->ensureTenantOwns($bulletin);
+        $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'disciplines']);
+
+        // Sécuriser : certaines données peuvent être stockées en JSON/array côté BD.
+        // Le PDF doit toujours recevoir des scalaires.
+        $bulletin->distinctions = $bulletin->distinctions ?? null;
+
+        // Normaliser toute valeur potentiellement array en string pour éviter "Array to string conversion".
+        $toPrintableString = function ($value, string $fallback = '-') {
+            if ($value === null) return $fallback;
+            if (is_string($value)) return $value !== '' ? $value : $fallback;
+            if (is_bool($value) || is_int($value) || is_float($value)) return (string) $value;
+            if (is_array($value)) {
+                $flat = collect($value)
+                    ->map(function ($item) {
+                        if (is_null($item)) return null;
+                        if (is_scalar($item) || is_bool($item)) return (string) $item;
+                        if (is_array($item)) return collect($item)->filter(fn($v) => is_scalar($v) || is_bool($v))->map(fn($v) => (string) $v)->implode(' · ');
+                        if (is_object($item) && method_exists($item, '__toString')) return (string) $item;
+                        return null;
+                    })
+                    ->filter(fn($v) => $v !== null && $v !== '');
+
+                $str = $flat->implode(' · ');
+                return $str !== '' ? $str : $fallback;
+            }
+            if ($value instanceof \DateTimeInterface) return $value->format('d/m/Y');
+            return $fallback;
+        };
 
         $lines = [
             'BULLETIN SCOLAIRE',
-            'Élève : '.trim($bulletin->eleve?->nom.' '.$bulletin->eleve?->prenom),
+            'Élève : '.trim((string) ($bulletin->eleve?->nom.' '.$bulletin->eleve?->prenom)),
             'Matricule : '.($bulletin->eleve?->matricule ?? '-'),
             'Classe : '.($bulletin->classe?->nom ?? '-'),
             'Année académique : '.($bulletin->anneeAcademique?->libelle ?? '-'),
-            'Période : '.strtoupper($bulletin->trimestre),
+            'Période : '.strtoupper((string) $bulletin->trimestre),
             'Moyenne générale : '.number_format((float) $bulletin->moyenne_generale, 2, ',', ' ').'/20',
-            'Mention : '.($bulletin->mention ?? '-'),
-            'Décision : '.($bulletin->decision ?? '-'),
-            'Observation du conseil : '.($bulletin->observation_conseil ?? '-'),
+            'Mention : '.$toPrintableString($bulletin->mention),
+            'Décision : '.$toPrintableString($bulletin->decision),
+            'Observation du conseil : '.$toPrintableString($bulletin->observation_conseil),
             'Date : '.($bulletin->date?->format('d/m/Y') ?? Carbon::today()->format('d/m/Y')),
-            'Le Directeur : '.($bulletin->signature_directeur ?? $this->directeurName()),
+            'Le Directeur : '.$toPrintableString($bulletin->signature_directeur, $this->directeurName()),
             '',
             'DISCIPLINES',
         ];
@@ -108,7 +135,9 @@ class BulletinController extends Controller
                 $discipline->discipline,
                 number_format((float) $discipline->moyenne, 2, ',', ' '),
                 number_format((float) $discipline->coefficient, 2, ',', ' '),
-                $discipline->mention ?? '-'
+                is_array($discipline->mention)
+                    ? collect($discipline->mention)->filter()->implode(' · ')
+                    : ($discipline->mention ?? '-')
             );
         }
 
@@ -126,7 +155,32 @@ class BulletinController extends Controller
 
     public function downloadPdf(Bulletin $bulletin)
     {
-        return $this->download($bulletin);
+        $this->ensureTenantOwns($bulletin);
+        $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'etablissement', 'disciplines']);
+
+        $annualBulletins = Bulletin::query()
+            ->where('tenant_id', $bulletin->tenant_id)
+            ->where('eleve_id', $bulletin->eleve_id)
+            ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->whereIn('trimestre', ['t1', 't2', 't3'])
+            ->with('disciplines')->get()->keyBy('trimestre');
+
+        if ($annualBulletins->isEmpty()) {
+            $annualBulletins = collect([$bulletin->trimestre => $bulletin]);
+        }
+
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView('client.Bulletin.show', [
+            'bulletin' => $bulletin,
+            'annualBulletins' => $annualBulletins,
+            'printMode' => false,
+            'pdfMode' => true,
+            'pdfSchoolLogo' => $this->pdfImageData($bulletin->etablissement?->logo, public_path('vendor/adminlte/dist/img/AdminLTELogo.png')),
+            'pdfStudentPhoto' => $this->pdfImageData($bulletin->eleve?->photo, public_path('vendor/adminlte/dist/img/AdminLTELogo.png')),
+        ])->setPaper('a4', 'portrait')
+            ->setOption('defaultFont', 'Times-Roman')
+            ->setOption('dpi', 96)
+            ->setOption('isRemoteEnabled', false)
+            ->download("bulletin-{$bulletin->id}.pdf");
     }
 
     public function create()
@@ -581,6 +635,33 @@ class BulletinController extends Controller
         }
 
         return view('client.Bulletin.show', compact('bulletin', 'printMode', 'annualBulletins'));
+    }
+
+    /**
+     * DomPDF cannot reliably resolve Laravel storage URLs. Embed local images
+     * so the browser and downloaded document display the same logo/photo.
+     */
+    private function pdfImageData(?string $path, ?string $fallback = null): ?string
+    {
+        $normalized = ltrim((string) $path, '/');
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, strlen('storage/'));
+        }
+
+        $candidates = array_filter([
+            $normalized !== '' ? storage_path('app/public/'.$normalized) : null,
+            $normalized !== '' ? public_path($normalized) : null,
+            $fallback,
+        ]);
+
+        foreach ($candidates as $file) {
+            if (is_file($file) && is_readable($file)) {
+                $mime = mime_content_type($file) ?: 'image/png';
+                return 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($file));
+            }
+        }
+
+        return null;
     }
 
     /** Dense ranking: students with the same average share the same rank. */

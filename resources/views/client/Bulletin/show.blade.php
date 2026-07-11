@@ -1,331 +1,259 @@
-@extends('client.layouts.app')
-@section('title', 'Bulletin de notes')
-@section('content')
+@extends(($pdfMode ?? false) ? 'client.layouts.pdf' : 'client.layouts.app')
 
+@section('title', 'Bulletin de notes')
+
+@section('content')
 @php
     $school = $bulletin->etablissement;
     $student = $bulletin->eleve;
-    $photo = $student?->photo_url ?: asset('vendor/adminlte/dist/img/AdminLTELogo.png');
-    $schoolLogo = $school?->logo_url ?? asset('images/default-school.png');
-    
+    $isPdf = $pdfMode ?? false;
+    $schoolLogo = $isPdf ? ($pdfSchoolLogo ?? null) : $school?->logo_url;
+    $photo = $isPdf ? ($pdfStudentPhoto ?? null) : ($student?->photo_url ?: asset('vendor/adminlte/dist/img/AdminLTELogo.png'));
     $terms = ['t1' => 'Trim1', 't2' => 'Trim2', 't3' => 'Trim3'];
-    
-    $disciplines = collect($annualBulletins ?? [$bulletin->trimestre => $bulletin])
-        ->flatMap(fn($card) => $card->disciplines)
-        ->unique('discipline')
-        ->sortBy('discipline')
-        ->values();
-        
-    $termDiscipline = fn($term, $name) => $annualBulletins?->get($term)?->disciplines->firstWhere('discipline', $name);
-    
-    $annualAverage = collect($annualBulletins ?? [])
-        ->pluck('moyenne_generale')
-        ->filter(fn($value) => $value !== null)
-        ->avg();
+    $cards = collect($annualBulletins ?? [$bulletin->trimestre => $bulletin]);
+    $disciplines = $cards->flatMap(fn ($card) => $card->disciplines)->unique('discipline')->sortBy('discipline')->values();
+    $termDiscipline = fn ($term, $name) => $cards->get($term)?->disciplines->firstWhere('discipline', $name);
+    $annualAverage = $cards->pluck('moyenne_generale')->filter(fn ($value) => $value !== null)->avg();
 @endphp
 
 <style>
-    {{-- Reset pour l'impression --}}
+    @page { margin: 8mm; size: A4 portrait; }
     * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; color: #111; background: #fff; font-family: "Times New Roman", Times, serif; }
+    .bulletin { width: 190mm; max-width: 100%; margin: 0 auto; font-size: 10px; line-height: 1.15; }
+    .bulletin table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .bulletin td, .bulletin th { border: 1px solid #111; padding: 3px 4px; vertical-align: middle; }
+    .bulletin th { background: #d9d9d9; color: #111; font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-weight: bold; text-align: center; }
+    .center { text-align: center; } .right { text-align: right; } .strong { font-weight: bold; }
+    .logo { width: 72px; height: 72px; object-fit: contain; } .photo { width: 78px; height: 94px; object-fit: cover; border: 1px solid #111; }
+    .header-table td { height: 76px; } .school-name { font-size: 15px; font-weight: bold; } .bulletin-title { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: bold; }
+    .period-band { background: #d9d9d9; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; padding: 5px; border: 1px solid #111; border-top: 0; }
+    .student-table td { height: 22px; } .student-photo-cell { text-align: center; } .grades td { height: 19px; } .grades .subject { font-family: Arial, Helvetica, sans-serif; font-size: 9px; }
+    .subtotal td, .total td { background: #d9d9d9; font-weight: bold; } .summary td { height: 78px; vertical-align: top; } .summary-title { display: block; font-weight: bold; text-decoration: underline; text-align: center; margin-bottom: 5px; }
     
-    .annual-sheet { 
-        max-width: 1100px; margin: auto; background: #fff; color: #111; padding: 4px 10px; 
-        font-family: "Times New Roman", Times, serif; font-size: 13px; 
-    }
+    .bottom td { height: 100px; vertical-align: top; } 
+    .signature-line { border-top: 1px solid #111; margin: 35px 12px 6px; } .signature-space { height: 35px; }
     
-    .annual-sheet table.grades-table { 
-        width: 100%; border-collapse: collapse; margin-top: 5px; 
-    }
-    .annual-sheet table.grades-table th, 
-    .annual-sheet table.grades-table td { 
-        border: 1px solid #222; padding: 3px 4px; vertical-align: middle; line-height: 1.12; 
-    }
-    .annual-sheet table.grades-table th { 
-        font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; text-align: center; 
-    }
-    .annual-sheet table.grades-table .annual-subtotal td { 
-        background: #d9d9d9; font-weight: 700; font-size: 13px; 
-    }
-    
-    {{-- RÉDUCTION DE LA POLICE DE L'EN-TÊTE --}}
-    .annual-title { 
-        font-family: "Times New Roman", Times, serif; font-size: 14px; font-weight: 800; text-align: center; 
-    }
-    .annual-header { 
-        display: flex; justify-content: space-between; align-items: stretch; 
-        border-bottom: 2px solid #222; min-height: 70px; 
-    }
-    .annual-header > div { padding: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    
-    .annual-header .header-left { flex: 1.2; padding-left: 0; align-items: flex-start; }
-    .annual-header .header-center { flex: 0.5; }
-    .annual-header .header-right { flex: 1.5; align-items: flex-end; }
-    
-    .annual-header .school-logo {
-        max-width: 70px; max-height: 70px; object-fit: contain; margin-bottom: 3px;
-        border: 1px solid #ddd; padding: 3px; background: #fff;
-    }
-    .annual-header .header-right {
-        font-size: 11px; 
-        font-weight: bold;
-        font-family: "Times New Roman", Times, serif;
-        text-align: right;
-    }
-    .annual-header .header-right .devise {
-        font-weight: normal; font-style: italic; margin-top: 4px; font-size: 10px;
-    }
-    
-    .annual-school { padding: 12px 8px; text-align: center; border-bottom: 2px solid #222; }
-    .school-name-large { font-size: 20px; font-weight: bold; display: block; margin-bottom: 4px; font-family: "Times New Roman", Times, serif; }
-    .school-address-large { font-size: 15px; display: block; font-family: "Times New Roman", Times, serif; }
-    
-    .annual-student { 
-        display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 2px solid #222; font-size: 14px; 
-    }
-    .annual-student .student-col { flex: 1; padding: 0 5px; }
-    .annual-student .student-col:nth-child(1) { flex: 1.45; }
-    .annual-student .student-col:nth-child(2) { flex: 1; }
-    .annual-student .student-col:nth-child(3) { flex: 0.9; }
-    .annual-student p { margin: 0 0 7px; }
-    .annual-photo { width: 65px; height: 78px; object-fit: cover; border: 1px solid #333; float: right; }
-    
-    .annual-summary { 
-        display: flex; justify-content: space-between; text-align: center; 
-        border-bottom: 2px solid #222; padding: 15px 0; 
-    }
-    .annual-summary > div { flex: 1; padding: 0 10px; }
-    .annual-summary strong { font-size: 16px; }
-    
-    .annual-bottom { 
-        display: flex; justify-content: space-between; text-align: center; padding: 15px 0; 
-    }
-    .annual-bottom > section { flex: 1; padding: 0 10px; }
-    
-    .font-large-title {
-        font-size: 18px; font-weight: bold; text-align: center; text-decoration: underline; margin: 0 0 10px 0; display: block;
-    }
-    .font-big-text { font-size: 18px; }
-    .annual-bottom p { margin: 5px 0; }
-    .annual-sign { margin-top: 30px; text-align: center; font-weight: bold; }
-    
-    .no-print { margin-bottom: 18px; }
-    
-    {{-- CORRECTION DU DÉCALAGE ET IMPRESSION OPTIMALE --}}
-    @media print {
-        .no-print, nav, aside, header { display: none !important; }
-        body { margin: 0 !important; padding: 0 !important; }
-        main { padding: 0 !important; margin: 0 !important; }
-        
-        .annual-sheet { 
-            border: none; 
-            max-width: 100%; 
-            width: 100%; 
-            padding: 0 !important;
-            margin: 0 !important;
-            position: absolute !important;
-            top: 2mm !important; /* Petite marge de sécurité pour que l'imprimante imprime bien le haut */
-            left: 0 !important;
-        }
-        
-        {{-- Force l'impression des bordures --}}
-        .annual-sheet table.grades-table th, 
-        .annual-sheet table.grades-table td {
-            border: 1px solid #000 !important;
-        }
-        .annual-header, .annual-school, .annual-student, .annual-summary {
-            border-bottom: 2px solid #000 !important;
-        }
-        
-        @page { 
-            size: A4 portrait; 
-            margin: 0 !important;
-        }
-    }
+    .footer { margin-top: 8px; text-align: center; font-family: Arial, Helvetica, sans-serif; font-size: 8px; }
+    .no-print { width: 190mm; max-width: 100%; margin: 0 auto 12px; display: flex; justify-content: space-between; align-items: center; }
+    @media print { .no-print, nav, aside, header { display: none !important; } body, main { margin: 0 !important; padding: 0 !important; background: #fff !important; } .bulletin { width: 190mm; } }
 </style>
 
-<div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; position:relative; z-index:10;">
-    <div>
-        <a href="{{ route('client.bulletin.index') }}"
-           class="btn btn-outline-secondary"
-           title="Retour"
-           aria-label="Retour"
-           style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:50%;">
-            <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
-        </a>
-    </div>
+@if(! $isPdf)
+<div class="no-print">
+    <a href="{{ route('client.bulletin.index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:50%;" title="Retour">
+        <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
+    </a>
+
     <div style="display:flex; gap:8px;">
-        {{-- ATTENTION : Retrait de l'attribut 'download' pour éviter les erreurs de serveur --}}
-        <a href="{{ route('client.bulletin.download-pdf', $bulletin) }}"
-           class="btn btn-success"
-           title="Télécharger le PDF"
-           aria-label="Télécharger"
-           target="_blank"
-           rel="noopener noreferrer"
-           style="display:inline-flex; align-items:center; gap:6px;">
+        <a href="{{ route('client.bulletin.download-pdf', $bulletin) }}" class="btn btn-success" style="display:inline-flex; align-items:center; gap:6px;" title="Télécharger PDF">
             <span class="material-symbols-outlined" style="font-size:18px;">download</span>
             Télécharger
         </a>
-        <button type="button"
-                class="btn btn-outline-primary"
-                onclick="window.print(); return false;"
-                title="Imprimer"
-                aria-label="Imprimer"
-                style="display:inline-flex; align-items:center; gap:6px;">
+        <button type="button" class="btn btn-outline-primary" onclick="window.print()" style="display:inline-flex; align-items:center; gap:6px;" title="Imprimer">
             <span class="material-symbols-outlined" style="font-size:18px;">print</span>
             Imprimer
         </button>
     </div>
 </div>
+@endif
 
-<article class="annual-sheet">
-    
-    <section class="annual-header">
-        <div class="header-left">
-            @if($schoolLogo)
-                <img src="{{ $schoolLogo }}" alt="Logo établissement" class="school-logo">
-            @endif
-            <br>
-        </div>
-        <div class="header-center">
-            <div class="annual-title">BULLETIN DE NOTES</div>
-        </div>
-        <div class="header-right">
-            REPUBLIQUE DE COTE D'IVOIRE<br>
-            MINISTERE DE L'EDUCATION NATIONALE<br> ET DE L'ENSEIGNEMENT TECHNIQUE
-            <div class="devise">Union - Discipline - Travail</div>
-        </div>
-    </section>
+<article class="bulletin">
+    <table class="header-table">
+        <colgroup>
+            <col width="16%">
+            <col width="42%">
+            <col width="42%">
+        </colgroup>
+        <tr>
+            <td class="center">
+                @if($schoolLogo)
+                    <img class="logo" src="{{ $schoolLogo }}" alt="Logo">
+                @endif
+            </td>
+            <td class="center">
+                <span class="school-name">{{ $school?->nom ?? 'Établissement' }}</span>
+                <br><br>
+                <strong>Adresse :</strong> {{ $school?->adresse ?? '—' }}
+                <br>
+                <strong>Téléphone :</strong> {{ $school?->telephone ?? '—' }}
+            </td>
+            <td class="center">
+                <strong>REPUBLIQUE DE CÔTE D'IVOIRE</strong>
+                <br>
+                MINISTERE DE L'ÉDUCATION NATIONALE
+                <br>
+                ET DE L'ENSEIGNEMENT TECHNIQUE
+                <br><br>
+                <em>Union – Discipline – Travail</em>
+            </td>
+        </tr>
+    </table>
 
-    <section class="annual-school">
-        <span class="school-name-large">{{ $school?->nom ?? '—' }}</span>
-        <span class="school-address-large">
-            Adresse postale : {{ $school?->adresse ?? '—' }} 
-            @if($school?->telephone) — Téléphone : {{ $school->telephone }} @endif
+    <div class="period-band">
+        Bulletin du {{ strtoupper($bulletin->trimestre) }}
+        <span style="float:right">
+            Année scolaire&nbsp;&nbsp; {{ $bulletin->anneeAcademique?->libelle ?? '—' }}
         </span>
-    </section>
+    </div>
 
-    <section class="annual-student">
-        <div class="student-col">
-            <p><strong>{{ $student?->nom }} {{ $student?->prenom }}</strong></p>
-            <p><strong>Matricule : {{ $student?->matricule ?? '—' }}</strong></p>
-            <p>Classe : {{ $bulletin->classe?->nom ?? '—' }}</p>
-            <p>Effectif : {{ $bulletin->classe?->capacite ?? '—' }}</p>
-        </div>
-        <div class="student-col">
-            <p>Sexe : {{ $student?->sexe ?? '—' }}</p>
-            <p>Né(e) le : {{ $student?->date_naissance?->format('d/m/Y') ?? '—' }}</p>
-            <p>Lieu de naissance : {{ $student?->lieu_naissance ?? '—' }}</p>
-            <p>Nationalité : {{ $student?->nationalite ?? '—' }}</p>
-        </div>
-        <div class="student-col">
-            <img class="annual-photo" src="{{ $photo }}" alt="Photo élève">
-            <p>Période éditée : {{ strtoupper($bulletin->trimestre) }}</p>
-            <p>Absences : {{ $bulletin->absences ?? 0 }}</p>
-        </div>
-    </section>
+    <table class="student-table">
+        <colgroup>
+            <col width="33%">
+            <col width="33%">
+            <col width="20%">
+            <col width="14%">
+        </colgroup>
+        <tr>
+            <td colspan="3">
+                <strong>Nom et Prénoms de l'élève :</strong> {{ $student?->nom }} {{ $student?->prenom }}
+            </td>
+            <td rowspan="5" class="student-photo-cell">
+                @if($photo)
+                    <img class="photo" src="{{ $photo }}" alt="Photo">
+                @else
+                    Photo
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td><strong>N° Mle :</strong> {{ $student?->matricule ?? '—' }}</td>
+            <td>Interne : NON</td>
+            <td>Affecté(e) : NON</td>
+        </tr>
+        <tr>
+            <td>Classe : {{ $bulletin->classe?->nom ?? '—' }}</td>
+            <td>Sexe : {{ $student?->sexe ?? '—' }}</td>
+            <td>Nationalité : {{ $student?->nationalite ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td>Effectif : {{ $bulletin->classe?->capacite ?? '—' }}</td>
+            <td colspan="2">Né(e) le : {{ $student?->date_naissance?->format('d/m/Y') ?? '—' }} à {{ $student?->lieu_naissance ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td>Absences : {{ $bulletin->absences ?? 0 }}</td>
+            <td colspan="2">Total d'heures : {{ $bulletin->total_heures ?? 0 }}</td>
+        </tr>
+    </table>
 
-    <table class="grades-table">
+    <table class="grades">
+        <colgroup>
+            <col width="27%">
+            <col width="8.5%">
+            <col width="6.5%">
+            <col width="8.5%">
+            <col width="6%">
+            <col width="14%">
+            <col width="20%">
+            <col width="10%">
+        </colgroup>
         <thead>
             <tr>
                 <th>DISCIPLINES</th>
-                <th>Moyenne</th>
-                <th>Coef.</th>
-                <th>M×C</th>
+                <th>Moy.</th>
+                <th>Coef</th>
+                <th>Moy*Coef</th>
                 <th>Rang</th>
-                <th>Mention</th>
-                <th>Professeur</th>
+                <th>Appréciations</th>
+                <th>PROFESSEURS</th>
                 <th>Signature</th>
             </tr>
         </thead>
         <tbody>
             @forelse($disciplines as $discipline)
                 @php
-                    $values = collect($terms)->map(fn($_label, $term) => $termDiscipline($term, $discipline->discipline));
-                    $mean = $values->filter()->avg('moyenne');
-                    $latest = $values->filter()->last();
-                    $disciplineEntry = $bulletin->disciplines->firstWhere('discipline', $discipline->discipline) ?? $latest;
+                    $latest = $cards->flatMap(fn ($card) => $card->disciplines)->where('discipline', $discipline->discipline)->last();
+                    $entry = $bulletin->disciplines->firstWhere('discipline', $discipline->discipline) ?? $latest;
                 @endphp
                 <tr>
-                    <td><strong>{{ $discipline->discipline }}</strong></td>
-                    <td class="text-center">
-                        <strong>
-                            {{ $disciplineEntry?->moyenne !== null ? number_format($disciplineEntry->moyenne, 2, ',', ' ') : ($mean !== null ? number_format($mean, 2, ',', ' ') : '—') }}
-                        </strong>
-                    </td>
-                    <td class="text-center">{{ $disciplineEntry?->coefficient ?? ($latest?->coefficient ?? '—') }}</td>
-                    <td class="text-center">
-                        {{ $disciplineEntry?->moyenne_coefficient !== null ? number_format($disciplineEntry->moyenne_coefficient, 2, ',', ' ') : ($latest?->moyenne_coefficient !== null ? number_format($latest->moyenne_coefficient, 2, ',', ' ') : '—') }}
-                    </td>
-                    <td class="text-center">{{ $disciplineEntry?->rang ?: ($latest?->rang ?: '—') }}</td>
-                    <td class="text-center">{{ $disciplineEntry?->mention ?? ($latest?->mention ?? '—') }}</td>
-                    <td>{{ $disciplineEntry?->professeur ?? ($latest?->professeur ?? '—') }}</td>
-                    <td>{{ $disciplineEntry?->signature ?? ($latest?->signature ?? '') }}</td>
+                    <td class="subject strong">{{ $discipline->discipline }}</td>
+                    <td class="center">{{ $entry?->moyenne !== null ? number_format($entry->moyenne, 2, ',', ' ') : '—' }}</td>
+                    <td class="center">{{ $entry?->coefficient ?? '—' }}</td>
+                    <td class="center">{{ $entry?->moyenne_coefficient !== null ? number_format($entry->moyenne_coefficient, 2, ',', ' ') : '—' }}</td>
+                    <td class="center">{{ $entry?->rang ?: '—' }}</td>
+                    <td class="center">{{ $entry?->mention ?? '—' }}</td>
+                    <td>{{ $entry?->professeur ?? '—' }}</td>
+                    <td>{{ $entry?->signature ?? '' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="text-center">Aucune discipline enregistrée.</td></tr>
+                <tr>
+                    <td colspan="8" class="center">Aucune discipline enregistrée.</td>
+                </tr>
             @endforelse
-            <tr class="annual-subtotal">
-                <td>RÉSUMÉ</td>
-                <td class="text-center">
-                    {{ $annualAverage !== null ? number_format($annualAverage, 2, ',', ' ') : number_format((float) $bulletin->moyenne_generale, 2, ',', ' ') }}
-                </td>
-                <td></td><td></td>
-                <td class="text-center">{{ $bulletin->rang ?: '—' }}</td>
-                <td></td><td colspan="2"></td>
+            <tr class="subtotal">
+                <td>MOYENNE</td>
+                <td class="center">{{ number_format((float) $bulletin->moyenne_generale, 2, ',', ' ') }}</td>
+                <td class="center">{{ number_format((float) $bulletin->total_coefficients, 2, ',', ' ') }}</td>
+                <td class="center">{{ number_format((float) $bulletin->total_points, 2, ',', ' ') }}</td>
+                <td class="center">{{ $bulletin->rang ?: '—' }}</td>
+                <td colspan="3"></td>
+            </tr>
+            <tr class="total">
+                <td>TOTAUX</td>
+                <td colspan="7"></td>
             </tr>
         </tbody>
     </table>
 
-    <section class="annual-summary">
-        <div>
-            <span class="font-large-title">Assiduité trimestrielle</span>
-            Total d'heures d'absence : {{ $bulletin->total_heures ?? 0 }}<br>
-            Justifiées : 0<br>
-            Non justifiées : {{ $bulletin->absences ?? 0 }}
-        </div>
-        <div>
-            <span class="font-large-title">Moyenne trimestrielle</span>
-            <strong>
-                {{ $annualAverage !== null ? number_format($annualAverage, 2, ',', ' ') : number_format((float) $bulletin->moyenne_generale, 2, ',', ' ') }} 
-                <small>/20</small>
-            </strong><br>
-            Rang : <strong>{{ $bulletin->rang ?: '—' }}</strong> sur {{ $bulletin->classe?->capacite ?? '—' }}
-        </div>
-        <div>
-            <span class="font-large-title">Observation du conseil</span>
-            {{ $bulletin->observation_conseil ?? 'Aucune observation' }}
-        </div>
-    </section>
+    <table class="summary">
+        <colgroup>
+            <col width="34%">
+            <col width="32%">
+            <col width="34%">
+        </colgroup>
+        <tr>
+            <td>
+                <span class="summary-title">Assiduité</span>
+                Total d'heures d'absence : {{ $bulletin->total_heures ?? 0 }}
+                <br>
+                Non justifiées : {{ $bulletin->absences ?? 0 }}
+            </td>
+            <td class="center">
+                <span class="summary-title">Moyenne trimestrielle</span>
+                <strong style="font-size:16px">{{ number_format((float) ($annualAverage ?? $bulletin->moyenne_generale), 2, ',', ' ') }} /20</strong>
+                <br><br>
+                Rang : <strong>{{ $bulletin->rang ?: '—' }}</strong> sur {{ $bulletin->classe?->capacite ?? '—' }}
+            </td>
+            <td>
+                <span class="summary-title">Résultats de classe</span>
+                {{ $bulletin->resultat_classe ?? $bulletin->observation_conseil ?? '—' }}
+            </td>
+        </tr>
+    </table>
 
-    <section class="annual-bottom">
-        <section>
-            <span class="font-large-title">Mentions du conseil de classe</span>
-            <p><strong>DISTINCTIONS</strong></p>
-            <p>{{ collect($bulletin->distinctions ?? [])->implode(' · ') ?: 'Aucune distinction' }}</p>
-        </section>
-        <section>
-            <span class="font-large-title">Décision de fin d'année</span>
-            <p class="text-center font-big-text" style="margin-top:15px">
-                <em>{{ $bulletin->decision ?? '—' }}</em>
-            </p>
-        </section>
-        <section>
-            <span class="font-large-title">Directeur</span>
-            <p>Fait le {{ $bulletin->date?->format('d/m/Y') ?? now()->format('d/m/Y') }}</p>
-            <p class="annual-sign" style="margin-top:60px">
-                {{ $bulletin->signature_directeur ?? 'Nom / signature du directeur' }}
-            </p>
-        </section>
-    </section>
+    <table class="bottom">
+        <colgroup>
+            <col width="34%">
+            <col width="32%">
+            <col width="34%">
+        </colgroup>
+        <tr>
+            <td>
+                <span class="summary-title">Mentions du conseil de classe</span>
+                <strong>DISTINCTIONS</strong>
+                <br>
+                {{ collect($bulletin->distinctions ?? [])->filter(fn($item) => is_scalar($item))->implode(' · ') ?: 'Aucune distinction' }}
+            </td>
+            <td class="center">
+                <span class="summary-title">Décision de fin d'année</span>
+                <div class="signature-space"></div>
+                <strong><em>{{ $bulletin->decision ?? '—' }}</em></strong>
+            </td>
+            <td class="center">
+                <span class="summary-title">Directeur</span>
+                Fait le {{ $bulletin->date?->format('d/m/Y') ?? now()->format('d/m/Y') }}
+            </td>
+        </tr>
+    </table>
 
-    <p class="text-center" style="margin:12px 0 3px; font-family:'Times New Roman', Times, serif;">
-        {{ $school?->nom ? strtoupper($school->nom) : '' }}
-    </p>
+    <div class="footer">
+        {{ $school?->nom ? strtoupper($school->nom) : '' }} — {{ $school?->adresse ?? '' }}
+    </div>
 </article>
 
 @if($printMode ?? false)
-    <script>
-        window.addEventListener('load', () => window.print())
-    </script>
+<script>
+    window.addEventListener('load', function () { window.print(); });
+</script>
 @endif
 @endsection

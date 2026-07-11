@@ -51,7 +51,13 @@ class Bulletin extends Model
         'total_coefficients' => 'float',
         'total_points' => 'float',
         'date' => 'date',
+
+        // Certains champs peuvent être stockés en JSON/array côté BD.
+        // On les caste pour éviter "Array to string conversion" lors de la génération PDF.
         'distinctions' => 'array',
+        'decision' => 'string',
+        'observation_conseil' => 'string',
+        'signature_directeur' => 'string',
     ];
 
     public function disciplines(): HasMany
