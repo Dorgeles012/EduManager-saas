@@ -29,6 +29,8 @@ class Eleve extends Model
         'lieu_naissance',
         'ancien_etablissement',
         'nationalite',
+        'interne',
+        'affecte',
         'photo',
         'statut',
     ];
@@ -41,6 +43,8 @@ class Eleve extends Model
         'niveau_id' => 'integer',
         'parent_id' => 'integer',
         'date_naissance' => 'date',
+        'interne' => 'boolean',
+        'affecte' => 'boolean',
     ];
 
     public function classe(): BelongsTo

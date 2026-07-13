@@ -118,8 +118,8 @@
         </tr>
         <tr>
             <td><strong>N° Mle :</strong> {{ $student?->matricule ?? '—' }}</td>
-            <td>Interne : NON</td>
-            <td>Affecté(e) : NON</td>
+            <td>Interne : {{ $student?->interne ? 'Oui' : 'Non' }}</td>
+            <td>Affecté(e) : {{ $student?->affecte ? 'Oui' : 'Non' }}</td>
         </tr>
         <tr>
             <td>Classe : {{ $bulletin->classe?->nom ?? '—' }}</td>

@@ -9,15 +9,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('serie_matieres', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('serie_id')->constrained('series')->cascadeOnDelete();
-            $table->foreignId('matiere_id')->constrained('matieres')->cascadeOnDelete();
-            $table->unsignedInteger('coefficient')->default(1);
-            $table->timestamps();
+        // Certaines installations ont déjà cette table, sans trace de cette
+        // migration dans `migrations`. Ne jamais la recréer dans ce cas.
+        if (! Schema::hasTable('serie_matieres')) {
+            Schema::create('serie_matieres', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('serie_id')->constrained('series')->cascadeOnDelete();
+                $table->foreignId('matiere_id')->constrained('matieres')->cascadeOnDelete();
+                $table->unsignedInteger('coefficient')->default(1);
+                $table->timestamps();
 
-            $table->unique(['serie_id', 'matiere_id']);
-        });
+                $table->unique(['serie_id', 'matiere_id']);
+            });
+        }
 
         // Conserve les associations de l'ancien schéma matieres.serie.
         if (Schema::hasColumn('matieres', 'serie')) {
@@ -44,29 +48,49 @@ return new class extends Migration
                 });
         }
 
-        Schema::table('bulletin_discipline', function (Blueprint $table) {
-            $table->foreignId('matiere_id')->nullable()->after('bulletin_id')
-                ->constrained('matieres')->nullOnDelete();
-            $table->decimal('interrogation', 5, 2)->nullable()->after('discipline');
-            $table->decimal('devoir', 5, 2)->nullable()->after('interrogation');
-            $table->decimal('composition', 5, 2)->nullable()->after('devoir');
-        });
+        if (Schema::hasTable('bulletin_discipline')) {
+            if (! Schema::hasColumn('bulletin_discipline', 'matiere_id')) {
+                Schema::table('bulletin_discipline', function (Blueprint $table) {
+                    $table->foreignId('matiere_id')->nullable()->after('bulletin_id')
+                        ->constrained('matieres')->nullOnDelete();
+                });
+            }
 
-        Schema::table('bulletins', function (Blueprint $table) {
-            $table->decimal('total_coefficients', 8, 2)->default(0)->after('moyenne_generale');
-            $table->decimal('total_points', 10, 2)->default(0)->after('total_coefficients');
-        });
+            if (! Schema::hasColumn('bulletin_discipline', 'interrogation')) {
+                Schema::table('bulletin_discipline', function (Blueprint $table) {
+                    $table->decimal('interrogation', 5, 2)->nullable()->after('discipline');
+                });
+            }
+
+            if (! Schema::hasColumn('bulletin_discipline', 'devoir')) {
+                Schema::table('bulletin_discipline', function (Blueprint $table) {
+                    $table->decimal('devoir', 5, 2)->nullable()->after('interrogation');
+                });
+            }
+
+            if (! Schema::hasColumn('bulletin_discipline', 'composition')) {
+                Schema::table('bulletin_discipline', function (Blueprint $table) {
+                    $table->decimal('composition', 5, 2)->nullable()->after('devoir');
+                });
+            }
+        }
+
+        if (Schema::hasTable('bulletins') && ! Schema::hasColumn('bulletins', 'total_coefficients')) {
+            Schema::table('bulletins', function (Blueprint $table) {
+                $table->decimal('total_coefficients', 8, 2)->default(0)->after('moyenne_generale');
+            });
+        }
+
+        if (Schema::hasTable('bulletins') && ! Schema::hasColumn('bulletins', 'total_points')) {
+            Schema::table('bulletins', function (Blueprint $table) {
+                $table->decimal('total_points', 10, 2)->default(0)->after('total_coefficients');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('bulletins', function (Blueprint $table) {
-            $table->dropColumn(['total_coefficients', 'total_points']);
-        });
-        Schema::table('bulletin_discipline', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('matiere_id');
-            $table->dropColumn(['interrogation', 'devoir', 'composition']);
-        });
-        Schema::dropIfExists('serie_matieres');
+        // Migration volontairement irréversible : ces structures peuvent être
+        // antérieures à cette migration et contiennent potentiellement des données.
     }
 };

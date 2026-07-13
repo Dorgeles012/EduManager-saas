@@ -1,7 +1,6 @@
 @extends('client.layouts.app')
 @section('title', 'EduManager - Eleves')
 @section('content')
-<!-- Page Header -->
 <div class="flex justify-between items-start mb-10">
     <div>
         <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Gestion des Élèves</h2>
@@ -15,7 +14,6 @@
     </div>
 </div>
 
-<!-- Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
     <div class="glass-card p-6 rounded-xl flex items-center gap-5 shadow-[4px_4px_12px_rgba(55,48,163,0.04)]">
         <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
@@ -37,7 +35,6 @@
     </div>
 </div>
 
-<!-- Data Table Section -->
 <div class="glass-card rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(55,48,163,0.04)]">
     <div class="px-6 py-4 border-b border-surface-subtle bg-surface-container-low flex justify-between items-center">
         <h4 class="font-headline-md text-headline-md text-primary">Liste des élèves</h4>
@@ -93,21 +90,17 @@
                 @foreach($students as $student)
                 <tr class="hover:bg-surface-container-low transition-colors rounded-lg shadow-sm bg-white">
                     <td class="px-3 py-4 text-[14px] align-middle">{{ $loop->iteration }}</td>
-                    
                     <td class="px-4 py-4 min-w-[200px] align-middle">
                         <div class="flex items-center gap-2">
                             <span class="font-medium text-[14px] whitespace-nowrap">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
                         </div>
                     </td>
                     <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['matricule'] ?? 'N/A' }}</td>
-                    
-                    <!-- Colonne Sexe -->
                     <td class="px-3 py-4 align-middle">
                         @php
                             $sexe = strtolower(trim($student['sexe'] ?? ''));
                             $badgeClass = '';
                             $displaySexe = 'N/A';
-                            
                             if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) {
                                 $badgeClass = 'bg-blue-100 text-blue-700';
                                 $displaySexe = 'Masculin';
@@ -123,7 +116,6 @@
                             {{ $displaySexe }}
                         </span>
                     </td>
-                    
                     <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
                     <td class="px-3 py-4 align-middle">
                         <span class="px-3 py-1.5 rounded-full text-[12px] font-medium bg-secondary-container/20 text-on-secondary-container">
@@ -134,16 +126,16 @@
                     <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle min-w-[110px]">{{ $student['birthdate'] }}</td>
                     <td class="px-3 py-4 text-right align-middle">
                         <div class="flex justify-end items-center gap-1">
-                            <button class="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="viewStudent({{ json_encode($student) }})" title="Voir" type="button">
+                            <button class="inline-flex items-center justify-center p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors leading-none" onclick="viewStudent({{ json_encode($student) }})" title="Voir" type="button">
                                 <span class="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
-                            <button class="p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" onclick="editStudent({{ json_encode($student) }})" title="Modifier" type="button">
+                            <button class="inline-flex items-center justify-center p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors leading-none" onclick="editStudent({{ json_encode($student) }})" title="Modifier" type="button">
                                 <span class="material-symbols-outlined text-[20px]">edit</span>
                             </button>
-                            <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline delete-student-form">
+                            <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline-flex items-center leading-none m-0 p-0 delete-student-form">
                                 @csrf
                                 @method('DELETE')
-                                <button class="p-1.5 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
+                                <button class="inline-flex items-center justify-center p-1.5 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn leading-none" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
                                     <span class="material-symbols-outlined text-[20px]">delete</span>
                                 </button>
                             </form>
@@ -155,7 +147,6 @@
         </table>
     </div>
 
-    <!-- Pagination -->
     <div class="px-6 py-4 border-t border-surface-subtle bg-surface-container-low/30 flex items-center justify-between">
         <span class="text-[13px] text-text-muted">
             Affichage de {{ $students->firstItem() ?? 0 }} à {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }} élèves
@@ -167,12 +158,10 @@
     @endif
 </div>
 
-<!-- MODALS (inchangées) -->
-<!-- Modal: Standard Addition -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-standard">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-standard')"></div>
     <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-standard-content">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0 shadow-lg z-20">
             <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE</h3>
             <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')" type="button">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -195,7 +184,6 @@
             <input type="hidden" name="parent_email" id="parentEmailHidden">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Section Élève -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
                         <span class="material-symbols-outlined text-[20px]">person</span>
@@ -241,15 +229,37 @@
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
                             <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" type="text">
                         </div>
-
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
-                            <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="nationalite" name="nationalite">
-                                <option value="">Sélectionner une nationalité</option>
-                                @foreach(config('nationalities') as $nationalite)
-                                    <option value="{{ $nationalite }}">{{ $nationalite }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité <span class="text-alert-red">*</span></label>
+                            <div class="relative w-full ts-wrapper-custom">
+                                <select class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 pr-10 text-sm text-on-surface shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [&>option]:text-on-surface" id="nationalite" name="nationalite" placeholder="Sélectionner une nationalité">
+                                    <option value="">Sélectionner une nationalité</option>
+                                    @foreach(config('nationalities') as $nationalite)
+                                        <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 z-10">
+                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Interne <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdInterne" name="interne" required>
+                                    <option value="1" @selected(old('interne') === '1')>Oui</option>
+                                    <option value="0" @selected(old('interne', '0') === '0')>Non</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Affecté <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdAffecte" name="affecte" required>
+                                    <option value="1" @selected(old('affecte') === '1')>Oui</option>
+                                    <option value="0" @selected(old('affecte', '0') === '0')>Non</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -286,7 +296,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Section Parent -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
                         <span class="material-symbols-outlined text-[20px]">family_restroom</span>
@@ -338,19 +347,15 @@
     </div>
 </div>
 
-<!-- Modal: View (Details) - PHOTO RONDE ET SANS BADGE SEXE -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-view">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-view')"></div>
     <div class="relative glass-card w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="modal-view-content">
-        <!-- Icônes en arrière-plan -->
         <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none">
             <span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">school</span>
         </div>
         <div class="absolute -left-4 -bottom-4 opacity-5 pointer-events-none rotate-12">
             <span class="material-symbols-outlined text-[180px]" style="font-variation-settings: 'FILL' 1;">badge</span>
         </div>
-
-        <!-- Bannière de statut - Fixe -->
         <div class="px-5 py-2.5 bg-gradient-to-r from-primary/5 to-primary-container/5 border-b border-outline-variant/30 flex justify-between items-center flex-shrink-0 bg-white/95 backdrop-blur-sm z-10 rounded-t-2xl">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-[16px]">info</span>
@@ -364,13 +369,9 @@
                 <span class="text-label-sm text-[11px] font-semibold text-success-green">Actif</span>
             </div>
         </div>
-
-        <!-- Contenu principal - Scrollable -->
         <div class="flex-1 overflow-y-auto p-5 md:p-6" id="modal-view-scroll">
-            <!-- En-tête avec avatar et nom - PHOTO RONDE -->
             <div class="flex flex-col md:flex-row md:items-start gap-6 pb-5 border-b border-outline-variant/30">
                 <div class="relative">
-                    <!-- Photo rendue RONDE avec rounded-full -->
                     <div class="w-28 h-28 rounded-full bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center shadow-md relative z-10 overflow-hidden" id="viewStudentPhotoContainer">
                         <span class="material-symbols-outlined text-5xl text-primary/40">account_circle</span>
                     </div>
@@ -379,12 +380,10 @@
                     </div>
                 </div>
                 <div class="flex-1 relative">
-                    <!-- Nom en plus grand -->
                     <h3 class="font-headline-xl text-[28px] text-on-surface mb-2 flex items-center gap-2" id="viewStudentFullName">
                         -
                         <span class="material-symbols-outlined text-primary text-2xl opacity-60" style="font-variation-settings: 'FILL' 1;">verified</span>
                     </h3>
-                    <!-- Badges sans celui du sexe -->
                     <div class="flex flex-wrap gap-2">
                         <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary-fixed/30 text-primary rounded-full text-[12px]">
                             <span class="material-symbols-outlined text-[14px]">badge</span>
@@ -397,15 +396,12 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Grille des informations détaillées - TEXTES AGRANDIS -->
             <div class="pt-5">
                 <h4 class="font-headline-md text-[20px] text-on-surface mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-[22px]">contact_mail</span>
                     Informations scolaires
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <!-- Classe -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg">
                             <span class="material-symbols-outlined text-primary text-[22px]">class</span>
@@ -415,8 +411,6 @@
                             <p class="font-body-md text-[16px] text-on-surface" id="viewStudentClasse">-</p>
                         </div>
                     </div>
-
-                    <!-- Niveau -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg">
                             <span class="material-symbols-outlined text-primary text-[22px]">account_tree</span>
@@ -426,14 +420,10 @@
                             <p class="font-body-md text-[16px] text-on-surface" id="viewStudentNiveau">-</p>
                         </div>
                     </div>
-
-                    <!-- Série -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">category</span></div>
                         <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Série</p><p class="font-body-md text-[16px]" id="viewStudentSerie">—</p></div>
                     </div>
-
-                    <!-- Sexe -->
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg">
                             <span class="material-symbols-outlined text-primary text-[22px]">wc</span>
@@ -443,8 +433,6 @@
                             <p class="font-body-md text-[16px] text-on-surface" id="viewStudentSexeDetail">-</p>
                         </div>
                     </div>
-
-                    <!-- Lieu de naissance (pleine largeur) -->
                     <div class="md:col-span-2">
                         <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                             <div class="p-2 bg-primary-fixed/20 rounded-lg">
@@ -456,8 +444,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Nationalité -->
                     <div class="md:col-span-2">
                         <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                             <div class="p-2 bg-primary-fixed/20 rounded-lg">
@@ -469,8 +455,24 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Parents (pleine largeur) -->
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-[22px]">bed</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Interne</p>
+                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentInterne">-</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-[22px]">assignment_turned_in</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Affecté</p>
+                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentAffecte">-</p>
+                        </div>
+                    </div>
                     <div class="md:col-span-2">
                         <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
                             <div class="p-2 bg-primary-fixed/20 rounded-lg">
@@ -490,8 +492,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Pied de page - Fixe -->
         <div class="mt-auto pt-4 pb-4 px-5 md:px-6 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 bg-white/95 rounded-b-2xl">
             <div class="flex items-center gap-4 text-text-muted">
                 <span class="text-label-sm text-[12px] flex items-center gap-1">
@@ -517,11 +517,10 @@
     </div>
 </div>
 
-<!-- Modal: Edit -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-edit">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-edit')"></div>
     <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-warning-amber text-white sticky top-0">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-warning-amber text-white sticky top-0 shadow-lg z-20">
             <h3 class="font-headline-md text-headline-md">MODIFIER L'ÉLÈVE</h3>
             <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-edit')" type="button">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -531,7 +530,6 @@
             @csrf
             <input type="hidden" name="_method" value="PUT" />
             <input type="hidden" name="editEleveId" id="editEleveId" value="" />
-
             <input type="hidden" name="type_eleve" value="nouveau" />
             <input type="hidden" name="nom" id="editLastnameHidden">
             <input type="hidden" name="prenom" id="editFirstnameHidden">
@@ -547,13 +545,11 @@
             <input type="hidden" name="parent_email" id="editParentEmailHidden">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Section Élève -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
                         <span class="material-symbols-outlined text-[20px]">person</span>
                         INFORMATIONS DE L'ÉLÈVE
                     </h4>
-
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
@@ -590,17 +586,38 @@
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
                             <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" type="text">
                         </div>
-
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
-                            <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editNationalite" name="nationalite">
-                                <option value="">Sélectionner une nationalité</option>
-                                @foreach(config('nationalities') as $nationalite)
-                                    <option value="{{ $nationalite }}">{{ $nationalite }}</option>
-                                @endforeach
-                            </select>
+                            <div class="relative w-full ts-wrapper-custom">
+                                <select class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 pr-10 text-sm text-on-surface shadow-sm focus:border-warning-amber focus:outline-none focus:ring-1 focus:ring-warning-amber [&>option]:text-on-surface" id="editNationalite" name="nationalite" placeholder="Sélectionner une nationalité">
+                                    <option value="">Sélectionner une nationalité</option>
+                                    @foreach(config('nationalities') as $nationalite)
+                                        <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 z-10">
+                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Interne <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editInterne" name="interne" required>
+                                    <option value="1">Oui</option>
+                                    <option value="0">Non</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-label-sm text-on-surface mb-1.5">Affecté <span class="text-alert-red">*</span></label>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editAffecte" name="affecte" required>
+                                    <option value="1">Oui</option>
+                                    <option value="0">Non</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
@@ -636,14 +653,11 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Section Parent -->
                 <div class="space-y-6">
                     <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
                         <span class="material-symbols-outlined text-[20px]">family_restroom</span>
                         INFORMATIONS DU PARENT
                     </h4>
-
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
@@ -664,7 +678,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="mt-10 flex justify-end gap-4 pt-6 border-t border-outline-variant">
                 <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-edit')" type="button">Annuler</button>
                 <button class="px-8 py-2 bg-warning-amber text-white rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">Mettre à jour</button>
@@ -685,11 +698,9 @@
     .modal-overlay {
         transition: backdrop-filter 0.3s ease;
     }
-
     #modal-standard, #modal-view, #modal-edit {
         transition: opacity 0.3s ease;
     }
-
     @keyframes ping {
         75%, 100% {
             transform: scale(2);
@@ -699,104 +710,118 @@
     .animate-ping {
         animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-
     #modal-view-scroll::-webkit-scrollbar {
         width: 6px;
     }
-
     #modal-view-scroll::-webkit-scrollbar-track {
         background: transparent;
         border-radius: 10px;
     }
-
     #modal-view-scroll::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 10px;
         transition: background 0.2s ease;
     }
-
     #modal-view-scroll::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
-
     #modal-view-scroll {
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
     }
-
-    /* Custom Scrollbar pour le tableau */
     .custom-scrollbar {
         overflow-x: auto;
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
         padding-bottom: 4px;
     }
-
     .custom-scrollbar::-webkit-scrollbar {
         height: 8px;
         width: 8px;
     }
-
     .custom-scrollbar::-webkit-scrollbar-track {
         background: #f1f5f9;
         border-radius: 10px;
         margin: 0 10px;
     }
-
     .custom-scrollbar::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 10px;
         transition: background 0.2s ease;
     }
-
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
-
-    /* Uniformiser l'alignement vertical de toutes les cellules */
     tbody tr td {
         vertical-align: middle !important;
     }
-
-    /* Assurer une hauteur minimale pour toutes les lignes */
     tbody tr {
         height: 60px;
     }
-
-    /* Pour les badges et autres éléments inline */
     tbody tr td .flex,
     tbody tr td .inline-flex {
         align-items: center;
     }
-
-    /* Style pour espacer les lignes du tableau */
     .border-separate {
         border-collapse: separate;
     }
-
     .border-spacing-y-2 {
         border-spacing: 0 8px;
     }
-    
     tbody tr {
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-
     tbody tr:first-child td:first-child {
         border-top-left-radius: 8px;
     }
-
     tbody tr:first-child td:last-child {
         border-top-right-radius: 8px;
     }
-
     tbody tr:last-child td:first-child {
         border-bottom-left-radius: 8px;
     }
-    
     tbody tr:last-child td:last-child {
         border-bottom-right-radius: 8px;
+    }
+    .ts-wrapper-custom .ts-control {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        min-height: auto !important;
+        height: auto !important;
+        color: #64748B !important; 
+        display: block !important;
+        width: 100% !important;
+    }
+    .ts-wrapper-custom .ts-control > * {
+        padding: 8px 12px !important;
+        font-size: 0.875rem !important;
+        line-height: normal !important;
+    }
+    .ts-wrapper-custom .ts-control.has-items > * {
+        color: #1e293b !important;
+    }
+    .ts-wrapper-custom .ts-control .item {
+        margin: 0 !important;
+    }
+    .ts-wrapper-custom .ts-dropdown {
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        margin-top: 4px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        z-index: 50 !important;
+    }
+    .ts-wrapper-custom .ts-dropdown .option.active {
+        background-color: #f1f5f9 !important;
+        color: #1e293b !important;
+    }
+    .ts-wrapper-custom .ts-dropdown .option {
+        padding: 10px 12px !important;
+    }
+    .ts-wrapper-custom .ts-control::after {
+        display: none !important;
     }
 </style>
 @endsection
@@ -824,7 +849,6 @@
         const levelId = document.getElementById(levelSelectId)?.value;
         const select = document.getElementById(classSelectId);
         if (!select) return;
-
         const matching = availableClasses.filter(classe => String(classe.level_id) === String(levelId));
         select.innerHTML = '<option value="">Sélectionner une classe</option>' + matching.map(classe =>
             `<option value="${classe.id}">${classe.name}</option>`
@@ -839,7 +863,6 @@
         const select = document.getElementById(seriesSelectId);
         const wrapper = document.getElementById(wrapperId);
         if (!select || !wrapper) return;
-
         const matching = availableSeries.filter(serie => (serie.class_ids ?? []).map(String).includes(String(classId)));
         select.innerHTML = `<option value="">${matching.length ? 'Sélectionner une série' : 'Aucune série pour cette classe'}</option>` + matching.map(serie =>
             `<option value="${serie.id}">${serie.nom_serie}</option>`
@@ -865,16 +888,14 @@
     function initNationalitySelect(selectId) {
         const select = document.getElementById(selectId);
         if (!select) return;
-
         if (window.tomSelectInstances && window.tomSelectInstances[selectId]) {
             window.tomSelectInstances[selectId].destroy();
         }
-
         const instance = new TomSelect(select, {
             create: false,
             sortField: { field: 'text', direction: 'asc' },
             searchField: ['text'],
-            placeholder: 'Rechercher une nationalité',
+            placeholder: 'Sélectionner une nationalité',
             render: {
                 option: function(data, escape) {
                     return '<div class="flex items-center justify-between gap-3">' +
@@ -886,7 +907,6 @@
                 }
             }
         });
-
         if (!window.tomSelectInstances) {
             window.tomSelectInstances = {};
         }
@@ -913,13 +933,8 @@
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 if (!validateAge($('#birthdate-std').val(), 'age-warning-std')) return;
-                
                 const selectedSexe = document.querySelector('input[name="sexe"]:checked');
                 const sexeValue = selectedSexe ? selectedSexe.value : '';
-
-                // Nationalité: select classique (Tom Select ou autre) -> valeur stockée dans le <select name="nationalite">
-                // Le form envoie directement via name="nationalite".
-
                 document.getElementById('stdLastnameHidden').value = document.getElementById('stdLastname').value;
                 document.getElementById('stdFirstnameHidden').value = document.getElementById('stdFirstname').value;
                 document.getElementById('stdMatriculeHidden').value = document.getElementById('stdMatricule').value;
@@ -941,12 +956,9 @@
             editForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-
                 if (!validateAge($('#editBirthdate').val(), 'age-warning-std')) return;
-
                 const selectedSexe = document.querySelector('input[name="edit_sexe"]:checked');
                 const sexeValue = selectedSexe ? selectedSexe.value : '';
-
                 document.getElementById('editLastnameHidden').value = document.getElementById('editLastname').value;
                 document.getElementById('editFirstnameHidden').value = document.getElementById('editFirstname').value;
                 document.getElementById('editMatriculeHidden').value = document.getElementById('editMatricule').value;
@@ -959,9 +971,6 @@
                 document.getElementById('editParentFirstnameHidden').value = document.getElementById('editParentFirstname').value;
                 document.getElementById('editParentPhoneHidden').value = document.getElementById('editParentPhone').value;
                 document.getElementById('editParentEmailHidden').value = document.getElementById('editParentEmail').value;
-
-                // Nationalité: select classique (Tom Select ou autre) -> valeur stockée dans le <select name="nationalite">
-
                 HTMLFormElement.prototype.submit.call(editForm);
             }, true);
         }
@@ -1027,11 +1036,9 @@
         const modal = document.getElementById(id);
         const contentId = id + '-content';
         const content = document.getElementById(contentId);
-        
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        
         setTimeout(() => {
             content.classList.remove('scale-95', 'opacity-0');
             content.classList.add('scale-100', 'opacity-100');
@@ -1042,10 +1049,8 @@
         const modal = document.getElementById(id);
         const contentId = id + '-content';
         const content = document.getElementById(contentId);
-        
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-95', 'opacity-0');
-        
         setTimeout(() => {
             modal.classList.remove('flex');
             modal.classList.add('hidden');
@@ -1064,15 +1069,14 @@
         document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
         const nationalite = student.nationalite ?? '-';
         document.getElementById('viewStudentNationalite').textContent = nationalite;
+        document.getElementById('viewStudentInterne').textContent = student.interne ? 'Oui' : 'Non';
+        document.getElementById('viewStudentAffecte').textContent = student.affecte ? 'Oui' : 'Non';
 
-        
         const sexeRaw = (student.sexe ?? '').toString().trim();
         const sexeLower = sexeRaw.toLowerCase();
         let sexeDisplay = 'Non renseigné';
-
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
         const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
-
         if (masculinValues.includes(sexeLower)) {
             sexeDisplay = 'Masculin';
         } else if (femininValues.includes(sexeLower)) {
@@ -1082,21 +1086,17 @@
         } else if (sexeRaw === 'Féminin' || sexeRaw === 'FEMININ' || sexeRaw === 'FÉMININ') {
             sexeDisplay = 'Féminin';
         }
-
         document.getElementById('viewStudentSexeDetail').textContent = sexeDisplay;
 
         const parentLastname = student.parent_lastname ?? null;
         const parentFirstname = student.parent_firstname ?? null;
         const parentPhone = student.parent_phone ?? null;
         const parentEmail = student.parent_email ?? null;
-
         const hasSeparatedParents = parentLastname || parentFirstname || parentPhone || parentEmail;
-
         document.getElementById('viewStudentParentLastname').textContent = parentLastname ?? '-';
         document.getElementById('viewStudentParentFirstname').textContent = parentFirstname ?? '-';
         document.getElementById('viewStudentParentPhone').textContent = parentPhone ?? '-';
         document.getElementById('viewStudentParentEmail').textContent = parentEmail ?? '-';
-
         if (!hasSeparatedParents) {
             const parentName = student.parent_name ?? 'N/A';
             document.getElementById('viewStudentParentLastname').textContent = parentName;
@@ -1104,15 +1104,12 @@
             document.getElementById('viewStudentParentPhone').textContent = '-';
             document.getElementById('viewStudentParentEmail').textContent = '-';
         }
-
         document.getElementById('viewStudentCreatedAt').textContent = student.created_at ?? 'N/A';
         document.getElementById('viewStudentUpdatedAt').textContent = student.updated_at ?? 'N/A';
 
         const photoContainer = document.getElementById('viewStudentPhotoContainer');
-
         const photoUrl = student.photo_url ?? student.photo ?? null;
         const initials = `${(student.firstname ?? '')[0] ?? ''}${(student.lastname ?? '')[0] ?? ''}`.toUpperCase() || '?';
-
         if (photoUrl) {
             const image = document.createElement('img');
             image.src = photoUrl;
@@ -1129,7 +1126,6 @@
                 </div>
             `;
         }
-
         openModal('modal-view');
     }
 
@@ -1151,13 +1147,11 @@
         const sexeLower = sexe.toLowerCase();
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
         const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
-
         if (masculinValues.includes(sexeLower) || sexe === 'Masculin') {
             document.querySelector('input[name="edit_sexe"][value="Masculin"]').checked = true;
         } else if (femininValues.includes(sexeLower) || sexe === 'Féminin' || sexe === 'FEMININ') {
             document.querySelector('input[name="edit_sexe"][value="Féminin"]').checked = true;
         }
-
         document.getElementById('editLastnameHidden').value = student.lastname ?? '';
         document.getElementById('editFirstnameHidden').value = student.firstname ?? '';
         document.getElementById('editMatriculeHidden').value = student.matricule ?? '';
@@ -1167,7 +1161,6 @@
         document.getElementById('editClasseHidden').value = student.class_id ?? '';
         document.getElementById('editLevelHidden').value = student.level_id ?? '';
 
-        // Nationalité pré-sélectionnée à l'édition
         const nationaliteSelect = document.getElementById('editNationalite');
         if (nationaliteSelect) {
             nationaliteSelect.value = student.nationalite ?? '';
@@ -1175,12 +1168,12 @@
                 window.tomSelectInstances.editNationalite.setValue(student.nationalite ?? '', true);
             }
         }
-
+        document.getElementById('editInterne').value = student.interne ? '1' : '0';
+        document.getElementById('editAffecte').value = student.affecte ? '1' : '0';
         document.getElementById('editParentLastnameHidden').value = student.parent_lastname ?? '';
         document.getElementById('editParentFirstnameHidden').value = student.parent_firstname ?? '';
         document.getElementById('editParentPhoneHidden').value = student.parent_phone ?? '';
         document.getElementById('editParentEmailHidden').value = student.parent_email ?? '';
-
         document.getElementById('form-edit').action = `/client/eleve/${student.id}`;
 
         const photoPreviewEdit = document.getElementById('photo-preview-edit');
@@ -1200,7 +1193,6 @@
         } else {
             photoPreviewEdit.innerHTML = `<span class="text-2xl font-bold text-primary">${editInitials}</span>`;
         }
-
         openModal('modal-edit');
     }
 
@@ -1214,7 +1206,6 @@
 
     function validateAge(inputDate, warningId) {
         if (!inputDate) return true;
-        
         const birth = new Date(inputDate);
         const today = new Date();
         let age = today.getFullYear() - birth.getFullYear();
@@ -1222,7 +1213,6 @@
         if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
             age--;
         }
-        
         if (age < 5) {
             $(`#${warningId}`).removeClass('hidden');
             return false;
@@ -1236,7 +1226,6 @@
         $('#birthdate-std').on('change', function() {
             validateAge($(this).val(), 'age-warning-std');
         });
-
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
                 const modals = ['modal-standard', 'modal-view', 'modal-edit'];
