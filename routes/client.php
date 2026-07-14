@@ -11,7 +11,8 @@ use App\Http\Controllers\Client\EnseignantController;
 use App\Http\Controllers\Client\MatiereController;
 use App\Http\Controllers\Client\NiveauxController;
 use App\Http\Controllers\Client\NoteController;
-use App\Http\Controllers\Client\ParametresController;
+use App\Http\Controllers\Client\ParametreController;
+
 use App\Http\Controllers\Client\PersonnelController;
 use App\Http\Controllers\Client\SeriesController;
 use Illuminate\Support\Facades\Route;
@@ -102,5 +103,9 @@ Route::middleware(['auth', 'client'])
 
         });
 
-        Route::get('/parametres', [ParametresController::class, 'index'])->name('parametres');
+        // Module Paramètres (CLIENT) - routes séparées
+        Route::get('/parametres', [ParametreController::class, 'index'])->name('parametres.index');
+        Route::put('/parametres', [ParametreController::class, 'update'])->name('parametres.update');
+        Route::put('/parametres/password', [ParametreController::class, 'updatePassword'])->name('parametres.password');
+        Route::put('/parametres/photo', [ParametreController::class, 'updatePhoto'])->name('parametres.photo');
     });

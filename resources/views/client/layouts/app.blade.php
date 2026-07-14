@@ -292,7 +292,7 @@
                 <span class="font-label-md text-label-md">Comptabilite</span>
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.parametres' || str_starts_with($currentRoute, 'client.parametres') ? 'nav-active' : '' }}" href="{{ route('client.parametres') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'client.parametres') ? 'nav-active' : '' }}" href="{{ route('client.parametres.index') }}">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Paramètres</span>
             </a>
