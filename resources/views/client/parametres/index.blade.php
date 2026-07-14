@@ -340,8 +340,42 @@
         });
     });
 
-    document.querySelectorAll('form').forEach(form => {
+    document.querySelectorAll('form[data-sweet-alert="loading"]').forEach(form => {
+        form.addEventListener('submit', function (event) {
+            if (this.dataset.confirmed === 'true') return;
+
+            event.preventDefault();
+            const isPasswordUpdate = this.action.includes('/password');
+            const photoInput = this.querySelector('input[name="photo"]');
+            const isPhotoUpdate = photoInput && photoInput.files.length > 0;
+            const title = isPasswordUpdate ? 'Changer le mot de passe ?' : (isPhotoUpdate ? 'Modifier la photo et le profil ?' : 'Modifier les informations du profil ?');
+            const text = isPasswordUpdate ? 'Votre nouveau mot de passe remplacera immédiatement l’ancien.' : 'Les nouvelles informations seront enregistrées.';
+            const submit = () => {
+                this.dataset.confirmed = 'true';
+                this.requestSubmit();
+            };
+
+            if (!window.Swal || typeof window.Swal.fire !== 'function') {
+                submit();
+                return;
+            }
+
+            window.Swal.fire({
+                title,
+                text,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, enregistrer',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1f108e',
+                cancelButtonColor: '#64748B'
+            }).then(result => {
+                if (result.isConfirmed) submit();
+            });
+        });
+
         form.addEventListener('submit', function () {
+            if (this.dataset.confirmed !== 'true') return;
             const submitButton = this.querySelector('button[type="submit"]');
 
             if (submitButton && !submitButton.dataset.sweetAlertDisabled) {

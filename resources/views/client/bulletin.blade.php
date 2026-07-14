@@ -123,7 +123,7 @@
                         <a class="inline-block p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors" href="{{ route('client.bulletin.edit', $report['id']) }}" title="Modifier">
                             <span class="material-symbols-outlined text-[17px]">edit</span>
                         </a>
-                        <form class="inline" method="POST" action="{{ route('client.bulletin.destroy', $report['id']) }}" onsubmit="return confirm('Supprimer définitivement ce bulletin ?')">
+                        <form class="inline bulletin-delete-form" method="POST" action="{{ route('client.bulletin.destroy', $report['id']) }}">
                             @csrf @method('DELETE')
                             <button class="p-1.5 text-error hover:bg-error-container rounded-lg" title="Supprimer">
                                 <span class="material-symbols-outlined text-[17px]">delete</span>
@@ -256,6 +256,7 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     let currentReport = null;
 
@@ -385,6 +386,36 @@
         if (modal && !modal.classList.contains('hidden') && event.target === modal) {
             closeReportModal();
         }
+    });
+
+    document.querySelectorAll('.bulletin-delete-form').forEach(form => {
+        form.addEventListener('submit', function (event) {
+            if (this.dataset.confirmed === 'true') return;
+
+            event.preventDefault();
+            const destroy = () => {
+                this.dataset.confirmed = 'true';
+                this.requestSubmit();
+            };
+
+            if (!window.Swal) {
+                destroy();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Supprimer ce bulletin ?',
+                text: 'Cette action est irréversible.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#E11D48',
+                cancelButtonColor: '#64748B'
+            }).then(result => {
+                if (result.isConfirmed) destroy();
+            });
+        });
     });
 </script>
 @endpush

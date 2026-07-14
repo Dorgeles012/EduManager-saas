@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 
 use App\Http\Controllers\Sadmin\DashboardController;
 use App\Http\Controllers\Sadmin\SadminController;
+use App\Http\Controllers\Sadmin\SystemNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -60,9 +61,10 @@ Route::middleware(['auth', 'role:sadmin'])->group(function () {
 
 
 
-    Route::get('/sadmin/notifications', function () {
-        return view('sadmin.notifications');
-    })->name('sadmin.notifications');
+    Route::get('/sadmin/notifications', [SystemNotificationController::class, 'index'])
+        ->name('sadmin.notifications');
+    Route::post('/sadmin/notifications', [SystemNotificationController::class, 'store'])
+        ->name('sadmin.notifications.store');
 
     Route::get('/sadmin/parametres', function () {
         return view('sadmin.parametres');
@@ -84,9 +86,8 @@ Route::middleware(['auth', 'role:sadmin'])->group(function () {
         ->name('sadmin.compte.update');
 
 
-    Route::get('/sadmin/notifications/historique', function () {
-        return view('sadmin.historique');
-    })->name('sadmin.notifications.historique');
+    Route::get('/sadmin/notifications/historique', [SystemNotificationController::class, 'history'])
+        ->name('sadmin.notifications.historique');
 });
 
 // Module client
@@ -117,4 +118,3 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-

@@ -83,6 +83,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Eleve::class, 'parent_id');
     }
 
+    public function notificationRecipients(): HasMany
+    {
+        return $this->hasMany(NotificationRecipient::class, 'user_id');
+    }
+
 
 
 
@@ -134,4 +139,3 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this;
     }
 }
-

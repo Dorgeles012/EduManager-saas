@@ -5,6 +5,7 @@
         $teachers = $teachers ?? collect();
     @endphp
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>@yield('title', 'EduManager - Tableau de bord')</title>
     
@@ -13,6 +14,7 @@
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Lexend:wght@600;700;800&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -319,17 +321,31 @@
                 </div>
             </div>
             
+            @php($headerUser = auth()->user())
             <div class="flex items-center gap-1.5">
-                <button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors relative">
+                <div class="relative">
+                    <button id="notification-button" type="button" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Notifications" aria-expanded="false">
                     <span class="material-symbols-outlined text-xl">notifications</span>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-alert-red rounded-full border border-surface"></span>
-                </button>
+                    <span id="notification-badge" class="hidden absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-alert-red text-white text-[10px] leading-4 rounded-full border border-surface"></span>
+                    </button>
+                    <div id="notification-dropdown" class="hidden absolute right-0 top-11 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl overflow-hidden">
+                        <div class="px-4 py-3 border-b border-surface-container flex items-center justify-between"><span class="font-semibold text-on-surface">Notifications</span><span id="notification-count" class="text-xs text-text-muted"></span></div>
+                        <div id="notification-list" class="max-h-96 overflow-y-auto"><p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p></div>
+                    </div>
+                </div>
 
                 <div class="w-px h-5 bg-outline-variant mx-0"></div>
 
-                <div class="flex items-center gap-1.5">
-                    <img alt="Admin Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?background=1f108e&color=fff&name=' . urlencode(Auth::user()->name ?? 'Admin') }}">
-                    <span class="text-sm font-medium text-on-surface hidden sm:inline-block">{{ Auth::user()->name ?? 'Admin' }}</span>
+                <div class="relative">
+                    <button id="profile-menu-button" type="button" class="flex items-center gap-1.5" aria-label="Menu du profil" aria-expanded="false">
+                        <img alt="Photo de profil" class="w-8 h-8 rounded-full border border-outline-variant object-cover" src="{{ $headerUser?->image ? asset('storage/'.$headerUser->image) : 'https://ui-avatars.com/api/?background=1f108e&color=fff&name='.urlencode($headerUser?->name ?? 'Client') }}">
+                        <span class="text-sm font-medium text-on-surface hidden sm:inline-block">{{ $headerUser?->name ?? 'Client' }}</span>
+                    </button>
+                    <div id="profile-menu" class="hidden absolute right-0 top-11 z-50 w-44 rounded-xl border border-outline-variant bg-surface-container-lowest p-1 shadow-xl">
+                        <a class="block rounded-lg px-3 py-2 text-sm text-on-surface hover:bg-surface-container" href="{{ route('client.parametres.index') }}">Mon profil</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-on-surface hover:bg-surface-container" href="{{ route('client.parametres.index') }}">Paramètres</a>
+                        <button class="w-full rounded-lg px-3 py-2 text-left text-sm text-alert-red hover:bg-error-container" type="button" onclick="document.getElementById('logout-form').submit()">Déconnexion</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -350,6 +366,34 @@
         </div>
     </main>
 
+    <script>
+        (() => {
+            const button = document.getElementById('notification-button');
+            const dropdown = document.getElementById('notification-dropdown');
+            const list = document.getElementById('notification-list');
+            const badge = document.getElementById('notification-badge');
+            const count = document.getElementById('notification-count');
+            const profileButton = document.getElementById('profile-menu-button');
+            const profileMenu = document.getElementById('profile-menu');
+            const csrf = document.querySelector('meta[name="csrf-token"]').content;
+            const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]));
+
+            const render = payload => {
+                const unread = payload.unread_count || 0;
+                badge.textContent = unread > 99 ? '99+' : unread;
+                badge.classList.toggle('hidden', unread === 0);
+                count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour';
+                list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<button type="button" data-notification-id="${item.id}" class="notification-item block w-full border-b border-surface-container px-4 py-3 text-left hover:bg-surface-container-low ${item.read ? '' : 'bg-primary-fixed/30'}"><p class="text-sm font-semibold text-on-surface">${escapeHtml(item.title)}</p><p class="mt-1 text-xs text-on-surface-variant line-clamp-2">${escapeHtml(item.message)}</p><p class="mt-1 text-[11px] text-text-muted">${escapeHtml(item.date)}${item.read ? ' · Lue' : ' · Non lue'}</p></button>`).join('') : '<p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p>';
+            };
+            const load = () => fetch(@json(route('client.notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(response => response.ok ? response.json() : null).then(payload => payload && render(payload)).catch(() => {});
+            button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); button.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden'))); load(); });
+            profileButton?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
+            list?.addEventListener('click', event => { const item = event.target.closest('[data-notification-id]'); if (!item) return; fetch(@json(url('client/notifications')).concat('/', item.dataset.notificationId, '/read'), { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, credentials: 'same-origin' }).then(load); });
+            document.addEventListener('click', event => { if (!dropdown?.contains(event.target) && !button?.contains(event.target)) dropdown?.classList.add('hidden'); if (!profileMenu?.contains(event.target) && !profileButton?.contains(event.target)) profileMenu?.classList.add('hidden'); });
+            load();
+            window.setInterval(load, 20000);
+        })();
+    </script>
     @stack('scripts')
 </body>
 </html>

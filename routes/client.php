@@ -4,6 +4,7 @@ use App\Http\Controllers\Client\AbonnementController;
 use App\Http\Controllers\Client\AnneeController;
 use App\Http\Controllers\Client\BulletinController;
 use App\Http\Controllers\Client\ClasseController;
+use App\Http\Controllers\Client\ClientNotificationController;
 use App\Http\Controllers\Client\ComptabiliteController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\EleveController;
@@ -108,4 +109,7 @@ Route::middleware(['auth', 'client'])
         Route::put('/parametres', [ParametreController::class, 'update'])->name('parametres.update');
         Route::put('/parametres/password', [ParametreController::class, 'updatePassword'])->name('parametres.password');
         Route::put('/parametres/photo', [ParametreController::class, 'updatePhoto'])->name('parametres.photo');
+
+        Route::get('/notifications', [ClientNotificationController::class, 'index'])->name('notifications.index');
+        Route::patch('/notifications/{notificationRecipient}/read', [ClientNotificationController::class, 'markRead'])->name('notifications.read');
     });
