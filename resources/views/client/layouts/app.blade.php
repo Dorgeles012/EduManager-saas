@@ -208,6 +208,24 @@
         .sidebar-nav a:hover {
             background-color: #f0f3ff;
         }
+
+        /* SweetAlert2 - Tailles de police optimisées */
+        .swal2-popup {
+            font-size: 0.9375rem !important;
+        }
+
+        .swal2-title {
+            font-size: 1.25rem !important;
+        }
+
+        .swal2-html-container {
+            font-size: 0.875rem !important;
+        }
+
+        .swal2-confirm,
+        .swal2-cancel {
+            font-size: 0.8125rem !important;
+        }
     </style>
     
     @stack('styles')
