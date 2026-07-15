@@ -14,6 +14,7 @@
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Lexend:wght@600;700;800&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Tailwind -->
@@ -383,12 +384,23 @@
                 badge.textContent = unread > 99 ? '99+' : unread;
                 badge.classList.toggle('hidden', unread === 0);
                 count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour';
-                list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<button type="button" data-notification-id="${item.id}" class="notification-item block w-full border-b border-surface-container px-4 py-3 text-left hover:bg-surface-container-low ${item.read ? '' : 'bg-primary-fixed/30'}"><p class="text-sm font-semibold text-on-surface">${escapeHtml(item.title)}</p><p class="mt-1 text-xs text-on-surface-variant line-clamp-2">${escapeHtml(item.message)}</p><p class="mt-1 text-[11px] text-text-muted">${escapeHtml(item.date)}${item.read ? ' · Lue' : ' · Non lue'}</p></button>`).join('') : '<p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p>';
+                const icons = { payment: 'fa-credit-card', subscription: 'fa-calendar-check', bulletin: 'fa-file-lines', school_year: 'fa-graduation-cap', update: 'fa-arrows-rotate', staff: 'fa-users', teacher: 'fa-chalkboard-user', student: 'fa-user-plus', establishment: 'fa-school', security: 'fa-lock' };
+                list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<div class="flex border-b border-surface-container hover:bg-surface-container-low transition-colors ${item.read ? '' : 'bg-primary-fixed/30 font-semibold'}"><a href="${escapeHtml(item.url)}" class="notification-item flex min-w-0 flex-1 gap-3 px-4 py-3 text-left"><span class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><i class="fa-solid ${icons[item.category] || 'fa-bell'}"></i></span><span class="min-w-0"><span class="block truncate text-sm text-on-surface">${escapeHtml(item.title)}</span><span class="mt-1 block truncate text-xs font-normal text-on-surface-variant">${escapeHtml(item.preview)}</span><span class="mt-1 block text-[11px] font-normal text-text-muted">${escapeHtml(item.date)}${item.read ? '' : ' · Non lu'}</span></span></a><button type="button" class="notification-delete px-3 text-text-muted hover:text-alert-red" data-id="${item.id}" title="Supprimer"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p>';
             };
-            const load = () => fetch(@json(route('client.notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(response => response.ok ? response.json() : null).then(payload => payload && render(payload)).catch(() => {});
+            const load = () => fetch(@json(route('notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(response => response.ok ? response.json() : null).then(payload => payload && render(payload)).catch(() => {});
             button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); button.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden'))); load(); });
             profileButton?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
-            list?.addEventListener('click', event => { const item = event.target.closest('[data-notification-id]'); if (!item) return; fetch(@json(url('client/notifications')).concat('/', item.dataset.notificationId, '/read'), { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, credentials: 'same-origin' }).then(load); });
+            list?.addEventListener('click', event => {
+                const deleteButton = event.target.closest('.notification-delete');
+                if (!deleteButton) return;
+                Swal.fire({ title: 'Supprimer cette notification ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => {
+                    if (!result.isConfirmed) return;
+                    fetch(`/notifications/${deleteButton.dataset.id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, credentials: 'same-origin' })
+                        .then(response => { if (!response.ok) throw new Error(); return response.json(); })
+                        .then(() => { Swal.fire({ icon: 'success', title: 'Notification supprimée avec succès.', timer: 1800, showConfirmButton: false }); load(); })
+                        .catch(() => Swal.fire({ icon: 'error', title: 'Une erreur est survenue lors de la suppression de la notification.' }));
+                });
+            });
             document.addEventListener('click', event => { if (!dropdown?.contains(event.target) && !button?.contains(event.target)) dropdown?.classList.add('hidden'); if (!profileMenu?.contains(event.target) && !profileButton?.contains(event.target)) profileMenu?.classList.add('hidden'); });
             load();
             window.setInterval(load, 20000);

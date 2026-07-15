@@ -15,6 +15,7 @@ use App\Models\Matiere;
 use App\Models\Niveau;
 use App\Models\Series;
 use App\Services\BulletinService;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -494,13 +495,13 @@ class BulletinController extends Controller
         return response()->json($payload);
     }
 
-    public function store(StoreBulletinRequest $request, BulletinService $bulletinService)
+    public function store(StoreBulletinRequest $request, BulletinService $bulletinService, NotificationService $notifications)
     {
         $payload = $request->validated();
 
         $tenantId = auth()->user()->tenant_id;
 
-        return DB::transaction(function () use ($payload, $tenantId, $bulletinService) {
+        return DB::transaction(function () use ($payload, $tenantId, $bulletinService, $notifications) {
 
             $eleve = Eleve::query()->where('tenant_id', $tenantId)->findOrFail($payload['eleve_id']);
 
@@ -613,6 +614,9 @@ class BulletinController extends Controller
             }
 
             $this->refreshRanks($bulletin);
+
+            $recipients = \App\Models\User::query()->where('tenant_id', $tenantId)->where('id', $eleve->parent_id)->get();
+            $notifications->sendToUsers(auth()->user(), $recipients, 'Bulletin disponible', 'Le bulletin de '.trim($eleve->nom.' '.$eleve->prenom).' pour le '.$bulletin->trimestre.' est disponible.', 'bulletin');
 
             // Optionnel: redirection vers la liste
             return redirect()->route('client.bulletin.index')

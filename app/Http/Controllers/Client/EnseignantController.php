@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enseignant;
 use App\Models\Etablissement;
 use App\Models\Matiere;
+use App\Models\Classe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,7 @@ class EnseignantController extends Controller
     {
         $user = auth()->user();
 
-        $enseignants = Enseignant::with('matiere')
+        $enseignants = Enseignant::with(['matiere', 'classes'])
             ->where('tenant_id', $user->tenant_id)
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->latest()
@@ -38,8 +39,10 @@ class EnseignantController extends Controller
                 'subject_id' => $teacher->matiere_id,
                 'subject' => $teacher->matiere?->nom ?? 'Non assignée',
                 'status' => $teacher->statut,
+                'class_ids' => $teacher->classes->pluck('id')->all(),
             ]),
             'subjects' => $matieres->map(fn ($matiere) => ['id' => $matiere->id, 'name' => $matiere->nom]),
+            'classes' => Classe::query()->where('tenant_id', $user->tenant_id)->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))->orderBy('nom')->get(['id', 'nom']),
             'totalTeachers' => $enseignants->total(),
             'totalSubjects' => $matieres->count(),
             'avgPerSubject' => $matieres->count() > 0 ? round($enseignants->total() / $matieres->count(), 1) : 0,
@@ -69,9 +72,10 @@ class EnseignantController extends Controller
             ]);
 
             $enseignant->matieres()->sync([$validated['matiere_id']]);
+            $enseignant->classes()->sync($validated['classe_ids']);
         });
 
-        $teacher = Enseignant::with('matiere')
+        $teacher = Enseignant::with(['matiere', 'classes'])
             ->where('tenant_id', $user->tenant_id)
             ->orderByDesc('id')
             ->first();
@@ -89,6 +93,7 @@ class EnseignantController extends Controller
                     'subject_id' => $teacher?->matiere_id,
                     'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
                     'status' => $teacher?->statut ?? 'active',
+                    'class_ids' => $teacher?->classes->pluck('id')->all() ?? [],
                 ],
             ]);
         }
@@ -112,9 +117,10 @@ class EnseignantController extends Controller
             ]);
 
             $enseignant->matieres()->sync([$validated['matiere_id']]);
+            $enseignant->classes()->sync($validated['classe_ids']);
         });
 
-        $teacher = Enseignant::with('matiere')->find($enseignant->id);
+        $teacher = Enseignant::with(['matiere', 'classes'])->find($enseignant->id);
 
         if ($request->wantsJson() || $request->expectsJson()) {
             return response()->json([
@@ -129,6 +135,7 @@ class EnseignantController extends Controller
                     'subject_id' => $teacher?->matiere_id,
                     'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
                     'status' => $teacher?->statut ?? 'active',
+                    'class_ids' => $teacher?->classes->pluck('id')->all() ?? [],
                 ],
             ]);
         }
@@ -140,6 +147,7 @@ class EnseignantController extends Controller
     {
         $this->authorizeTenant($enseignant);
         $enseignant->matieres()->detach();
+        $enseignant->classes()->detach();
         $enseignant->delete();
 
         if (request()->wantsJson() || request()->expectsJson()) {
@@ -170,6 +178,8 @@ class EnseignantController extends Controller
                 'required',
                 Rule::exists('matieres', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
             ],
+            'classe_ids' => ['required', 'array', 'min:1'],
+            'classe_ids.*' => [Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id))],
         ]);
     }
 

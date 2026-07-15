@@ -4,7 +4,6 @@ use App\Http\Controllers\Client\AbonnementController;
 use App\Http\Controllers\Client\AnneeController;
 use App\Http\Controllers\Client\BulletinController;
 use App\Http\Controllers\Client\ClasseController;
-use App\Http\Controllers\Client\ClientNotificationController;
 use App\Http\Controllers\Client\ComptabiliteController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\EleveController;
@@ -13,6 +12,7 @@ use App\Http\Controllers\Client\MatiereController;
 use App\Http\Controllers\Client\NiveauxController;
 use App\Http\Controllers\Client\NoteController;
 use App\Http\Controllers\Client\ParametreController;
+use App\Http\Controllers\Client\EmploiTempsController;
 
 use App\Http\Controllers\Client\PersonnelController;
 use App\Http\Controllers\Client\SeriesController;
@@ -88,6 +88,12 @@ Route::middleware(['auth', 'client'])
         Route::put('/niveaux/{niveau}', [NiveauxController::class, 'update'])->name('niveaux.update');
         Route::delete('/niveaux/{niveau}', [NiveauxController::class, 'destroy'])->name('niveaux.destroy');
         Route::get('/note', [NoteController::class, 'index'])->name('note');
+        Route::get('/emploi-temps', [EmploiTempsController::class, 'index'])->name('emploi-temps.index');
+        Route::post('/emploi-temps', [EmploiTempsController::class, 'store'])->name('emploi-temps.store');
+        Route::delete('/emploi-temps/{emploiTemps}', [EmploiTempsController::class, 'destroy'])->name('emploi-temps.destroy');
+        Route::get('/emploi-temps/classes/{classe}/enseignants', [EmploiTempsController::class, 'teachers'])->name('emploi-temps.teachers');
+        Route::get('/emploi-temps/print', [EmploiTempsController::class, 'print'])->name('emploi-temps.print');
+        Route::get('/emploi-temps/pdf', [EmploiTempsController::class, 'pdf'])->name('emploi-temps.pdf');
 
         Route::prefix('bulletin')->name('bulletin.')->group(function () {
             Route::get('/', [BulletinController::class, 'index'])->name('index');
@@ -110,6 +116,4 @@ Route::middleware(['auth', 'client'])
         Route::put('/parametres/password', [ParametreController::class, 'updatePassword'])->name('parametres.password');
         Route::put('/parametres/photo', [ParametreController::class, 'updatePhoto'])->name('parametres.photo');
 
-        Route::get('/notifications', [ClientNotificationController::class, 'index'])->name('notifications.index');
-        Route::patch('/notifications/{notificationRecipient}/read', [ClientNotificationController::class, 'markRead'])->name('notifications.read');
     });

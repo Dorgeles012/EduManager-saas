@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Sadmin\DashboardController;
 use App\Http\Controllers\Sadmin\SadminController;
 use App\Http\Controllers\Sadmin\SystemNotificationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -88,6 +89,8 @@ Route::middleware(['auth', 'role:sadmin'])->group(function () {
 
     Route::get('/sadmin/notifications/historique', [SystemNotificationController::class, 'history'])
         ->name('sadmin.notifications.historique');
+    Route::delete('/sadmin/notifications/{notification}', [SystemNotificationController::class, 'destroy'])
+        ->name('sadmin.notifications.destroy');
 });
 
 // Module client
@@ -112,6 +115,10 @@ Route::middleware(['auth', 'role:parent'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notificationRecipient}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::patch('/notifications/{notificationRecipient}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/{notificationRecipient}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\AnneeAcademique;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -132,7 +133,7 @@ class AnneeController extends Controller
         ]);
     }
 
-    public function update(Request $request, AnneeAcademique $annee)
+    public function update(Request $request, AnneeAcademique $annee, NotificationService $notifications)
     {
         $user = auth()->user();
         $tenantId = $user?->tenant_id;
@@ -157,8 +158,9 @@ class AnneeController extends Controller
             'libelle.regex' => "Le libellé doit respecter le format AAAA-AAAA (ex: 2025-2026).",
         ]);
 
-        DB::transaction(function () use ($validated, $tenantId, $etablissementId, $annee) {
+        DB::transaction(function () use ($validated, $tenantId, $etablissementId, $annee, $user, $notifications) {
             $isActivating = ($validated['statut'] ?? null) === 'active' && $annee->statut !== 'active';
+            $isEnding = ($validated['statut'] ?? null) === 'inactive' && $annee->statut === 'active';
 
             if ($isActivating) {
                 AnneeAcademique::query()
@@ -175,6 +177,10 @@ class AnneeController extends Controller
                 'date_fin' => $validated['date_fin'] ?? null,
                 'statut' => $validated['statut'],
             ]);
+
+            if ($isEnding) {
+                $notifications->sendToAudience($user, 'all', 'Année scolaire terminée', "L'année scolaire {$annee->libelle} est désormais terminée.", 'school_year');
+            }
         });
 
         return redirect()

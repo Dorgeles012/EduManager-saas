@@ -47,4 +47,11 @@ class Enseignant extends Model
     {
         return $this->belongsToMany(Matiere::class, 'enseignant_matiere', 'enseignant_id', 'matiere_id');
     }
+
+    public function classes(): BelongsToMany
+    {
+        return $this->belongsToMany(Classe::class, 'classe_enseignant', 'enseignant_id', 'classe_id')->withTimestamps();
+    }
+
+    public function emploisDuTemps(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(EmploiTemps::class, 'enseignant_id'); }
 }

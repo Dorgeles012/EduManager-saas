@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sadmin\StoreSystemNotificationRequest;
 use App\Models\SystemNotification;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class SystemNotificationController extends Controller
@@ -19,10 +19,11 @@ class SystemNotificationController extends Controller
         return view('sadmin.notifications', [
             'users' => User::query()->where('tenant_id', $tenantId)->orderBy('nom')->get(['id', 'nom', 'prenom', 'email', 'role']),
             'notifications' => $this->notifications($tenantId),
+            'templates' => config('notification_templates'),
         ]);
     }
 
-    public function store(StoreSystemNotificationRequest $request): RedirectResponse
+    public function store(StoreSystemNotificationRequest $request, NotificationService $notifications): RedirectResponse
     {
         $sender = $request->user();
         $data = $request->validated();
@@ -32,21 +33,7 @@ class SystemNotificationController extends Controller
             return back()->withInput()->withErrors(['audience' => 'Aucun destinataire actif ne correspond à cette audience.']);
         }
 
-        DB::transaction(function () use ($sender, $data, $recipients): void {
-            $notification = SystemNotification::create([
-                'tenant_id' => $sender->tenant_id,
-                'sender_id' => $sender->id,
-                'titre' => $data['titre'],
-                'message' => $data['message'],
-                'audience' => $data['audience'],
-                'category' => $data['category'] ?? 'Système',
-                'priority' => $data['priority'],
-                'statut' => 'unread',
-                'sent_at' => now(),
-            ]);
-
-            $notification->recipients()->createMany($recipients->map(fn (User $user) => ['user_id' => $user->id])->all());
-        });
+        $notifications->sendToUsers($sender, $recipients, $data['titre'], $data['message'], $data['category'] ?? 'system', $data['priority'], $data['audience']);
 
         return redirect()->route('sadmin.notifications')->with('success', 'Notification envoyée à '.$recipients->count().' destinataire(s).');
     }
@@ -56,6 +43,14 @@ class SystemNotificationController extends Controller
         return view('sadmin.historique', [
             'notifications' => $this->notifications(auth()->user()->tenant_id),
         ]);
+    }
+
+    public function destroy(SystemNotification $notification): \Illuminate\Http\JsonResponse
+    {
+        abort_unless($notification->tenant_id === auth()->user()->tenant_id, 404);
+        $notification->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     private function notifications(int $tenantId)

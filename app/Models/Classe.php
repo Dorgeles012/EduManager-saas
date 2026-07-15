@@ -63,4 +63,11 @@ class Classe extends Model
             'serie_id'
         )->withTimestamps();
     }
+
+    public function enseignants(): BelongsToMany
+    {
+        return $this->belongsToMany(Enseignant::class, 'classe_enseignant', 'classe_id', 'enseignant_id')->withTimestamps();
+    }
+
+    public function emploisDuTemps(): HasMany { return $this->hasMany(EmploiTemps::class, 'classe_id'); }
 }

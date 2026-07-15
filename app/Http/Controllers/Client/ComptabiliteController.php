@@ -7,6 +7,8 @@ use App\Models\Depense;
 use App\Models\Eleve;
 use App\Models\Scolarite;
 use App\Models\Versement;
+use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -63,7 +65,7 @@ class ComptabiliteController extends Controller
         ]);
     }
 
-    public function storeScolarite(Request $request)
+    public function storeScolarite(Request $request, NotificationService $notifications)
     {
         $user = auth()->user();
 
@@ -78,7 +80,7 @@ class ComptabiliteController extends Controller
         $eleve = Eleve::where('tenant_id', $user->tenant_id)->findOrFail($validated['eleve_id']);
         $versementMontant = $validated['montant_versement'] ?? $validated['montant'];
 
-        DB::transaction(function () use ($validated, $user, $eleve, $versementMontant) {
+        DB::transaction(function () use ($validated, $user, $eleve, $versementMontant, $notifications) {
             $scolarite = Scolarite::firstOrCreate(
                 [
                     'tenant_id' => $user->tenant_id,
@@ -106,6 +108,9 @@ class ComptabiliteController extends Controller
                 'date_versement' => $validated['date_versement'] ?? now()->toDateString(),
                 'methode' => 'Espèces',
             ]);
+
+            $recipients = User::query()->where('tenant_id', $user->tenant_id)->where('id', $eleve->parent_id)->get();
+            $notifications->sendToUsers($user, $recipients, 'Paiement de scolarité enregistré', 'Un versement de '.number_format($versementMontant, 0, ',', ' ').' a été enregistré pour '.trim($eleve->nom.' '.$eleve->prenom).'.', 'payment');
         });
 
         return back()->with('success', 'Paiement enregistré avec succès.');

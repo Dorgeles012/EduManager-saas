@@ -2,6 +2,7 @@
 <html class="light" lang="fr" style="">
 <head>
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>{{ $title ?? 'EduManager | Tableau de bord' }}</title>
 
@@ -204,11 +205,13 @@
             </div>
             <div class="flex items-center gap-4 h-full">
                 <!-- Bouton Notifications -->
-                <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all relative">
+                <div class="relative">
+                <button id="notification-button" type="button" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all relative" aria-label="Notifications">
                     <span class="material-symbols-outlined">notifications</span>
-                    <!-- Badge de notification (optionnel) -->
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-alert-red rounded-full"></span>
+                    <span id="notification-badge" class="hidden absolute top-0 right-0 min-w-4 h-4 px-1 bg-alert-red text-white text-[10px] leading-4 rounded-full"></span>
                 </button>
+                <div id="notification-dropdown" class="hidden absolute right-0 top-12 z-50 w-96 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl"><div class="flex justify-between border-b border-surface-container px-4 py-3"><span class="font-semibold">Notifications</span><span id="notification-count" class="text-xs text-text-muted"></span></div><div id="notification-list" class="max-h-96 overflow-y-auto"></div></div>
+                </div>
                 
                 <!-- Séparateur vertical -->
                 <div class="w-px h-6 bg-outline-variant"></div>
@@ -282,6 +285,16 @@
         </script>
     </main>
 
+    <script>
+        (() => {
+            const button = document.getElementById('notification-button'), dropdown = document.getElementById('notification-dropdown'), list = document.getElementById('notification-list'), badge = document.getElementById('notification-badge'), count = document.getElementById('notification-count');
+            const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]));
+            const icons = { payment: 'fa-credit-card', subscription: 'fa-calendar-check', bulletin: 'fa-file-lines', school_year: 'fa-graduation-cap', update: 'fa-arrows-rotate', staff: 'fa-users', teacher: 'fa-chalkboard-user', student: 'fa-user-plus', establishment: 'fa-school', security: 'fa-lock' };
+            const render = payload => { const unread = payload.unread_count || 0; badge.textContent = unread > 99 ? '99+' : unread; badge.classList.toggle('hidden', unread === 0); count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour'; list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<div class="flex border-b border-surface-container hover:bg-surface-container-low ${item.read ? '' : 'bg-primary-fixed/30 font-semibold'}"><a href="${escapeHtml(item.url)}" class="flex min-w-0 flex-1 gap-3 px-4 py-3"><span class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><i class="fa-solid ${icons[item.category] || 'fa-bell'}"></i></span><span class="min-w-0"><span class="block truncate text-sm">${escapeHtml(item.title)}</span><span class="mt-1 block truncate text-xs font-normal text-text-muted">${escapeHtml(item.preview)}</span><span class="mt-1 block text-[11px] font-normal text-text-muted">${escapeHtml(item.date)}${item.read ? '' : ' · Non lu'}</span></span></a><button type="button" class="notification-delete px-3 text-text-muted hover:text-alert-red" data-id="${item.id}" title="Supprimer"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="px-4 py-6 text-center text-sm text-text-muted">Aucune notification.</p>'; };
+            const load = () => fetch(@json(route('notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(p => p && render(p)).catch(() => {});
+            button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); load(); }); list?.addEventListener('click', event => { const deleteButton = event.target.closest('.notification-delete'); if (!deleteButton) return; Swal.fire({ title: 'Supprimer cette notification ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => { if (!result.isConfirmed) return; fetch(`/notifications/${deleteButton.dataset.id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' }, credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(() => { Swal.fire({ icon: 'success', title: 'Notification supprimée avec succès.', timer: 1800, showConfirmButton: false }); load(); }).catch(() => Swal.fire({ icon: 'error', title: 'Une erreur est survenue lors de la suppression de la notification.' })); }); }); document.addEventListener('click', e => { if (!dropdown?.contains(e.target) && !button?.contains(e.target)) dropdown?.classList.add('hidden'); }); load(); window.setInterval(load, 20000);
+        })();
+    </script>
     @yield('scripts')
 </body>
 </html>

@@ -171,6 +171,7 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="space-y-1.5"><label class="block font-label-md text-label-md text-on-surface">Classes affectées <span class="text-alert-red">*</span></label><select id="addClasses" multiple required class="w-full px-4 py-2.5 border border-outline-variant rounded-lg"><option disabled>Maintenez Ctrl/Cmd pour sélectionner</option>@foreach($classes as $classe)<option value="{{ $classe->id }}">{{ $classe->nom }}</option>@endforeach</select></div>
             </form>
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
@@ -222,6 +223,7 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="space-y-1.5"><label class="block font-label-md text-label-md text-on-surface">Classes affectées <span class="text-alert-red">*</span></label><select id="editClasses" multiple required class="w-full px-4 py-2.5 border border-outline-variant"><option disabled>Maintenez Ctrl/Cmd pour sélectionner</option>@foreach($classes as $classe)<option value="{{ $classe->id }}">{{ $classe->nom }}</option>@endforeach</select></div>
             </form>
         </div>
         <div class="px-8 py-6 border-t border-surface-subtle bg-surface-container-low/50 flex space-x-3 justify-end flex-shrink-0">
@@ -303,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('email', email);
         formData.append('telephone', phone);
         formData.append('matiere_id', subject);
+        Array.from(document.getElementById('addClasses').selectedOptions).forEach(option => formData.append('classe_ids[]', option.value));
         formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
 
         // Désactiver le bouton
@@ -397,6 +400,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('email', email);
         formData.append('telephone', phone);
         formData.append('matiere_id', subject);
+        Array.from(document.getElementById('editClasses').selectedOptions).forEach(option => formData.append('classe_ids[]', option.value));
         formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
         formData.append('_method', 'PUT');
 
@@ -792,6 +796,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 subjectSelect.selectedIndex = 0;
             }
         }
+        const classSelect = document.getElementById('editClasses');
+        if (classSelect) Array.from(classSelect.options).forEach(option => option.selected = (teacher.class_ids || []).map(String).includes(option.value));
 
         // Ouvrir le modal
         openModal('edit-teacher-modal');

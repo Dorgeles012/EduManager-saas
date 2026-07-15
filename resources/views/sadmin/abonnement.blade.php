@@ -6,6 +6,7 @@
     <div>
         <nav class="flex items-center gap-2 text-label-sm text-outline mb-2"></nav>
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Plans d'Abonnement</h2>
+        <p class="font-body-md text-body-md text-text-muted mt-1">Supervisez et gérez vos plans d'abonnement depuis un centre de contrôle unique.</p>
     </div>
     <div class="flex gap-4">
         <button class="px-6 py-2.5 border border-secondary text-secondary rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-secondary hover:text-on-secondary" onclick="openModal('modal-types')">

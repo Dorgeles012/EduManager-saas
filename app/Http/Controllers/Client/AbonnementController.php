@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,7 +53,7 @@ class AbonnementController extends Controller
         return $this->index($request);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, NotificationService $notifications): RedirectResponse
     {
         $validated = $request->validate([
             'plan_id' => ['required', 'integer', 'exists:plans,id'],
@@ -67,7 +68,7 @@ class AbonnementController extends Controller
         $user = $request->user();
 
         try {
-            DB::transaction(function () use ($user, $plan, $validated) {
+            DB::transaction(function () use ($user, $plan, $validated, $notifications) {
                 $dateDebut = Carbon::today();
                 $duration = $this->planDuration($plan);
                 $dateFin = (clone $dateDebut)->addMonthsNoOverflow($duration);
@@ -87,6 +88,8 @@ class AbonnementController extends Controller
                     amount: (int) $plan->prix,
                     paymentMethod: trim($validated['payment_method'])
                 ));
+
+                $notifications->sendToUsers($user, collect([$user]), 'Abonnement payé', 'Votre paiement pour le plan '.$plan->nom.' a été confirmé. Votre abonnement est maintenant actif.', 'subscription');
             });
         } catch (\Throwable $exception) {
             report($exception);
