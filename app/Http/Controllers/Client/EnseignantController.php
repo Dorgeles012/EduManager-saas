@@ -55,7 +55,24 @@ class EnseignantController extends Controller
     private function attributes(array $v, $user=null, ?Request $request=null, ?Enseignant $teacher=null): array { $first=(int)$v['matiere_ids'][0];$data=['nom'=>$v['nom'],'prenoms'=>$v['prenoms'],'email'=>$v['email'],'telephone'=>$v['telephone'],'matricule'=>$v['matricule'],'nombre_annees_enseignement'=>$v['nombre_annees_enseignement'],'sexe'=>$v['sexe'],'matiere_id'=>$first,'specialite'=>Matiere::find($first)?->nom];if($user){$data+=['tenant_id'=>$user->tenant_id,'etablissement_id'=>$user->etablissement_id??Etablissement::where('tenant_id',$user->tenant_id)->value('id'),'password'=>Hash::make('12345678'),'statut'=>'active'];}if($request?->hasFile('photo'))$data['photo']=$request->file('photo')->store('enseignants','public');return $data; }
     private function validateEnseignant(Request $request, ?Enseignant $teacher=null): array { $user=auth()->user();return $request->validate(['nom'=>['required','string','max:255'],'prenoms'=>['required','string','max:255'],'email'=>['required','email','max:255',Rule::unique('enseignants','email')->ignore($teacher?->id)],'telephone'=>['required','string','max:50'],'matricule'=>['required','string','max:100',Rule::unique('enseignants','matricule')->ignore($teacher?->id)],'nombre_annees_enseignement'=>['required','integer','min:0','max:80'],'sexe'=>['required','in:Masculin,Féminin'],'photo'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],'matiere_ids'=>['required','array','min:1','max:2'],'matiere_ids.*'=>[Rule::exists('matieres','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))],'classe_ids'=>['required','array','min:1'],'classe_ids.*'=>[Rule::exists('classes','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))],'serie_ids'=>['nullable','array'],'serie_ids.*'=>[Rule::exists('series','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))]]); }
     private function response(Request $request, Enseignant $teacher,string $message) { return $request->expectsJson()?response()->json(['success'=>true,'message'=>$message,'teacher'=>$this->teacherPayload($teacher)]):back()->with('success',$message); }
-    private function teacherPayload(Enseignant $t): array { return ['id'=>$t->id,'firstname'=>$t->prenoms??'','lastname'=>$t->nom,'email'=>$t->email,'phone'=>$t->telephone,'matricule'=>$t->matricule,'teaching_years'=>$t->nombre_annees_enseignement,'sexe'=>$t->sexe,'photo'=>$t->photo,'subject_ids'=>$t->matieres->pluck('id')->all(),'subject'=>($t->matieres->pluck('nom')->join(', ') ?: 'Non assignée'),'status'=>$t->statut,'class_ids'=>$t->classes->pluck('id')->all(),'serie_ids'=>$t->series->pluck('id')->all()]; }
+private function teacherPayload(Enseignant $t): array {
+        return [
+            'id' => $t->id,
+            'firstname' => $t->prenoms ?? '',
+            'lastname' => $t->nom,
+            'email' => $t->email,
+            'phone' => $t->telephone,
+            'matricule' => $t->matricule,
+            'teaching_years' => $t->nombre_annees_enseignement,
+            'sexe' => $t->sexe,
+            'photo' => $t->photo,
+            'subject_ids' => $t->matieres->pluck('id')->all(),
+            'subject' => ($t->matieres->pluck('nom')->join(', ') ?: 'Non assignée'),
+            'status' => $t->statut,
+            'class_ids' => $t->classes->pluck('id')->all(),
+            'serie_ids' => $t->series->pluck('id')->all(),
+        ];
+    }
     private function authorizeTenant(Enseignant $teacher): void {$user=auth()->user();abort_unless((int)$teacher->tenant_id===(int)$user->tenant_id&&(!$user->etablissement_id||(int)$teacher->etablissement_id===(int)$user->etablissement_id),403);}
     private function normaliseRelationIds(Request $request): void { $values=[]; foreach(['matiere_ids','classe_ids','serie_ids'] as $field){$items=$request->input($field,[]);$items=is_array($items)?$items:[$items];$values[$field]=collect($items)->flatMap(fn($item)=>preg_split('/\s*,\s*/',(string)$item,-1,PREG_SPLIT_NO_EMPTY))->filter(fn($id)=>ctype_digit((string)$id))->map(fn($id)=>(int)$id)->unique()->values()->all();} $request->merge($values); }
     private function matieresFor($user) { return Matiere::query()->orderBy('nom')->get(['id','nom']); }

@@ -303,7 +303,23 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    @if(session('success')) Swal.fire({ icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2200, showConfirmButton: false }); @endif
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Succès',
+            text: @json(session('success')),
+            timer: 1000,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                setTimeout(() => {
+                    window.location.href = @json(route('client.enseignant'));
+                }, 800);
+            }
+        });
+    @endif
+    
     // Configuration des autocomplete
     const configs = [
         {
@@ -482,14 +498,26 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!matiereIds || matiereIds.split(',').filter(id => id).length === 0) {
             e.preventDefault();
-            Swal.fire({ icon: 'error', title: 'Erreur', text: 'Veuillez sélectionner au moins une matière.' });
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Erreur', 
+                text: 'Veuillez sélectionner au moins une matière.',
+                showConfirmButton: false,
+                timer: 3000
+            });
             document.getElementById('matiereSearch').focus();
             return false;
         }
         
         if (!classeIds || classeIds.split(',').filter(id => id).length === 0) {
             e.preventDefault();
-            Swal.fire({ icon: 'error', title: 'Erreur', text: 'Veuillez sélectionner au moins une classe.' });
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Erreur', 
+                text: 'Veuillez sélectionner au moins une classe.',
+                showConfirmButton: false,
+                timer: 3000
+            });
             document.getElementById('classeSearch').focus();
             return false;
         }
