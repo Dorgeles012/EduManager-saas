@@ -83,8 +83,8 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-right">
-                        <div class="flex items-center justify-end space-x-1.5 relative">
-                            <button type="button" class="btn-plus" title="Gérer l'emploi du temps" onclick="handleEmploiTempsPlus({{ $teacher['id'] }}, this)">
+                        <div class="flex items-center justify-end space-x-1.5">
+                            <button type="button" class="btn-plus" title="Gérer l'emploi du temps" data-teacher-id="{{ $teacher['id'] }}" onclick="handleEmploiTempsPlus({{ $teacher['id'] }}, this, event)">
                                 <span class="material-symbols-outlined">add</span>
                             </button>
                             
@@ -148,19 +148,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         border: none;
         cursor: pointer;
         padding: 0;
-    }
-    .btn-plus:hover {
-        background-color: #1d4ed8 !important;
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-    }
-    .btn-plus:active {
-        transform: scale(0.95);
+        position: relative;
     }
     .btn-plus .material-symbols-outlined {
         font-size: 18px !important;
@@ -169,62 +160,87 @@
     .btn-plus:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none !important;
     }
     
-    .action-popup {
-        position: fixed;
+    /* Style WhatsApp-like popup */
+    .whatsapp-popup {
+        position: absolute;
         z-index: 9999;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.15);
         padding: 8px 0;
         min-width: 220px;
-        display: none;
-        border: 1px solid #e5e7eb;
-        animation: popupFadeIn 0.15s ease-out;
+        max-width: 280px;
+        opacity: 0;
+        transform: translateY(5px);
+        transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+        pointer-events: none;
     }
     
-    @keyframes popupFadeIn {
-        from { opacity: 0; transform: translateY(8px) scale(0.96); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    .whatsapp-popup.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
     }
     
-    .action-popup .popup-item {
+    .whatsapp-popup .popup-item {
         display: flex;
         align-items: center;
         gap: 14px;
-        padding: 10px 18px;
+        padding: 10px 20px;
         background: white;
-        transition: background 0.15s;
+        transition: background-color 0.1s;
         width: 100%;
         text-align: left;
         border: none;
         font-size: 14px;
-        font-weight: 500;
-        color: #1f2937;
+        font-weight: 400;
+        color: #111b21;
         cursor: pointer;
+        white-space: nowrap;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     
-    .action-popup .popup-item:hover {
-        background: #f3f4f6;
+    .whatsapp-popup .popup-item:hover {
+        background-color: #f0f2f5;
     }
     
-    .action-popup .popup-item .material-symbols-outlined {
+    .whatsapp-popup .popup-item:active {
+        background-color: #e9edef;
+    }
+    
+    .whatsapp-popup .popup-item .material-symbols-outlined {
         font-size: 20px !important;
+        flex-shrink: 0;
+        color: #54656f;
     }
     
-    .action-popup-arrow {
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 8px solid white;
-        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));
+    .whatsapp-popup .popup-item.text-danger {
+        color: #dc2626;
+    }
+    
+    .whatsapp-popup .popup-item.text-danger .material-symbols-outlined {
+        color: #dc2626;
+    }
+    
+    .whatsapp-popup .popup-item.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .whatsapp-popup .popup-divider {
+        height: 1px;
+        background-color: #e9edef;
+        margin: 4px 0;
+    }
+    
+    .whatsapp-popup .popup-header {
+        padding: 6px 20px 8px;
+        font-size: 12.5px;
+        color: #667781;
+        font-weight: 400;
     }
 </style>
 @endpush
@@ -232,36 +248,121 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    window.previewImage = function(input, previewId) {
-        const preview = document.getElementById(previewId);
-        if (!preview) return;
+(function() {
+    'use strict';
+    
+    // État global du système de popup
+    let activePopup = null;
+    let activeButton = null;
+    let scrollRefreshId = null;
+    
+    /**
+     * Calcule la position optimale de la popup par rapport au bouton
+     * La popup est centrée horizontalement sur le bouton
+     */
+    function calculatePopupPosition(btn, popup) {
+        const btnRect = btn.getBoundingClientRect();
+        const popupRect = popup.getBoundingClientRect();
         
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" alt="Photo" class="w-full h-full object-cover">`;
-            };
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            preview.innerHTML = `<span class="material-symbols-outlined text-gray-400 text-4xl">person</span>`;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        // Valeur négative pour que la popup remonte sur le bouton
+        const GAP = -6;
+        const MARGIN = 6;
+        
+        // Position par défaut : sous le bouton, centrée horizontalement
+        let top = btnRect.bottom + scrollY + GAP;
+        // Centrer la popup sur le bouton
+        let left = btnRect.left + scrollX + (btnRect.width / 2) - (popupRect.width / 2);
+        
+        // Vérifier si la popup dépasse à droite
+        if (left + popupRect.width > scrollX + windowWidth - MARGIN) {
+            left = scrollX + windowWidth - popupRect.width - MARGIN;
         }
-    };
-
-    window.handleEmploiTempsPlus = function(enseignantId, btnEl) {
-        if (btnEl.disabled) return;
-        btnEl.disabled = true;
-
-        let existingPopup = document.getElementById('action-popup-' + enseignantId);
-        if (existingPopup) {
-            existingPopup.remove();
-            btnEl.disabled = false;
+        
+        // Vérifier si la popup dépasse à gauche
+        if (left < scrollX + MARGIN) {
+            left = scrollX + MARGIN;
+        }
+        
+        // Vérifier si la popup dépasse en bas
+        if (top + popupRect.height > scrollY + windowHeight - MARGIN) {
+            // Afficher au-dessus du bouton avec le même gap
+            top = btnRect.top + scrollY - popupRect.height - Math.abs(GAP);
+        }
+        
+        // Si toujours pas assez d'espace en haut, positionner au mieux
+        if (top < scrollY + MARGIN) {
+            top = scrollY + MARGIN;
+        }
+        
+        return { top, left };
+    }
+    
+    /**
+     * Met à jour la position de la popup active
+     */
+    function updatePopupPosition() {
+        if (!activePopup || !activeButton) return;
+        
+        const pos = calculatePopupPosition(activeButton, activePopup);
+        activePopup.style.top = pos.top + 'px';
+        activePopup.style.left = pos.left + 'px';
+    }
+    
+    /**
+     * Ferme la popup active
+     */
+    function closePopup() {
+        if (activePopup) {
+            activePopup.classList.remove('visible');
+            
+            // Supprimer après la transition
+            setTimeout(() => {
+                if (activePopup && !activePopup.classList.contains('visible')) {
+                    activePopup.remove();
+                }
+            }, 200);
+            
+            activePopup = null;
+        }
+        
+        if (scrollRefreshId) {
+            cancelAnimationFrame(scrollRefreshId);
+            scrollRefreshId = null;
+        }
+        
+        activeButton = null;
+    }
+    
+    /**
+     * Gère le clic sur le bouton + pour afficher la popup
+     */
+    window.handleEmploiTempsPlus = function(enseignantId, btnEl, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        // Si on clique sur le même bouton, toggle
+        if (activeButton === btnEl && activePopup) {
+            closePopup();
             return;
         }
-
-        document.querySelectorAll('.action-popup').forEach(el => el.remove());
-
-        fetch(`{{ url('/client/emploi-temps/exists') }}/${enseignantId}`, {
+        
+        // Fermer toute popup existante
+        closePopup();
+        
+        // Désactiver le bouton pendant le chargement
+        btnEl.disabled = true;
+        
+        // Récupérer l'URL de base pour les routes
+        const baseUrl = '{{ url('/') }}';
+        
+        fetch(baseUrl + '/client/emploi-temps/exists/' + enseignantId, {
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
@@ -271,76 +372,96 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(data => {
             const exists = !!data.exists;
-            let itemsHtml = '';
+            
+            // Construire le contenu de la popup
+            const popup = document.createElement('div');
+            popup.className = 'whatsapp-popup';
             
             if (exists) {
-                itemsHtml = `
-                    <p class="px-4 py-3 text-sm text-on-surface-variant border-b border-gray-100">✅ Emploi du temps existant</p>
-                    <button disabled class="popup-item opacity-50 cursor-not-allowed bg-gray-50">
-                        <span class="material-symbols-outlined text-green-500">add_circle</span>
-                        Créer un emploi du temps
+                popup.innerHTML = `
+                    <div class="popup-header">Emploi du temps</div>
+                    <button class="popup-item disabled">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        <span>Créer</span>
                     </button>
-                    <button onclick="window.location.href='{{ url('/client/emploi-temps/edit') }}/${enseignantId}'" class="popup-item">
-                        <span class="material-symbols-outlined text-pink-500">edit</span>
-                        Modifier l'emploi du temps
+                    <button class="popup-item" data-action="navigate" data-url="${baseUrl}/client/emploi-temps/edit/${enseignantId}">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>Modifier</span>
                     </button>
-                    <button onclick="window.location.href='{{ url('/client/emploi-temps/show') }}/${enseignantId}'" class="popup-item">
-                        <span class="material-symbols-outlined text-blue-500">visibility</span>
-                        Voir l'emploi du temps
+                    <button class="popup-item" data-action="navigate" data-url="${baseUrl}/client/emploi-temps/show/${enseignantId}">
+                        <span class="material-symbols-outlined">visibility</span>
+                        <span>Consulter</span>
                     </button>
-                    <button onclick="deleteTeacherSchedule(${enseignantId})" class="popup-item text-alert-red">
-                        <span class="material-symbols-outlined text-alert-red">delete</span>
-                        Supprimer l'emploi du temps
+                    <div class="popup-divider"></div>
+                    <button class="popup-item text-danger" data-action="delete-schedule" data-teacher-id="${enseignantId}">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>Supprimer</span>
                     </button>
                 `;
             } else {
-                itemsHtml = `
-                    <button onclick="window.location.href='{{ url('/client/emploi-temps/create') }}/${enseignantId}'" class="popup-item">
-                        <span class="material-symbols-outlined text-green-500">add_circle</span>
-                        Créer un emploi du temps
+                popup.innerHTML = `
+                    <div class="popup-header">Emploi du temps</div>
+                    <button class="popup-item" data-action="navigate" data-url="${baseUrl}/client/emploi-temps/create/${enseignantId}">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        <span>Créer</span>
                     </button>
-                    <button disabled class="popup-item opacity-50 cursor-not-allowed bg-gray-50">
-                        <span class="material-symbols-outlined text-pink-500">edit</span>
-                        Modifier l'emploi du temps
+                    <button class="popup-item disabled">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>Modifier</span>
                     </button>
-                    <button disabled class="popup-item opacity-50 cursor-not-allowed bg-gray-50">
-                        <span class="material-symbols-outlined text-alert-red">delete</span>
-                        Supprimer l'emploi du temps
+                    <button class="popup-item disabled">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>Supprimer</span>
                     </button>
                 `;
             }
-
-            const popup = document.createElement('div');
-            popup.id = 'action-popup-' + enseignantId;
-            popup.className = 'action-popup';
-            popup.innerHTML = `
-                <div class="flex flex-col">
-                    ${itemsHtml}
-                </div>
-                <div class="action-popup-arrow"></div>
-            `;
-
-            document.body.appendChild(popup);
-            popup.style.display = 'block';
-
-            const rect = btnEl.getBoundingClientRect();
-            const popupWidth = 240;
-            const popupHeight = popup.offsetHeight || 160;
-            const left = rect.left + rect.width / 2 - popupWidth / 2;
-            const top = Math.max(12, rect.top - popupHeight - 12);
-
-            popup.style.left = Math.max(12, left) + 'px';
-            popup.style.top = top + 'px';
-
-            setTimeout(() => {
-                document.addEventListener('click', function closePopup(e) {
-                    if (!popup.contains(e.target) && e.target !== btnEl && !btnEl.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopup);
-                        btnEl.disabled = false;
+            
+            // Ajouter les écouteurs d'événements
+            popup.querySelectorAll('.popup-item:not(.disabled)').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const action = this.dataset.action;
+                    
+                    if (action === 'navigate') {
+                        const url = this.dataset.url;
+                        closePopup();
+                        window.location.href = url;
+                    } else if (action === 'delete-schedule') {
+                        const tid = this.dataset.teacherId;
+                        closePopup();
+                        window.deleteTeacherSchedule(tid);
                     }
                 });
-            }, 100);
+            });
+            
+            // Empêcher la propagation des clics dans la popup
+            popup.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Ajouter au body
+            document.body.appendChild(popup);
+            
+            // Calculer et appliquer la position
+            const pos = calculatePopupPosition(btnEl, popup);
+            popup.style.top = pos.top + 'px';
+            popup.style.left = pos.left + 'px';
+            
+            // Déclencher l'animation d'apparition
+            requestAnimationFrame(() => {
+                popup.classList.add('visible');
+            });
+            
+            // Stocker les références
+            activePopup = popup;
+            activeButton = btnEl;
+            
+            // Mettre en place le rafraîchissement de position au scroll
+            function refreshOnScroll() {
+                updatePopupPosition();
+                scrollRefreshId = requestAnimationFrame(refreshOnScroll);
+            }
+            scrollRefreshId = requestAnimationFrame(refreshOnScroll);
         })
         .catch(() => {
             Swal.fire({
@@ -352,16 +473,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         })
         .finally(() => {
-            setTimeout(() => {
-                if (btnEl.disabled && !document.getElementById('action-popup-' + enseignantId)) {
-                    btnEl.disabled = false;
-                }
-            }, 500);
+            btnEl.disabled = false;
         });
     };
-
+    
+    /**
+     * Fonction de suppression d'emploi du temps (appelée depuis la popup)
+     */
     window.deleteTeacherSchedule = function(enseignantId) {
-        document.querySelectorAll('.action-popup').forEach(el => el.remove());
         Swal.fire({
             title: 'Supprimer cet emploi du temps ?',
             text: 'Cette action est irréversible.',
@@ -374,16 +493,10 @@ document.addEventListener('DOMContentLoaded', function () {
             borderRadius: '12px'
         }).then(result => {
             if (!result.isConfirmed) return;
-
-            Swal.fire({
-                title: 'Suppression en cours',
-                text: 'Veuillez patienter...',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => Swal.showLoading()
-            });
             
-            fetch(`{{ url('/client/emploi-temps/teacher') }}/${enseignantId}`, {
+            const baseUrl = '{{ url('/') }}';
+            
+            fetch(baseUrl + '/client/emploi-temps/teacher/' + enseignantId, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
@@ -419,14 +532,35 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     };
-
-    document.addEventListener('click', function (event) {
-        const button = event.target.closest('.delete-teacher-btn');
-        if (!button) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        handleDeleteClick(button);
+    
+    // Fermer la popup au clic ailleurs
+    document.addEventListener('click', function(e) {
+        if (activePopup && activeButton) {
+            // Vérifier si le clic est en dehors de la popup et du bouton
+            if (!activePopup.contains(e.target) && !activeButton.contains(e.target)) {
+                closePopup();
+            }
+        }
+    }, true);
+    
+    // Fermer la popup avec Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && activePopup) {
+            closePopup();
+        }
+    });
+    
+    // Gestion du redimensionnement
+    window.addEventListener('resize', function() {
+        updatePopupPosition();
+    });
+    
+    // GESTION DES SUPPRESSIONS D'ENSEIGNANTS
+    
+    document.querySelectorAll('.delete-teacher-btn').forEach((button) => {
+        button.addEventListener('click', function() {
+            handleDeleteClick(this);
+        });
     });
 
     function handleDeleteClick(button) {
@@ -445,64 +579,66 @@ document.addEventListener('DOMContentLoaded', function () {
             reverseButtons: true,
             borderRadius: '12px'
         }).then((result) => {
-            if (!result.isConfirmed) return;
+            if (result.isConfirmed) {
+                const btn = button;
+                btn.disabled = true;
 
-            button.disabled = true;
-            Swal.fire({
-                title: 'Suppression en cours',
-                text: 'Veuillez patienter...',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            fetch(`{{ url("/client/enseignant") }}/${teacherId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(async (response) => {
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || 'Une erreur est survenue lors de la suppression');
-                }
-                return data;
-            })
-            .then((data) => {
-                const row = document.getElementById(`teacher-row-${teacherId}`);
-                if (row) {
-                    row.remove();
-                }
-                updateTotalTeachers(-1);
-                checkEmptyTable();
-                renumberRows();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Supprimé !',
-                    text: data.message,
-                    showConfirmButton: false,
-                    timer: 2000,
-                    borderRadius: '12px',
-                    position: 'center'
+                const baseUrl = '{{ url('/') }}';
+                
+                fetch(baseUrl + '/client/enseignant/' + teacherId, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = document.getElementById(`teacher-row-${teacherId}`);
+                        if (row) {
+                            row.remove();
+                        }
+                        updateTotalTeachers(-1);
+                        checkEmptyTable();
+                        renumberRows();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Supprimé !',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 2000,
+                            borderRadius: '12px',
+                            position: 'center'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: data.message || 'Une erreur est survenue',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            borderRadius: '12px',
+                            position: 'center'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Une erreur est survenue lors de la suppression',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        borderRadius: '12px',
+                        position: 'center'
+                    });
+                })
+                .finally(() => {
+                    btn.disabled = false;
                 });
-            })
-            .catch((error) => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: error.message || 'Une erreur est survenue lors de la suppression',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    borderRadius: '12px',
-                    position: 'center'
-                });
-            })
-            .finally(() => {
-                button.disabled = false;
-            });
+            }
         });
     }
 
@@ -545,6 +681,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // RECHERCHE
+    
     const searchInput = document.getElementById('searchTeacher');
     if (searchInput) {
         searchInput.addEventListener('keyup', function () {
@@ -574,6 +712,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-});
+    
+    // Exposer closePopup globalement si nécessaire
+    window.closeTeacherPopup = closePopup;
+})();
 </script>
 @endpush
