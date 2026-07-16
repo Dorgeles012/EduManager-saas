@@ -63,5 +63,10 @@ class Series extends Model
     {
         return $this->hasMany(Eleve::class, 'id_serie');
     }
+
+    public function enseignants(): BelongsToMany
+    {
+        return $this->belongsToMany(Enseignant::class, 'enseignant_serie', 'serie_id', 'enseignant_id')->withTimestamps();
+    }
 }
 

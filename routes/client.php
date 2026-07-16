@@ -13,6 +13,7 @@ use App\Http\Controllers\Client\NiveauxController;
 use App\Http\Controllers\Client\NoteController;
 use App\Http\Controllers\Client\ParametreController;
 use App\Http\Controllers\Client\EmploiTempsController;
+use App\Http\Controllers\Client\EmploiTempsCreateController;
 
 use App\Http\Controllers\Client\PersonnelController;
 use App\Http\Controllers\Client\SeriesController;
@@ -89,6 +90,16 @@ Route::middleware(['auth', 'client'])
         Route::delete('/niveaux/{niveau}', [NiveauxController::class, 'destroy'])->name('niveaux.destroy');
         Route::get('/note', [NoteController::class, 'index'])->name('note');
         Route::get('/emploi-temps', [EmploiTempsController::class, 'index'])->name('emploi-temps.index');
+        Route::get('/emploi-temps/create/{enseignant}', [EmploiTempsController::class, 'create'])->name('emploi-temps.create');
+        Route::get('/emploi-temps/edit/{enseignant}', [EmploiTempsController::class, 'edit'])->name('emploi-temps.edit');
+        Route::get('/emploi-temps/show/{enseignant}', [EmploiTempsController::class, 'show'])->name('emploi-temps.show');
+        Route::get('/emploi-temps/exists/{enseignant}', [EmploiTempsController::class, 'exists'])->name('emploi-temps.exists');
+        Route::post('/emploi-temps/teacher/{enseignant}', [EmploiTempsController::class, 'storeTeacherSchedule'])->name('emploi-temps.teacher.store');
+        Route::put('/emploi-temps/teacher/{enseignant}', [EmploiTempsController::class, 'updateTeacherSchedule'])->name('emploi-temps.teacher.update');
+        Route::get('/emploi-temps/teacher/{enseignant}/print', [EmploiTempsController::class, 'printTeacher'])->name('emploi-temps.teacher.print');
+        Route::get('/emploi-temps/teacher/{enseignant}/pdf', [EmploiTempsController::class, 'pdfTeacher'])->name('emploi-temps.teacher.pdf');
+
+
         Route::post('/emploi-temps', [EmploiTempsController::class, 'store'])->name('emploi-temps.store');
         Route::delete('/emploi-temps/{emploiTemps}', [EmploiTempsController::class, 'destroy'])->name('emploi-temps.destroy');
         Route::get('/emploi-temps/classes/{classe}/enseignants', [EmploiTempsController::class, 'teachers'])->name('emploi-temps.teachers');

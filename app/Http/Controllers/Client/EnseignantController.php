@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Enseignant;
-use App\Models\Etablissement;
-use App\Models\Matiere;
-use App\Models\Classe;
+use App\Models\{Classe, Enseignant, Etablissement, Matiere, Series};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,181 +13,17 @@ class EnseignantController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-
-        $enseignants = Enseignant::with(['matiere', 'classes'])
-            ->where('tenant_id', $user->tenant_id)
-            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
-            ->latest()
-            ->paginate(10);
-
-        $matieres = Matiere::query()
-            ->where('tenant_id', $user->tenant_id)
-            ->orderBy('nom')
-            ->get(['id', 'nom']);
-
-        return view('client.enseignant', [
-            'teachers' => $enseignants->through(fn ($teacher) => [
-                'id' => $teacher->id,
-                'firstname' => $teacher->prenoms ?? '',
-                'lastname' => $teacher->nom,
-                'email' => $teacher->email,
-                'phone' => $teacher->telephone,
-                'subject_id' => $teacher->matiere_id,
-                'subject' => $teacher->matiere?->nom ?? 'Non assignée',
-                'status' => $teacher->statut,
-                'class_ids' => $teacher->classes->pluck('id')->all(),
-            ]),
-            'subjects' => $matieres->map(fn ($matiere) => ['id' => $matiere->id, 'name' => $matiere->nom]),
-            'classes' => Classe::query()->where('tenant_id', $user->tenant_id)->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))->orderBy('nom')->get(['id', 'nom']),
-            'totalTeachers' => $enseignants->total(),
-            'totalSubjects' => $matieres->count(),
-            'avgPerSubject' => $matieres->count() > 0 ? round($enseignants->total() / $matieres->count(), 1) : 0,
-        ]);
+        $user=auth()->user(); $scope=fn($q)=>$q->where('tenant_id',$user->tenant_id)->when($user->etablissement_id,fn($q)=>$q->where('etablissement_id',$user->etablissement_id));
+        $enseignants=Enseignant::with(['matieres','classes','series'])->where('tenant_id',$user->tenant_id)->when($user->etablissement_id,fn($q)=>$q->where('etablissement_id',$user->etablissement_id))->latest()->paginate(10);
+        $matieres=Matiere::where('tenant_id',$user->tenant_id)->orderBy('nom')->get(['id','nom']);
+        return view('client.enseignant',['teachers'=>$enseignants->through(fn($teacher)=>$this->teacherPayload($teacher)),'subjects'=>$matieres->map(fn($m)=>['id'=>$m->id,'name'=>$m->nom]),'classes'=>Classe::where('tenant_id',$user->tenant_id)->when($user->etablissement_id,fn($q)=>$q->where('etablissement_id',$user->etablissement_id))->orderBy('nom')->get(['id','nom']),'series'=>Series::where('tenant_id',$user->tenant_id)->orderBy('nom_serie')->get(['id','nom_serie']),'totalTeachers'=>$enseignants->total(),'totalSubjects'=>$matieres->count(),'avgPerSubject'=>$matieres->count()?round($enseignants->total()/$matieres->count(),1):0]);
     }
-
-    public function store(Request $request)
-    {
-        $validated = $this->validateEnseignant($request);
-        $user = auth()->user();
-
-        DB::transaction(function () use ($validated, $user) {
-            $etablissementId = $user->etablissement_id
-                ?? Etablissement::where('tenant_id', $user->tenant_id)->value('id');
-
-            $enseignant = Enseignant::create([
-                'tenant_id' => $user->tenant_id,
-                'etablissement_id' => $etablissementId,
-                'nom' => $validated['nom'],
-                'prenoms' => $validated['prenoms'],
-                'email' => $validated['email'],
-                'telephone' => $validated['telephone'],
-                'password' => Hash::make('12345678'),
-                'matiere_id' => $validated['matiere_id'],
-                'specialite' => Matiere::find($validated['matiere_id'])?->nom,
-                'statut' => 'active',
-            ]);
-
-            $enseignant->matieres()->sync([$validated['matiere_id']]);
-            $enseignant->classes()->sync($validated['classe_ids']);
-        });
-
-        $teacher = Enseignant::with(['matiere', 'classes'])
-            ->where('tenant_id', $user->tenant_id)
-            ->orderByDesc('id')
-            ->first();
-
-        if ($request->wantsJson() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Enseignant créé avec succès.',
-                'teacher' => [
-                    'id' => $teacher?->id,
-                    'firstname' => $teacher?->prenoms ?? '',
-                    'lastname' => $teacher?->nom ?? '',
-                    'email' => $teacher?->email ?? '',
-                    'phone' => $teacher?->telephone ?? '',
-                    'subject_id' => $teacher?->matiere_id,
-                    'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
-                    'status' => $teacher?->statut ?? 'active',
-                    'class_ids' => $teacher?->classes->pluck('id')->all() ?? [],
-                ],
-            ]);
-        }
-
-        return back()->with('success', 'Enseignant créé avec succès.');
-    }
-
-    public function update(Request $request, Enseignant $enseignant)
-    {
-        $this->authorizeTenant($enseignant);
-        $validated = $this->validateEnseignant($request, $enseignant);
-
-        DB::transaction(function () use ($validated, $enseignant) {
-            $enseignant->update([
-                'nom' => $validated['nom'],
-                'prenoms' => $validated['prenoms'],
-                'email' => $validated['email'],
-                'telephone' => $validated['telephone'],
-                'matiere_id' => $validated['matiere_id'],
-                'specialite' => Matiere::find($validated['matiere_id'])?->nom,
-            ]);
-
-            $enseignant->matieres()->sync([$validated['matiere_id']]);
-            $enseignant->classes()->sync($validated['classe_ids']);
-        });
-
-        $teacher = Enseignant::with(['matiere', 'classes'])->find($enseignant->id);
-
-        if ($request->wantsJson() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Enseignant mis à jour avec succès.',
-                'teacher' => [
-                    'id' => $teacher?->id,
-                    'firstname' => $teacher?->prenoms ?? '',
-                    'lastname' => $teacher?->nom ?? '',
-                    'email' => $teacher?->email ?? '',
-                    'phone' => $teacher?->telephone ?? '',
-                    'subject_id' => $teacher?->matiere_id,
-                    'subject' => $teacher?->matiere?->nom ?? 'Non assignée',
-                    'status' => $teacher?->statut ?? 'active',
-                    'class_ids' => $teacher?->classes->pluck('id')->all() ?? [],
-                ],
-            ]);
-        }
-
-        return back()->with('success', 'Enseignant mis à jour avec succès.');
-    }
-
-    public function destroy(Enseignant $enseignant)
-    {
-        $this->authorizeTenant($enseignant);
-        $enseignant->matieres()->detach();
-        $enseignant->classes()->detach();
-        $enseignant->delete();
-
-        if (request()->wantsJson() || request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Enseignant supprimé avec succès.',
-            ]);
-        }
-
-        return back()->with('success', 'Enseignant supprimé avec succès.');
-    }
-
-    private function validateEnseignant(Request $request, ?Enseignant $enseignant = null): array
-    {
-        $user = auth()->user();
-
-        return $request->validate([
-            'nom' => ['required', 'string', 'max:255'],
-            'prenoms' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('enseignants', 'email')->ignore($enseignant?->id),
-            ],
-            'telephone' => ['required', 'string', 'max:50'],
-            'matiere_id' => [
-                'required',
-                Rule::exists('matieres', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
-            ],
-            'classe_ids' => ['required', 'array', 'min:1'],
-            'classe_ids.*' => [Rule::exists('classes', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id))],
-        ]);
-    }
-
-    private function authorizeTenant(Enseignant $enseignant): void
-    {
-        $user = auth()->user();
-
-        abort_unless(
-            $enseignant->tenant_id === $user->tenant_id
-            && (!$user->etablissement_id || $enseignant->etablissement_id === $user->etablissement_id),
-            403
-        );
-    }
+    public function store(Request $request) { $validated=$this->validateEnseignant($request); $user=auth()->user(); $teacher=DB::transaction(function()use($validated,$user,$request){$teacher=Enseignant::create($this->attributes($validated,$user,$request));$teacher->matieres()->sync($validated['matiere_ids']);$teacher->classes()->sync($validated['classe_ids']);$teacher->series()->sync($validated['serie_ids']??[]);return $teacher->load(['matieres','classes','series']);}); return $this->response($request,$teacher,'Enseignant créé avec succès.'); }
+    public function update(Request $request, Enseignant $enseignant) { $this->authorizeTenant($enseignant);$validated=$this->validateEnseignant($request,$enseignant);$teacher=DB::transaction(function()use($validated,$enseignant,$request){$enseignant->update($this->attributes($validated,null,$request,$enseignant));$enseignant->matieres()->sync($validated['matiere_ids']);$enseignant->classes()->sync($validated['classe_ids']);$enseignant->series()->sync($validated['serie_ids']??[]);return $enseignant->fresh(['matieres','classes','series']);});return $this->response($request,$teacher,'Enseignant mis à jour avec succès.'); }
+    public function destroy(Enseignant $enseignant) { $this->authorizeTenant($enseignant);$enseignant->matieres()->detach();$enseignant->classes()->detach();$enseignant->series()->detach();$enseignant->delete();return request()->expectsJson()?response()->json(['success'=>true,'message'=>'Enseignant supprimé avec succès.']):back()->with('success','Enseignant supprimé avec succès.'); }
+    private function attributes(array $v, $user=null, ?Request $request=null, ?Enseignant $teacher=null): array { $first=(int)$v['matiere_ids'][0];$data=['nom'=>$v['nom'],'prenoms'=>$v['prenoms'],'email'=>$v['email'],'telephone'=>$v['telephone'],'matricule'=>$v['matricule'],'nombre_annees_enseignement'=>$v['nombre_annees_enseignement'],'sexe'=>$v['sexe'],'matiere_id'=>$first,'specialite'=>Matiere::find($first)?->nom];if($user){$data+=['tenant_id'=>$user->tenant_id,'etablissement_id'=>$user->etablissement_id??Etablissement::where('tenant_id',$user->tenant_id)->value('id'),'password'=>Hash::make('12345678'),'statut'=>'active'];}if($request?->hasFile('photo'))$data['photo']=$request->file('photo')->store('enseignants','public');return $data; }
+    private function validateEnseignant(Request $request, ?Enseignant $teacher=null): array { $user=auth()->user();return $request->validate(['nom'=>['required','string','max:255'],'prenoms'=>['required','string','max:255'],'email'=>['required','email','max:255',Rule::unique('enseignants','email')->ignore($teacher?->id)],'telephone'=>['required','string','max:50'],'matricule'=>['required','string','max:100',Rule::unique('enseignants','matricule')->ignore($teacher?->id)],'nombre_annees_enseignement'=>['required','integer','min:0','max:80'],'sexe'=>['required','in:Masculin,Féminin'],'photo'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],'matiere_ids'=>['required','array','min:1','max:2'],'matiere_ids.*'=>[Rule::exists('matieres','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))],'classe_ids'=>['required','array','min:1'],'classe_ids.*'=>[Rule::exists('classes','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))],'serie_ids'=>['nullable','array'],'serie_ids.*'=>[Rule::exists('series','id')->where(fn($q)=>$q->where('tenant_id',$user->tenant_id))]]); }
+    private function response(Request $request, Enseignant $teacher,string $message) { return $request->expectsJson()?response()->json(['success'=>true,'message'=>$message,'teacher'=>$this->teacherPayload($teacher)]):back()->with('success',$message); }
+    private function teacherPayload(Enseignant $t): array { return ['id'=>$t->id,'firstname'=>$t->prenoms??'','lastname'=>$t->nom,'email'=>$t->email,'phone'=>$t->telephone,'matricule'=>$t->matricule,'teaching_years'=>$t->nombre_annees_enseignement,'sexe'=>$t->sexe,'photo'=>$t->photo,'subject_ids'=>$t->matieres->pluck('id')->all(),'subject'=>($t->matieres->pluck('nom')->join(', ') ?: 'Non assignée'),'status'=>$t->statut,'class_ids'=>$t->classes->pluck('id')->all(),'serie_ids'=>$t->series->pluck('id')->all()]; }
+    private function authorizeTenant(Enseignant $teacher): void {$user=auth()->user();abort_unless((int)$teacher->tenant_id===(int)$user->tenant_id&&(!$user->etablissement_id||(int)$teacher->etablissement_id===(int)$user->etablissement_id),403);}
 }

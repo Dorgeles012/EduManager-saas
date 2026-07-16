@@ -21,6 +21,10 @@ class Enseignant extends Model
         'prenoms',
         'email',
         'telephone',
+        'matricule',
+        'nombre_annees_enseignement',
+        'sexe',
+        'photo',
         'password',
         'matiere_id',
         'specialite',
@@ -36,6 +40,7 @@ class Enseignant extends Model
         'etablissement_id' => 'integer',
         'user_id' => 'integer',
         'matiere_id' => 'integer',
+        'nombre_annees_enseignement' => 'integer',
     ];
 
     public function matiere(): BelongsTo
@@ -51,6 +56,11 @@ class Enseignant extends Model
     public function classes(): BelongsToMany
     {
         return $this->belongsToMany(Classe::class, 'classe_enseignant', 'enseignant_id', 'classe_id')->withTimestamps();
+    }
+
+    public function series(): BelongsToMany
+    {
+        return $this->belongsToMany(Series::class, 'enseignant_serie', 'enseignant_id', 'serie_id')->withTimestamps();
     }
 
     public function emploisDuTemps(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(EmploiTemps::class, 'enseignant_id'); }
