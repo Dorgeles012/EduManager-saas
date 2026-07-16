@@ -11,7 +11,7 @@
 <!-- Page Header -->
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-on-surface">Gestion des Matières</h2>
+        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Matières</h2>
         <p class="font-body-md text-body-md text-text-muted mt-1">Gérez l'ensemble des matières enseignées dans l'établissement</p>
     </div>
     <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('addModal')">

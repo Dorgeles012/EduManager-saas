@@ -3,13 +3,13 @@
 @section('content')
 <div class="flex justify-between items-end mb-10">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Enseignants</h2>
+            <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Enseignants</h2>
         <p class="text-body-md text-on-surface-variant">Gérez les enseignants de votre établissement avec précision et clarté.</p>
     </div>
-    <button class="inline-flex items-center px-5 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 active:scale-95 transition-all shadow-md" onclick="openModal('add-teacher-modal')">
+    <a href="{{ route('client.enseignants.create') }}" class="inline-flex items-center px-5 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary/90 active:scale-95 transition-all shadow-md">
         <span class="material-symbols-outlined mr-2">add</span>
         Ajouter un enseignant
-    </button>
+    </a>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -79,9 +79,9 @@
                                 <span class="material-symbols-outlined">add</span>
                             </button>
                             
-                            <button class="w-8 h-8 flex items-center justify-center text-warning-amber hover:bg-warning-amber/10 rounded-full transition-all" onclick="openEditModal({{ json_encode($teacher) }})" title="Modifier">
+                            <a href="{{ route('client.enseignants.edit', $teacher['id']) }}" class="w-8 h-8 flex items-center justify-center text-warning-amber hover:bg-warning-amber/10 rounded-full transition-all" title="Modifier">
                                 <span class="material-symbols-outlined text-base">edit</span>
-                            </button>
+                            </a>
                             <button class="w-8 h-8 flex items-center justify-center text-alert-red hover:bg-alert-red/10 rounded-full transition-all delete-teacher-btn" data-id="{{ $teacher['id'] }}" data-name="{{ $teacher['firstname'] }} {{ $teacher['lastname'] }}" type="button" title="Supprimer">
                                 <span class="material-symbols-outlined text-base">delete</span>
                             </button>
@@ -121,7 +121,7 @@
     </div>
 </div>
 
-<!-- MODAL AJOUT -->
+{{-- <!-- MODAL AJOUT --> --}}
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="add-teacher-modal">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('add-teacher-modal')"></div>
     <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="add-modal-content">
@@ -284,7 +284,7 @@
     </div>
 </div>
 
-<!-- MODAL MODIFICATION -->
+{{-- <!-- MODAL MODIFICATION --> --}}
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="edit-teacher-modal">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('edit-teacher-modal')"></div>
     <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl custom-shadow overflow-hidden transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="edit-modal-content">
@@ -670,6 +670,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="material-symbols-outlined text-blue-500">visibility</span>
                         Voir l'emploi du temps
                     </button>
+                    <button onclick="deleteTeacherSchedule(${enseignantId})" class="popup-item text-alert-red">
+                        <span class="material-symbols-outlined text-alert-red">delete</span>
+                        Supprimer l'emploi du temps
+                    </button>
                 `;
             } else {
                 itemsHtml = `
@@ -714,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.removeEventListener('click', closePopup);
                         btnEl.disabled = false;
                     }
-                }, { once: true });
+                });
             }, 100);
         })
         .catch(() => {
@@ -732,6 +736,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     btnEl.disabled = false;
                 }
             }, 500);
+        });
+    };
+
+    window.deleteTeacherSchedule = function(enseignantId) {
+        document.querySelectorAll('.action-popup').forEach(el => el.remove());
+        Swal.fire({ title: 'Supprimer cet emploi du temps ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626', cancelButtonColor: '#64748b' }).then(result => {
+            if (!result.isConfirmed) return;
+            fetch(`{{ url('/client/emploi-temps/teacher') }}/${enseignantId}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}', 'Accept': 'application/json' } })
+                .then(async response => ({ ok: response.ok, data: await response.json().catch(() => ({})) }))
+                .then(({ ok, data }) => { if (!ok) throw new Error(data.message || 'Impossible de supprimer cet emploi du temps.'); return Swal.fire({ icon: 'success', title: 'Succès', text: data.message || 'Emploi du temps supprimé avec succès.', timer: 2200, showConfirmButton: false }); })
+                .catch(error => Swal.fire({ icon: 'error', title: 'Erreur', text: error.message || 'Impossible de supprimer cet emploi du temps.' }));
         });
     };
 
@@ -1116,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    window.openModal = function(modalId) {
+    // window.openModal = function(modalId) {
         const modal = document.getElementById(modalId);
         const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
         const content = document.getElementById(contentId);
@@ -1131,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 10);
     };
 
-    window.closeModal = function(modalId) {
+    // window.closeModal = function(modalId) {
         const modal = document.getElementById(modalId);
         const contentId = modalId === 'add-teacher-modal' ? 'add-modal-content' : 'edit-modal-content';
         const content = document.getElementById(contentId);
@@ -1146,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 300);
     };
 
-    window.openEditModal = function(teacher) {
+    // window.openEditModal = function(teacher) {
         document.getElementById('editTeacherId').value = teacher.id;
         document.getElementById('editLastName').value = teacher.lastname || '';
         document.getElementById('editFirstName').value = teacher.firstname || '';

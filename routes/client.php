@@ -69,6 +69,12 @@ Route::middleware(['auth', 'client'])
         Route::put('/enseignant/{enseignant}', [EnseignantController::class, 'update'])->name('enseignant.update');
         Route::delete('/enseignant/{enseignant}', [EnseignantController::class, 'destroy'])->name('enseignant.destroy');
 
+        // Pages dédiées (création/modification sans modales)
+        Route::get('/enseignants/create', [EnseignantController::class, 'create'])->name('enseignants.create');
+        Route::post('/enseignants', [EnseignantController::class, 'store'])->name('enseignants.store');
+        Route::get('/enseignants/{enseignant}/edit', [EnseignantController::class, 'edit'])->name('enseignants.edit');
+        Route::put('/enseignants/{enseignant}', [EnseignantController::class, 'update'])->name('enseignants.update');
+
         Route::get('/matiere', [MatiereController::class, 'index'])->name('matiere');
         Route::get('/matiere/by-serie/{serieId}', [MatiereController::class, 'getBySerie'])->name('matiere.bySerie');
         Route::get('/matiere/all', [MatiereController::class, 'getAll'])->name('matiere.all');
@@ -96,6 +102,7 @@ Route::middleware(['auth', 'client'])
         Route::get('/emploi-temps/exists/{enseignant}', [EmploiTempsController::class, 'exists'])->name('emploi-temps.exists');
         Route::post('/emploi-temps/teacher/{enseignant}', [EmploiTempsController::class, 'storeTeacherSchedule'])->name('emploi-temps.teacher.store');
         Route::put('/emploi-temps/teacher/{enseignant}', [EmploiTempsController::class, 'updateTeacherSchedule'])->name('emploi-temps.teacher.update');
+        Route::delete('/emploi-temps/teacher/{enseignant}', [EmploiTempsController::class, 'destroyTeacherSchedule'])->name('emploi-temps.teacher.destroy');
         Route::get('/emploi-temps/teacher/{enseignant}/print', [EmploiTempsController::class, 'printTeacher'])->name('emploi-temps.teacher.print');
         Route::get('/emploi-temps/teacher/{enseignant}/pdf', [EmploiTempsController::class, 'pdfTeacher'])->name('emploi-temps.teacher.pdf');
 

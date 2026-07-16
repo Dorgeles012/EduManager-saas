@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Schema;
 
 class Matiere extends Model
 {
@@ -50,11 +51,10 @@ class Matiere extends Model
     protected static function booted()
     {
         static::addGlobalScope('tenant', function ($builder) {
-            if (auth()->check()) {
-                $builder->where('tenant_id', auth()->user()->tenant_id);
+            if (auth()->check() && Schema::hasColumn('matieres', 'tenant_id')) {
+                $builder->where($builder->getModel()->qualifyColumn('tenant_id'), auth()->user()->tenant_id);
             }
         });
     }
 
 }
-

@@ -50,7 +50,7 @@ class Enseignant extends Model
 
     public function matieres(): BelongsToMany
     {
-        return $this->belongsToMany(Matiere::class, 'enseignant_matiere', 'enseignant_id', 'matiere_id');
+        return $this->belongsToMany(Matiere::class, 'enseignant_matiere', 'enseignant_id', 'matiere_id')->withTimestamps();
     }
 
     public function classes(): BelongsToMany
