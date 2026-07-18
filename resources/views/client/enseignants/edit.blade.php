@@ -307,16 +307,12 @@ document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             icon: 'success',
             title: 'Succès',
-            text: @json(session('success')),
-            timer: 1000,
-            showConfirmButton: false,
+            text: 'Enseignant mis à jour avec succès.',
+            confirmButtonText: 'OK',
             allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => {
-                setTimeout(() => {
-                    window.location.href = @json(route('client.enseignant'));
-                }, 800);
-            }
+            allowEscapeKey: false
+        }).then(() => {
+            window.location.href = @json(route('client.enseignant'));
         });
     @endif
     
