@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AnneeAcademique, Bulletin, Classe, Eleve, EmploiTemps, Etablissement, Matiere, Series, User};
+use App\Models\{AnneeAcademique, Bulletin, Classe, Eleve, EmploiTemps, Etablissement, Matiere, Niveau, Series, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -33,11 +33,14 @@ class DashboardController extends Controller
                 'matieres' => Matiere::withoutGlobalScopes()->where('tenant_id', $tenantId)->count(),
                 'filieres' => $forSchool(DB::table('filieres')->where('tenant_id', $tenantId))->count(),
                 'series' => Series::where('tenant_id', $tenantId)->count(),
+                'niveaux' => $forSchool(Niveau::where('tenant_id', $tenantId))->count(),
                 'etablissements' => Etablissement::where('tenant_id', $tenantId)->count(),
                 'emplois_du_temps' => $forSchool(EmploiTemps::where('tenant_id', $tenantId))->count(),
                 'bulletins' => $forSchool(Bulletin::where('tenant_id', $tenantId))->count(),
                 'notifications' => DB::table('notifications')->where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))->count(),
                 'depenses' => DB::table('depense')->where('tenant_id', $tenantId)->count(),
+                'revenu_total' => DB::table('scolarites')->where('tenant_id', $tenantId)->sum('montant_paye') ?: 0,
+                'factures_impayees' => DB::table('scolarites')->where('tenant_id', $tenantId)->where('reste', '>', 0)->count(),
             ],
             'activeYear' => $forSchool(AnneeAcademique::where('tenant_id', $tenantId)->where('statut', 'active'))->orderByDesc('date_debut')->first(),
         ]);

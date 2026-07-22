@@ -72,11 +72,9 @@
                                     <th colspan="{{ count($days) + 1 }}">{{ $slot['break'] }}</th>
                                 </tr>
                             @else
-                                @php
-                                    $slotKey = $slot['key'] ?? $slot[0] . '-' . $slot[1];
-                                    $startTime = $slot['start'] ?? $slot[0];
-                                    $endTime = $slot['end'] ?? $slot[1];
-                                @endphp
+                                @php($slotKey = $slot['key'] ?? $slot[0] . '-' . $slot[1])
+                                @php($startTime = $slot['start'] ?? $slot[0])
+                                @php($endTime = $slot['end'] ?? $slot[1])
                                 <tr>
                                     <th class="schedule-time-editor">
                                         <label class="sr-only" for="start-{{ $slotKey }}">Début</label>
@@ -87,11 +85,9 @@
                                     </th>
 
                                     @foreach($days as $day)
-                                        @php
-                                            $entry = $grid[$day][$slotKey] ?? null;
-                                            $key = $day . '|' . $slotKey;
-                                            $hasData = $entry && ($entry->classe_id || $entry->matiere_id);
-                                        @endphp
+                                        @php($entry = $grid[$day][$slotKey] ?? null)
+                                        @php($key = $day . '|' . $slotKey)
+                                        @php($hasData = $entry && ($entry->classe_id || $entry->matiere_id))
                                         <td class="{{ $hasData ? 'has-data' : 'empty-cell' }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
                                             @if($hasData)
                                                 <!-- Affichage des données existantes -->
@@ -205,6 +201,8 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             overflow: hidden;
             position: relative;
+            width: 100%;
+            max-width: 100%;
         }
 
         /* Conteneur de défilement horizontal */
@@ -213,53 +211,60 @@
             overflow-y: visible;
             padding: 0;
             -webkit-overflow-scrolling: touch;
+            width: 100%;
+            max-width: 100%;
         }
 
-        /* Scrollbar simple et native */
+        /* Scrollbar personnalisée - WebKit (Chrome, Safari, Edge) */
         .schedule-scroll-container::-webkit-scrollbar {
-            height: 10px;
-            width: 10px;
+            height: 14px;
+            width: 14px;
         }
 
         .schedule-scroll-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 5px;
+            background: #f1f5f9;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
         }
 
         .schedule-scroll-container::-webkit-scrollbar-thumb {
-            background: #c1c7cd;
-            border-radius: 5px;
+            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
+            border-radius: 7px;
             transition: all 0.3s ease;
+            border: 2px solid #f1f5f9;
+            min-height: 40px;
         }
 
         .schedule-scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #1a3a6b;
+            background: linear-gradient(135deg, #1e4d8a 0%, #2a5a9a 100%);
+            transform: scale(1.05);
         }
 
         .schedule-scroll-container::-webkit-scrollbar-corner {
-            background: #f1f1f1;
+            background: #f1f5f9;
+            border-radius: 0 0 7px 0;
         }
 
         /* Pour Firefox */
         .schedule-scroll-container {
             scrollbar-width: thin;
-            scrollbar-color: #c1c7cd #f1f1f1;
+            scrollbar-color: #1a3a6b #f1f5f9;
         }
 
         .schedule-scroll-container:hover {
-            scrollbar-color: #1a3a6b #f1f1f1;
+            scrollbar-color: #1e4d8a #f1f5f9;
         }
 
         .schedule-table {
             width: 100%;
-            min-width: 1200px;
             border-collapse: separate;
             border-spacing: 0;
             font-size: 0.875rem;
             table-layout: fixed;
+            min-width: 1200px; /* Largeur minimale pour forcer le défilement */
         }
 
-        /* En-tête du tableau */
+        /* En-tête du tableau - fixe */
         .schedule-table thead th {
             background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
             color: white;
@@ -282,12 +287,14 @@
             position: sticky;
             left: 0;
             z-index: 20;
+            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
         }
 
         .schedule-table thead th.col-day {
             min-width: 200px;
             width: 200px;
             max-width: 200px;
+            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
         }
 
         /* Cellules du corps */
@@ -298,7 +305,7 @@
             vertical-align: top;
         }
 
-        /* Colonne des horaires */
+        /* Colonne des horaires - fixe */
         .schedule-table tbody>tr>th {
             background: #f8fafc;
             width: 160px;
@@ -311,9 +318,10 @@
             position: sticky;
             left: 0;
             z-index: 5;
+            background: #f8fafc;
         }
 
-        /* Cellules des jours */
+        /* Cellules des jours - largeur fixe */
         .schedule-table tbody>tr>td {
             min-width: 200px;
             width: 200px;
@@ -506,6 +514,10 @@
 
         .break-row th:first-child {
             border-left: 1px solid #d1d5db;
+            background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+            position: sticky;
+            left: 0;
+            z-index: 5;
         }
 
         .break-row th:last-child {
@@ -713,12 +725,6 @@
 
             .schedule-table {
                 min-width: 1000px;
-            }
-
-            .modal-content {
-                width: 95%;
-                max-width: 100%;
-                margin: 10px;
             }
 
             .schedule-scroll-container::-webkit-scrollbar {

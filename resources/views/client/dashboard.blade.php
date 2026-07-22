@@ -67,7 +67,7 @@
                         </div>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Revenu Total</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">$124,000</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ number_format($counts['revenu_total'] ?? 0, 0, ',', ' ') }} FCFA</h3>
                 </div>
 
                 <!-- Students Card -->
@@ -79,7 +79,7 @@
                         <span class="text-text-muted font-label-xs text-label-xs">Total Actif</span>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Étudiants Totaux</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">2,450</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['eleves'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Schools Card -->
@@ -91,7 +91,7 @@
                         
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Établissements</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">1</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['etablissements'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Invoices Card -->
@@ -103,7 +103,7 @@
                        
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Factures en attente</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">12</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['factures_impayees'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Teachers Card -->
@@ -114,7 +114,7 @@
                         </div>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Enseignants</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">1</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['enseignants'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Subjects Card -->
@@ -125,7 +125,7 @@
                         </div>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Matières</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">3</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['matieres'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Levels Card -->
@@ -136,7 +136,7 @@
                         </div>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Niveaux</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">2</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['niveaux'] ?? 0 }}</h3>
                 </div>
 
                 <!-- Classes Card -->
@@ -147,7 +147,7 @@
                         </div>
                     </div>
                     <p class="text-text-muted font-label-sm text-label-md">Classes</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">0</h3>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-1">{{ $counts['classes'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
