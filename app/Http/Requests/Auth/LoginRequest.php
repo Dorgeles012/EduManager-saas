@@ -48,7 +48,7 @@ class LoginRequest extends FormRequest
         // Vérification sécurité : si l’utilisateur est "bloqué", refuser le login AVANT
         // que Laravel ne crée une session.
         $user = \App\Models\User::query()->where('email', $email)->first();
-        if ($user && ($user->statut ?? null) === 'bloqué') {
+        if ($user && in_array(strtolower((string) ($user->statut ?? '')), ['bloqué', 'bloque', 'blocked'], true)) {
             throw ValidationException::withMessages([
                 'email' => 'Votre compte est bloqué, veuillez contacter l’administrateur',
             ]);

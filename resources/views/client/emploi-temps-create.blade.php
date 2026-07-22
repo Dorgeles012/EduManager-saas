@@ -44,8 +44,9 @@
                 <label class="block text-sm font-semibold mb-1">Année académique</label>
                 <select name="annee_academique_id" class="w-full border rounded-lg px-3 py-2">
                     <option value="">Non précisée</option>
-                    @foreach($years as $year)
-                        <option value="{{ $year->id }}">{{ $year->libelle }}</option>
+                    @php($selectedYearId = old('annee_academique_id', $year?->id))
+                    @foreach($years as $academicYear)
+                        <option value="{{ $academicYear->id }}" @selected($selectedYearId == $academicYear->id)>{{ $academicYear->libelle }}</option>
                     @endforeach
                 </select>
             </div>
@@ -833,11 +834,11 @@
             const matiereId = document.getElementById('modalMatiere').value;
             const serieId = document.getElementById('modalSerie').value;
 
-            if (!classId && !matiereId) {
+            if (!classId || !matiereId) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Information',
-                    text: 'Veuillez sélectionner au moins une classe ou une matière'
+                    text: 'Veuillez sélectionner une classe et une matière'
                 });
                 return;
             }

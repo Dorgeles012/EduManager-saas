@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sadmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sadmin\ComptePasswordUpdateRequest;
+use App\Services\RoleDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,7 +19,7 @@ class ComptePasswordController extends Controller
         $user->save();
 
         return redirect()
-            ->route('sadmin.parametres')
+            ->route(app(RoleDashboardService::class)->routeNameFor($user))
             ->with('success', 'Mot de passe mis à jour avec succès.');
     }
 }

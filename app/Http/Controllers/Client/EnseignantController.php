@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Classe, Enseignant, Etablissement, Matiere, Series};
+use App\Models\{Classe, EmploiTemps, Enseignant, Etablissement, Matiere, Series};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -47,7 +47,8 @@ class EnseignantController extends Controller
         $user=auth()->user();
         $enseignants=Enseignant::with(['matieres','classes','series'])->where('tenant_id',$user->tenant_id)->when($user->etablissement_id,fn($q)=>$q->where('etablissement_id',$user->etablissement_id))->latest()->paginate(10);
         $matieres=$this->matieresFor($user);
-        return view('client.enseignant',['teachers'=>$enseignants->through(fn($teacher)=>$this->teacherPayload($teacher)),'subjects'=>$matieres->map(fn($m)=>['id'=>$m->id,'name'=>$m->nom]),'classes'=>$this->classesFor($user),'series'=>$this->seriesFor($user),'totalTeachers'=>$enseignants->total(),'totalSubjects'=>$matieres->count(),'avgPerSubject'=>$matieres->count()?round($enseignants->total()/$matieres->count(),1):0]);
+        $totalSchedules=EmploiTemps::where('tenant_id',$user->tenant_id)->when($user->etablissement_id,fn($q)=>$q->where('etablissement_id',$user->etablissement_id))->distinct('enseignant_id')->count('enseignant_id');
+        return view('client.enseignant',['teachers'=>$enseignants->through(fn($teacher)=>$this->teacherPayload($teacher)),'subjects'=>$matieres->map(fn($m)=>['id'=>$m->id,'name'=>$m->nom]),'classes'=>$this->classesFor($user),'series'=>$this->seriesFor($user),'totalTeachers'=>$enseignants->total(),'totalSubjects'=>$matieres->count(),'totalSchedules'=>$totalSchedules,'avgPerSubject'=>$matieres->count()?round($enseignants->total()/$matieres->count(),1):0]);
     }
     public function store(Request $request) { $this->normaliseRelationIds($request); $validated=$this->validateEnseignant($request); $user=auth()->user(); $teacher=DB::transaction(function()use($validated,$user,$request){$teacher=Enseignant::create($this->attributes($validated,$user,$request));$teacher->matieres()->sync($validated['matiere_ids']);$teacher->classes()->sync($validated['classe_ids']);$teacher->series()->sync($validated['serie_ids']??[]);return $teacher->load(['matieres','classes','series']);}); return $this->response($request,$teacher,'Enseignant créé avec succès.'); }
     public function update(Request $request, Enseignant $enseignant) { $this->authorizeTenant($enseignant);$this->normaliseRelationIds($request);$validated=$this->validateEnseignant($request,$enseignant);$teacher=DB::transaction(function()use($validated,$enseignant,$request){$enseignant->update($this->attributes($validated,null,$request,$enseignant));$enseignant->matieres()->sync($validated['matiere_ids']);$enseignant->classes()->sync($validated['classe_ids']);$enseignant->series()->sync($validated['serie_ids']??[]);return $enseignant->fresh(['matieres','classes','series']);});return $this->response($request,$teacher,'Enseignant mis à jour avec succès.'); }

@@ -12,7 +12,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::middleware(['auth', 'role:sadmin'])->group(function () {
+Route::middleware(['auth', 'status', 'role:sadmin'])->group(function () {
 
 
 
@@ -96,25 +96,25 @@ Route::middleware(['auth', 'role:sadmin'])->group(function () {
 // Module client
 require __DIR__ . '/client.php';
 
-Route::middleware(['auth', 'role:personnel'])->group(function () {
+Route::middleware(['auth', 'status', 'role:personnel'])->group(function () {
     Route::get('/personnel/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Personnel',
     ]))->name('personnel.dashboard');
 });
 
-Route::middleware(['auth', 'role:enseignant'])->group(function () {
+Route::middleware(['auth', 'status', 'role:enseignant'])->group(function () {
     Route::get('/enseignant/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Enseignant',
     ]))->name('enseignant.dashboard');
 });
 
-Route::middleware(['auth', 'role:parent'])->group(function () {
+Route::middleware(['auth', 'status', 'role:parent'])->group(function () {
     Route::get('/parent/dashboard', fn () => view('dashboards.role', [
         'title' => 'Dashboard Parent',
     ]))->name('parent.dashboard');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'status'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notificationRecipient}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::patch('/notifications/{notificationRecipient}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

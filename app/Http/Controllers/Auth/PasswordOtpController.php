@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\PasswordOtp;
 use App\Models\User;
+use App\Services\RoleDashboardService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -239,7 +241,15 @@ class PasswordOtpController extends Controller
             self::OTP_SESSION_LOCK_UNTIL_KEY,
         ]);
 
-        return redirect()->route('login')->with('status', 'Mot de passe réinitialisé avec succès');
+        $routeName = app(RoleDashboardService::class)->routeNameFor($user);
+        if (! $routeName) {
+            return redirect()->route('login')->withErrors(['email' => 'Rôle utilisateur non autorisé.']);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route($routeName)->with('status', 'Mot de passe réinitialisé avec succès.');
     }
 
     /**

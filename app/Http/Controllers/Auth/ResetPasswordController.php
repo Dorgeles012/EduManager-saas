@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\RoleDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +72,13 @@ class ResetPasswordController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('status', 'Mot de passe mis à jour avec succès. Vous êtes connecté(e).');
+        $routeName = app(RoleDashboardService::class)->routeNameFor($user);
+        if (! $routeName) {
+            Auth::logout();
+            return redirect()->route('login')->withErrors(['email' => 'Rôle utilisateur non autorisé.']);
+        }
+
+        return redirect()->route($routeName)->with('status', 'Mot de passe mis à jour avec succès. Vous êtes connecté(e).');
     }
 }
 

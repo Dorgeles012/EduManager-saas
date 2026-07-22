@@ -15,7 +15,7 @@ class CheckUserStatut
     {
         $user = $request->user();
 
-        if ($user && ($user->statut ?? null) === $blockedValue) {
+        if ($user && in_array(strtolower((string) ($user->statut ?? '')), ['bloqué', 'bloque', 'blocked'], true)) {
             abort(403, 'Accès bloqué par l’administrateur.');
         }
 

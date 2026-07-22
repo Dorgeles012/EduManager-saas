@@ -136,6 +136,7 @@
         .cell-has-data {
             background: #fafcff;
         }
+        .slot-color-1{background:#dbeafe}.slot-color-2{background:#dcfce7}.slot-color-3{background:#ffedd5}.slot-color-4{background:#ede9fe}.slot-color-5{background:#fee2e2}.slot-color-6{background:#cffafe}.slot-color-7{background:#fef9c3}.slot-color-8{background:#e5e7eb}
 
         .cell-content {
             display: flex;
@@ -385,7 +386,7 @@
                                 $entry = $grid[$day][$slotKey] ?? null;
                                 $hasData = $entry && ($entry->classe_id || $entry->matiere_id);
                             @endphp
-                            <td class="cell-day {{ $hasData ? 'cell-has-data' : 'cell-empty' }}">
+                            <td class="cell-day {{ $hasData ? 'cell-has-data ' . ($slot['color'] ?? 'slot-color-1') : 'cell-empty' }}">
                                 @if($hasData)
                                     <div class="cell-content">
                                         <span class="cell-matiere">{{ $entry->matiere?->nom ?? '—' }}</span>
@@ -398,7 +399,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span style="font-size:9px;color:#d1d5db;">—</span>
+                                    <span style="font-size:9px;color:#94a3b8;font-style:italic;">Rien programmé</span>
                                 @endif
                             </td>
                         @endforeach

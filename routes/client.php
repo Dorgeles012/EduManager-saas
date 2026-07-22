@@ -20,7 +20,7 @@ use App\Http\Controllers\Client\SeriesController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'client'])
+Route::middleware(['auth', 'status', 'client'])
     ->prefix('client')
     ->name('client.')
     ->group(function () {

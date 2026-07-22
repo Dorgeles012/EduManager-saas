@@ -7,6 +7,7 @@ use App\Http\Requests\Client\ParametrePasswordUpdateRequest;
 use App\Http\Requests\Client\ParametrePhotoUpdateRequest;
 use App\Http\Requests\Client\ParametreUpdateRequest;
 use App\Models\User;
+use App\Services\RoleDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -51,7 +52,7 @@ class ParametreController extends Controller
         $client->save();
 
         return redirect()
-            ->route('client.parametres.index')
+            ->route(app(RoleDashboardService::class)->routeNameFor($client))
             ->with('success', 'Mot de passe mis à jour avec succès.');
     }
 

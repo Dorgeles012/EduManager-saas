@@ -37,7 +37,7 @@
         </div>
         <div>
             <p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Emplois du temps</p>
-            <p class="font-headline-md text-headline-md text-on-surface">{{ $totalSchedules ?? 0 }}</p>
+            <p class="font-headline-md text-headline-md text-on-surface">{{ $totalSchedules }}</p>
         </div>
     </div>
 </div>

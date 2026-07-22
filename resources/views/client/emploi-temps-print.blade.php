@@ -439,7 +439,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span style="font-size:7px;">— Libre —</span>
+                                    <span style="font-size:7px;">Rien programmé</span>
                                 @endif
                             </td>
                         @endforeach
