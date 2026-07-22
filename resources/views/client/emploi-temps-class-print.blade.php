@@ -88,10 +88,10 @@
         }
 
         th {
-            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
-            color: white;
+            background: #e8edf4;
+            color: #000000;
             padding: 12px 10px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -109,8 +109,8 @@
         /* Colonne des horaires */
         .col-horaire {
             background: #f8fafc;
-            font-weight: 600;
-            color: #1f2937;
+            font-weight: 700;
+            color: #000000 !important;
             width: 100px;
             min-width: 100px;
             text-align: center;

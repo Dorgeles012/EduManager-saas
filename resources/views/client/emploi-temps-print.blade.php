@@ -84,11 +84,11 @@
         }
 
         thead th {
-            background: linear-gradient(135deg, #173b78 0%, #1e4d8a 100%);
-            color: #ffffff;
+            background: #e8edf4;
+            color: #000000;
             text-align: center;
             padding: 10px 8px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -107,9 +107,9 @@
             text-align: center;
             width: 85px;
             min-width: 85px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 9px;
-            color: #1f2937;
+            color: #000000 !important;
             vertical-align: middle;
             border-right: 2px solid #d1d5db;
         }
