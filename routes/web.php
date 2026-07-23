@@ -96,11 +96,8 @@ Route::middleware(['auth', 'status', 'role:sadmin'])->group(function () {
 // Module client
 require __DIR__ . '/client.php';
 
-Route::middleware(['auth', 'status', 'role:personnel'])->group(function () {
-    Route::get('/personnel/dashboard', fn () => view('dashboards.role', [
-        'title' => 'Dashboard Personnel',
-    ]))->name('personnel.dashboard');
-});
+// Module personnel
+require __DIR__ . '/personnel.php';
 
 Route::middleware(['auth', 'status', 'role:enseignant'])->group(function () {
     Route::get('/enseignant/dashboard', fn () => view('dashboards.role', [
