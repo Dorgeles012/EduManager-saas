@@ -99,11 +99,8 @@ require __DIR__ . '/client.php';
 // Module personnel
 require __DIR__ . '/personnel.php';
 
-Route::middleware(['auth', 'status', 'role:enseignant'])->group(function () {
-    Route::get('/enseignant/dashboard', fn () => view('dashboards.role', [
-        'title' => 'Dashboard Enseignant',
-    ]))->name('enseignant.dashboard');
-});
+// Module enseignant
+require __DIR__ . '/enseignant.php';
 
 Route::middleware(['auth', 'status', 'role:parent'])->group(function () {
     Route::get('/parent/dashboard', fn () => view('dashboards.role', [
