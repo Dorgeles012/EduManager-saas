@@ -20,7 +20,7 @@ class UserFactory extends Factory
             'password' => Hash::make('password'),
             'image' => null,
             'role' => 'SADMIN',
-            'statut' => 'active',
+            'statut' => User::STATUT_ACTIF,
         ];
     }
 

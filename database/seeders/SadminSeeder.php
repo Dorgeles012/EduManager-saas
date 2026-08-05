@@ -22,7 +22,7 @@ class SadminSeeder extends Seeder
                 'image' => null,
                 'password' => bcrypt('12345678'),
                 'role' => 'SADMIN',
-                'statut' => 'active',
+                'statut' => User::STATUT_ACTIF,
                 'email_verified_at' => now(),
             ]
         );
