@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sadmin\StoreClientRequest;
 use App\Http\Requests\Sadmin\UpdateClientRequest;
 use App\Models\Etablissement;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -152,7 +153,7 @@ class ClientController extends Controller
         return redirect()->route('sadmin.clients.index')->with('success', 'Client bloqué.');
     }
 
-    public function unblock(User $client): RedirectResponse
+public function unblock(User $client): RedirectResponse
     {
         if ($client->statut !== 'actif') {
             $client->unblock();
@@ -160,6 +161,29 @@ class ClientController extends Controller
 
 
         return redirect()->route('sadmin.clients.index')->with('success', 'Client débloqué.');
+    }
+
+    /**
+     * Valide l'abonnement du client et active ses fonctionnalités.
+     * Fait passer l'abonnement de "payé" à "actif".
+     */
+    public function validateSubscription(User $client): RedirectResponse
+    {
+        $subscription = Subscription::query()
+            ->where('user_id', $client->id)
+            ->orWhere('client_id', $client->id)
+            ->latest()
+            ->first();
+
+        if (! $subscription) {
+            return back()->with('error', 'Ce client n\'a pas encore d\'abonnement.');
+        }
+
+        $subscription->statut = 'active';
+        $subscription->abonnement_status = Subscription::ABONNEMENT_ACTIF;
+        $subscription->save();
+
+        return back()->with('success', 'Abonnement validé. Les fonctionnalités du client sont maintenant actives.');
     }
 
     private function handlePhotoUpload(Request $request): ?string

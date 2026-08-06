@@ -136,7 +136,7 @@ class EleveController extends Controller
                 $photoPath = $request->file('photo')->store('eleves', 'public');
             }
 
-            Eleve::create([
+$eleve = Eleve::create([
                 'tenant_id' => $user->tenant_id,
                 'etablissement_id' => $validated['etablissement_id'],
                 'classe_id' => $validated['classe_id'] ?? null,
@@ -157,8 +157,7 @@ class EleveController extends Controller
                 'statut' => ($validated['type_eleve'] ?? 'nouveau') === 'transfere' ? 'transfert' : 'actif',
             ]);
 
-
-
+            $this->syncEleveAccount($eleve, $user->etablissement_id);
         });
 
         return back()->with('success', 'Élève enregistré avec succès.');
@@ -192,7 +191,7 @@ class EleveController extends Controller
                 $photoPath = $request->file('photo')->store('eleves', 'public');
             }
 
-            $eleve->update([
+$eleve->update([
                 'etablissement_id' => $validated['etablissement_id'],
                 'classe_id' => $validated['classe_id'] ?? null,
                 'id_serie' => $validated['id_serie'] ?? null,
@@ -211,7 +210,7 @@ class EleveController extends Controller
                 'statut' => ($validated['type_eleve'] ?? 'nouveau') === 'transfere' ? 'transfert' : 'actif',
             ]);
 
-
+            $this->syncEleveAccount($eleve, $user->etablissement_id);
         });
 
         return back()->with('success', 'Élève mis à jour avec succès.');
@@ -260,6 +259,43 @@ class EleveController extends Controller
         abort_unless(Storage::disk('public')->exists($path), 404);
 
         return Storage::disk('public')->response($path);
+    }
+
+/**
+     * Crée ou synchronise le compte utilisateur (rôle élève) lié à cet élève.
+     * Utilisé pour permettre à l'élève de se connecter à son espace.
+     */
+    private function syncEleveAccount(Eleve $eleve, ?int $etablissementId): void
+    {
+        $user = auth()->user();
+        $email = $eleve->matricule . '@eleve.local';
+
+        $account = User::where('tenant_id', $user->tenant_id)
+            ->where('eleve_id', $eleve->id)
+            ->whereRaw('LOWER(role) = ?', ['eleve'])
+            ->first();
+
+if (! $account) {
+            User::create([
+                'tenant_id' => $user->tenant_id,
+                'etablissement_id' => $etablissementId,
+                'eleve_id' => $eleve->id,
+                'nom' => $eleve->nom,
+                'prenom' => $eleve->prenom,
+                'email' => $email,
+                'telephone' => null,
+                'password' => Hash::make('12345678'),
+                'must_change_password' => true,
+                'role' => 'eleve',
+                'statut' => 'actif',
+            ]);
+        } else {
+            $account->update([
+                'nom' => $eleve->nom,
+                'prenom' => $eleve->prenom,
+                'etablissement_id' => $etablissementId,
+            ]);
+        }
     }
 
     private function validateEleve(Request $request, ?Eleve $eleve = null): array

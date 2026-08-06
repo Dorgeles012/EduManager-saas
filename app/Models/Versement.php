@@ -12,12 +12,13 @@ class Versement extends Model
 
     protected $table = 'versements';
 
-    protected $fillable = [
+protected $fillable = [
         'tenant_id',
         'scolarite_id',
         'montant',
         'date_versement',
         'methode',
+        'reference',
     ];
 
     protected $casts = [

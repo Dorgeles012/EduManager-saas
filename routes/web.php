@@ -54,11 +54,14 @@ Route::middleware(['auth', 'status', 'role:sadmin'])->group(function () {
     Route::resource('clients', \App\Http\Controllers\Sadmin\ClientController::class)
         ->names('sadmin.clients');
 
-    Route::patch('sadmin/clients/{client}/block', [\App\Http\Controllers\Sadmin\ClientController::class, 'block'])
+Route::patch('sadmin/clients/{client}/block', [\App\Http\Controllers\Sadmin\ClientController::class, 'block'])
         ->name('sadmin.clients.block');
 
     Route::patch('sadmin/clients/{client}/unblock', [\App\Http\Controllers\Sadmin\ClientController::class, 'unblock'])
         ->name('sadmin.clients.unblock');
+
+    Route::patch('sadmin/clients/{client}/validate-subscription', [\App\Http\Controllers\Sadmin\ClientController::class, 'validateSubscription'])
+        ->name('sadmin.clients.validate-subscription');
 
 
 
@@ -102,11 +105,11 @@ require __DIR__ . '/personnel.php';
 // Module enseignant
 require __DIR__ . '/enseignant.php';
 
-Route::middleware(['auth', 'status', 'role:parent'])->group(function () {
-    Route::get('/parent/dashboard', fn () => view('dashboards.role', [
-        'title' => 'Dashboard Parent',
-    ]))->name('parent.dashboard');
-});
+// Module parent
+require __DIR__ . '/parent.php';
+
+// Module élève
+require __DIR__ . '/eleve.php';
 
 Route::middleware(['auth', 'status'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

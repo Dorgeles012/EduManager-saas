@@ -14,6 +14,7 @@ class RoleDashboardService
             'personnel' => 'personnel.dashboard',
             'enseignant' => 'enseignant.dashboard',
             'parent' => 'parent.dashboard',
+            'eleve' => 'eleve.dashboard',
             default => null,
         };
     }

@@ -20,7 +20,7 @@ use App\Http\Controllers\Client\SeriesController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'status', 'client'])
+Route::middleware(['auth', 'status', 'client', 'subscription.active'])
     ->prefix('client')
     ->name('client.')
     ->group(function () {
@@ -47,11 +47,28 @@ Route::middleware(['auth', 'status', 'client'])
             ->name('personnel.unblock');
 
 
-        Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('comptabilite');
+Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('comptabilite');
         Route::post('/comptabilite/scolarite', [ComptabiliteController::class, 'storeScolarite'])->name('comptabilite.scolarite.store');
         Route::post('/comptabilite/depense', [ComptabiliteController::class, 'storeDepense'])->name('comptabilite.depense.store');
         Route::put('/comptabilite/depense/{depense}', [ComptabiliteController::class, 'updateDepense'])->name('comptabilite.depense.update');
         Route::delete('/comptabilite/depense/{depense}', [ComptabiliteController::class, 'destroyDepense'])->name('comptabilite.depense.destroy');
+
+        // Recherche élève par matricule (AJAX)
+        Route::get('/comptabilite/eleve/recherche', [ComptabiliteController::class, 'searchByMatricule'])->name('comptabilite.search');
+
+// Configuration des frais de scolarité par niveau
+        Route::post('/comptabilite/frais', [ComptabiliteController::class, 'storeFrais'])->name('comptabilite.frais.store');
+        Route::put('/comptabilite/frais/{frais}', [ComptabiliteController::class, 'updateFrais'])->name('comptabilite.frais.update');
+        Route::delete('/comptabilite/frais/{frais}', [ComptabiliteController::class, 'destroyFrais'])->name('comptabilite.frais.destroy');
+
+        // Reçu imprimable
+        Route::get('/recu', function () {
+            $recu = session('recu', []);
+            return view('client.recu', [
+                'recu' => $recu,
+                'etablissement' => auth()->user()?->etablissement,
+            ]);
+        })->name('comptabilite.recu');
 
         Route::get('/classe', [ClasseController::class, 'index'])->name('classe');
         Route::post('/classe', [ClasseController::class, 'store'])->name('classe.store');

@@ -69,6 +69,32 @@ class Eleve extends Model
 
     public function bulletins(): HasMany { return $this->hasMany(Bulletin::class); }
 
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class, 'eleve_id');
+    }
+
+public function scolarites(): HasMany
+    {
+        return $this->hasMany(Scolarite::class, 'eleve_id');
+    }
+
+    /**
+     * Frais de scolarité configuré pour le niveau de l'élève.
+     */
+    public function fraisScolarite(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(FraisScolarite::class, 'niveau_id', 'niveau_id');
+    }
+
+    /**
+     * Compte utilisateur (rôle élève) lié via users.eleve_id.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'eleve_id', 'id');
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id')->whereRaw('LOWER(role) = ?', ['parent']);

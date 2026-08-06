@@ -31,10 +31,32 @@ class Subscription extends Model
         'type',
         'price',
         'duration',
-        'date_debut',
+'date_debut',
         'date_fin',
         'statut',
+        'abonnement_status',
     ];
+
+    // Constantes du flux de validation d'abonnement
+    public const ABONNEMENT_EN_ATTENTE = 'en_attente';
+    public const ABONNEMENT_PAYE = 'paye';
+    public const ABONNEMENT_ACTIF = 'actif';
+    public const ABONNEMENT_EXPIRE = 'expire';
+
+    public function isAbonnementActif(): bool
+    {
+        return $this->abonnement_status === self::ABONNEMENT_ACTIF;
+    }
+
+    public function isAbonnementPaye(): bool
+    {
+        return $this->abonnement_status === self::ABONNEMENT_PAYE;
+    }
+
+    public function isAbonnementEnAttente(): bool
+    {
+        return $this->abonnement_status === self::ABONNEMENT_EN_ATTENTE;
+    }
 
 
     protected $casts = [

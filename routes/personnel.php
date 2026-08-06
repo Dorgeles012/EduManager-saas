@@ -9,6 +9,7 @@ use App\Http\Controllers\Personnel\PersonnelMatiereController;
 use App\Http\Controllers\Personnel\PersonnelComptabiliteController;
 use App\Http\Controllers\Personnel\PersonnelBulletinController;
 use App\Http\Controllers\Personnel\PersonnelParametreController;
+use App\Http\Controllers\Personnel\PersonnelEmploiTempsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'status', 'role:personnel'])
@@ -75,6 +76,16 @@ Route::middleware(['auth', 'status', 'role:personnel'])
             Route::get('/{bulletin}/download-pdf', [PersonnelBulletinController::class, 'downloadPdf'])->name('download-pdf');
             Route::get('/{bulletin}/download', [PersonnelBulletinController::class, 'download'])->name('download');
         });
+
+// Emplois du temps (classes)
+        Route::get('/emploi-temps', [PersonnelEmploiTempsController::class, 'index'])->name('emploi-temps.index');
+        Route::get('/emploi-temps/create', [PersonnelEmploiTempsController::class, 'edit'])->name('emploi-temps.create');
+        Route::get('/emploi-temps/edit', [PersonnelEmploiTempsController::class, 'edit'])->name('emploi-temps.edit');
+        Route::post('/emploi-temps', [PersonnelEmploiTempsController::class, 'store'])->name('emploi-temps.store');
+        Route::get('/emploi-temps/show', [PersonnelEmploiTempsController::class, 'show'])->name('emploi-temps.show');
+        Route::get('/emploi-temps/print', [PersonnelEmploiTempsController::class, 'print'])->name('emploi-temps.print');
+        Route::get('/emploi-temps/pdf', [PersonnelEmploiTempsController::class, 'pdf'])->name('emploi-temps.pdf');
+        Route::delete('/emploi-temps', [PersonnelEmploiTempsController::class, 'destroy'])->name('emploi-temps.destroy');
 
         // Paramètres
         Route::get('/parametres', [PersonnelParametreController::class, 'index'])->name('parametres.index');

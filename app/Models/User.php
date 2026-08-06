@@ -20,9 +20,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'nom',
         'prenom',
         'client_id',
-        'email',
+        'eleve_id',
+'email',
         'telephone',
         'password',
+        'must_change_password',
+        'password_changed_at',
         'image',
         'role',
         'statut',
@@ -40,10 +43,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected function casts(): array
     {
-        return [
+return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'etablissement_id' => 'integer',
+            'must_change_password' => 'boolean',
+            'password_changed_at' => 'datetime',
         ];
     }
 
@@ -81,6 +86,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function eleves(): HasMany
     {
         return $this->hasMany(Eleve::class, 'parent_id');
+    }
+
+    /**
+     * Élève lié au compte (rôle élève) via eleve_id.
+     */
+    public function eleve(): BelongsTo
+    {
+        return $this->belongsTo(Eleve::class, 'eleve_id');
     }
 
     public function notificationRecipients(): HasMany

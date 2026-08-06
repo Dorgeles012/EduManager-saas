@@ -244,11 +244,21 @@
         
         <!-- Scrollable navigation -->
         <nav class="sidebar-nav mt-2">
-            @php
+@php
                 $currentRoute = request()->route()->getName();
+                // Vérifier si l'abonnement du client est actif (fonctionnalités débloquées)
+                $subscriptionActive = \App\Models\Subscription::query()
+                    ->where('user_id', auth()->id())
+                    ->orWhere('client_id', auth()->id())
+                    ->latest()
+                    ->value('abonnement_status') === 'actif';
+
+                // Rubriques à griser tant que l'abonnement n'est pas validé
+                $lockedModules = ['client.annee', 'client.personnel', 'client.series', 'client.niveaux', 'client.classe', 'client.eleve', 'client.matiere', 'client.enseignant', 'client.bulletin', 'client.comptabilite'];
+                $isLocked = ! $subscriptionActive;
             @endphp
-            
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.dashboard' ? 'nav-active' : '' }}" href="{{ route('client.dashboard') }}">
+
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.dashboard' ? 'nav-active' : '' }}" href="{{ route('client.dashboard') }}">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="font-label-md text-label-md">Dashboard</span>
             </a>
@@ -258,59 +268,70 @@
                 <span class="font-label-md text-label-md">Abonnements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'client.annee') ? 'nav-active' : '' }}" href="{{ route('client.annee.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ str_starts_with($currentRoute, 'client.annee') ? 'nav-active' : '' }}" href="{{ route('client.annee.index') }}">
                 <span class="material-symbols-outlined">calendar_today</span>
                 <span class="font-label-md text-label-md">Année académique</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'client.personnel') ? 'nav-active' : '' }}" href="{{ route('client.personnel.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ str_starts_with($currentRoute, 'client.personnel') ? 'nav-active' : '' }}" href="{{ route('client.personnel.index') }}">
                 <span class="material-symbols-outlined">badge</span>
                 <span class="font-label-md text-label-md">Personnel</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
                 <span class="material-symbols-outlined">category</span>
                 <span class="font-label-md text-label-md">Séries</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.niveaux' || str_starts_with($currentRoute, 'client.niveaux') ? 'nav-active' : '' }}" href="{{ route('client.niveaux') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.niveaux' || str_starts_with($currentRoute, 'client.niveaux') ? 'nav-active' : '' }}" href="{{ route('client.niveaux') }}">
                 <span class="material-symbols-outlined">leaderboard</span>
                 <span class="font-label-md text-label-md">Niveau</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.classe' || str_starts_with($currentRoute, 'client.classe') ? 'nav-active' : '' }}" href="{{ route('client.classe') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.classe' || str_starts_with($currentRoute, 'client.classe') ? 'nav-active' : '' }}" href="{{ route('client.classe') }}">
                 <span class="material-symbols-outlined">meeting_room</span>
                 <span class="font-label-md text-label-md">Classe</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.eleve' || str_starts_with($currentRoute, 'client.eleve') ? 'nav-active' : '' }}" href="{{ route('client.eleve') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.eleve' || str_starts_with($currentRoute, 'client.eleve') ? 'nav-active' : '' }}" href="{{ route('client.eleve') }}">
                 <span class="material-symbols-outlined">group</span>
                 <span class="font-label-md text-label-md">Eleves</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.matiere' || str_starts_with($currentRoute, 'client.matiere') ? 'nav-active' : '' }}" href="{{ route('client.matiere') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.matiere' || str_starts_with($currentRoute, 'client.matiere') ? 'nav-active' : '' }}" href="{{ route('client.matiere') }}">
                 <span class="material-symbols-outlined">menu_book</span>
                 <span class="font-label-md text-label-md">Matiere(s)</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.enseignant' || str_starts_with($currentRoute, 'client.enseignant') ? 'nav-active' : '' }}" href="{{ route('client.enseignant') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.enseignant' || str_starts_with($currentRoute, 'client.enseignant') ? 'nav-active' : '' }}" href="{{ route('client.enseignant') }}">
                 <span class="material-symbols-outlined">school</span>
                 <span class="font-label-md text-label-md">Enseignants</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
+<a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
                 <span class="material-symbols-outlined">description</span>
                 <span class="font-label-md text-label-md">Bulletin</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'client.comptabilite' || str_starts_with($currentRoute, 'client.comptabilite') ? 'nav-active' : '' }}" href="{{ route('client.comptabilite') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.comptabilite' || str_starts_with($currentRoute, 'client.comptabilite') ? 'nav-active' : '' }}" href="{{ route('client.comptabilite') }}">
                 <span class="material-symbols-outlined">payments</span>
                 <span class="font-label-md text-label-md">Comptabilite</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'client.parametres') ? 'nav-active' : '' }}" href="{{ route('client.parametres.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ str_starts_with($currentRoute, 'client.parametres') ? 'nav-active' : '' }}" href="{{ route('client.parametres.index') }}">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Paramètres</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

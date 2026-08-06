@@ -273,9 +273,14 @@
                 <span class="font-label-md text-label-md">Elèves</span>
             </a>
             
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.matieres.index' || str_starts_with($currentRoute, 'personnel.matieres') ? 'nav-active' : '' }}" href="{{ route('personnel.matieres.index') }}">
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.matieres.index' || str_starts_with($currentRoute, 'personnel.matieres') ? 'nav-active' : '' }}" href="{{ route('personnel.matieres.index') }}">
                 <span class="material-symbols-outlined">menu_book</span>
                 <span class="font-label-md text-label-md">Matiere(s)</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.emploi-temps') ? 'nav-active' : '' }}" href="{{ route('personnel.emploi-temps.index') }}">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span class="font-label-md text-label-md">Emplois du temps</span>
             </a>
             
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.bulletin.index' || str_starts_with($currentRoute, 'personnel.bulletin') ? 'nav-active' : '' }}" href="{{ route('personnel.bulletin.index') }}">

@@ -152,8 +152,12 @@ class AbonnementController extends Controller
             $payload['status'] = 'active';
         }
 
-        if (Schema::hasColumn('subscriptions', 'statut')) {
+if (Schema::hasColumn('subscriptions', 'statut')) {
             $payload['statut'] = 'active';
+        }
+
+        if (Schema::hasColumn('subscriptions', 'abonnement_status')) {
+            $payload['abonnement_status'] = \App\Models\Subscription::ABONNEMENT_PAYE;
         }
 
         if (Schema::hasColumn('subscriptions', 'date_debut')) {

@@ -7,15 +7,86 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financière </h2>
         <p class="text-body-md text-on-surface-variant">Gérez les finances de votre établissement avec précision et clarté.</p>
     </div>
-    <div class="flex gap-3">
+    <div class="flex gap-3 flex-wrap">
         <button class="flex items-center gap-2 bg-success-green text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">
             <span class="material-symbols-outlined text-[20px]">add_circle</span>
-            Enregistrer une scolarité
+            Enregistrer un paiement
+        </button>
+        <button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalFrais')">
+            <span class="material-symbols-outlined text-[20px]">tune</span>
+            Configurer les frais
         </button>
         <button class="flex items-center gap-2 bg-alert-red text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalDepense')">
             <span class="material-symbols-outlined text-[20px]">payments</span>
             Enregistrer une dépense
         </button>
+    </div>
+</div>
+
+<!-- Recherche par matricule -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden custom-shadow mb-8">
+    <div class="px-6 py-5 border-b border-outline-variant flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">search</span>
+        <h4 class="font-headline-md text-headline-md">Rechercher un élève par matricule</h4>
+    </div>
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" id="matriculeSearch" placeholder="Saisissez le matricule de l'élève..." class="w-full rounded-lg border border-outline-variant focus:border-primary focus:ring-primary text-body-sm px-4 py-2.5">
+            </div>
+            <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md hover:bg-primary/90 transition-colors" onclick="searchEleve()">
+                Rechercher
+            </button>
+        </div>
+
+        <!-- Résultat de la recherche -->
+        <div id="eleveResult" class="hidden mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Infos élève -->
+                <div class="bg-surface-container-low rounded-xl p-5">
+                    <div class="flex items-center gap-4 mb-4">
+                        <img id="resultPhoto" src="" alt="Photo" class="w-16 h-16 rounded-full object-cover border border-outline-variant hidden">
+                        <div>
+                            <p id="resultNom" class="font-headline-md text-headline-md text-on-surface"></p>
+                            <p id="resultMatricule" class="text-sm text-on-surface-variant"></p>
+                            <p id="resultClasse" class="text-sm text-on-surface-variant"></p>
+                            <p id="resultNiveau" class="text-sm text-on-surface-variant"></p>
+                            <p id="resultEtab" class="text-sm text-on-surface-variant"></p>
+                        </div>
+                    </div>
+                    <div id="fraisInfo" class="bg-surface-container-lowest rounded-lg p-4 border border-outline-variant">
+                        <p class="text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Frais du niveau</p>
+                        <div class="flex justify-between text-sm"><span>Inscription</span><span id="fraisInscription" class="font-semibold"></span></div>
+                        <div class="flex justify-between text-sm"><span>Scolarité</span><span id="fraisScolarite" class="font-semibold"></span></div>
+                        <div class="flex justify-between text-sm"><span>Autres frais</span><span id="fraisAutres" class="font-semibold"></span></div>
+                        <div class="flex justify-between text-sm font-bold border-t border-outline-variant mt-2 pt-2"><span>Total</span><span id="fraisTotal" class="text-primary"></span></div>
+                    </div>
+                </div>
+
+                <!-- Historique des paiements -->
+                <div class="bg-surface-container-low rounded-xl p-5">
+                    <h5 class="font-headline-md text-headline-md mb-3">Historique des paiements</h5>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="border-b border-outline-variant text-on-surface-variant">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">Date</th>
+                                    <th class="px-3 py-2 text-right">Montant</th>
+                                    <th class="px-3 py-2 text-left">Méthode</th>
+                                </tr>
+                            </thead>
+                            <tbody id="versementsList"></tbody>
+                        </table>
+                    </div>
+                    <div id="scolariteRecap" class="mt-3 text-sm bg-surface-container-lowest rounded-lg p-3 border border-outline-variant">
+                        <div class="flex justify-between"><span>Total payé</span><span id="scolaritePaye" class="font-semibold text-success-green"></span></div>
+                        <div class="flex justify-between"><span>Reste à payer</span><span id="scolariteReste" class="font-semibold text-alert-red"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="eleveError" class="hidden mt-4 rounded-lg border border-alert-red/20 bg-alert-red/10 px-4 py-3 text-alert-red"></div>
     </div>
 </div>
 
@@ -168,55 +239,129 @@
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalScolarite')"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalScolariteContent">
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-success-green text-white">
-            <h3 class="font-headline-md text-headline-md">Enregistrer une scolarité</h3>
+            <h3 class="font-headline-md text-headline-md">Enregistrer un paiement</h3>
             <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalScolarite')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
+
+        @if(session('showRecu'))
+            <div class="p-6 border-b border-outline-variant bg-primary-fixed/20">
+                <p class="text-sm text-on-surface mb-3">Paiement enregistré. Téléchargez ou imprimez le reçu.</p>
+                <a href="{{ route('client.comptabilite.recu') }}" target="_blank" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md">
+                    <span class="material-symbols-outlined text-[18px]">print</span>
+                    Imprimer le reçu
+                </a>
+            </div>
+        @endif
+
         <form class="p-6 space-y-4" id="scolariteForm" action="{{ route('client.comptabilite.scolarite.store') }}" method="POST">
             @csrf
-            <input type="hidden" name="eleve_id" id="studentIdHidden">
-            <input type="hidden" name="montant" id="amountHidden">
             <input type="hidden" name="montant_versement" id="amountVersementHidden">
             <input type="hidden" name="annee_scolaire" id="academicYearHidden" value="{{ $currentYear ?? '2024-2025' }}">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-1">
-                    <label class="block text-label-sm text-on-surface-variant mb-1.5">Niveau</label>
-                    <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="levelSelect">
-                        @foreach($levels ?? ['Primaire', 'Secondaire', 'Lycée'] as $level)
-                        <option value="{{ is_array($level) ? $level['id'] : $level }}">{{ is_array($level) ? $level['name'] : $level }}</option>
-                        @endforeach
-                    </select>
+            <div>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">Matricule de l'élève</label>
+                <div class="flex gap-2">
+                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="paymentMatricule" name="matricule" placeholder="Saisissez le matricule" required>
+                    <button type="button" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg shrink-0" onclick="searchEleveForPayment()">Vérifier</button>
                 </div>
-                <div class="col-span-1">
-                    <label class="block text-label-sm text-on-surface-variant mb-1.5">Classe</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="className" placeholder="Ex: Terminal C" type="text">
-                </div>
+                <p id="paymentEleveInfo" class="text-sm text-on-surface-variant mt-2"></p>
             </div>
             <div>
-                <label class="block text-label-sm text-on-surface-variant mb-1.5">Nom de l'élève</label>
-                <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="studentName">
-                    <option value="">Sélectionner un élève</option>
-                    @foreach($eleves ?? [] as $eleve)
-                        <option value="{{ $eleve['id'] }}">{{ $eleve['name'] }}</option>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant à payer (FCFA)</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" name="montant_versement" step="100" type="number" placeholder="Basé sur les frais configurés">
+            </div>
+            <div>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">Moyen de paiement</label>
+                <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="paymentMethod" name="methode" required>
+                    <option value="">Sélectionner un moyen</option>
+                    @foreach($paymentMethods ?? [] as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant (FCFA)</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" step="100" type="number">
-                </div>
-                <div>
-                    <label class="block text-label-sm text-on-surface-variant mb-1.5">Année Académique</label>
-                    <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm bg-surface-container-low" readonly type="text" value="{{ $currentYear ?? '2024-2025' }}">
-                </div>
+            <div>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">Date du versement</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="paymentDate" name="date_versement" type="date" value="{{ now()->toDateString() }}">
             </div>
             <div class="pt-4 flex gap-3">
                 <button class="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md hover:bg-surface-container-low transition-colors" onclick="closeModal('modalScolarite')" type="button">Annuler</button>
                 <button class="flex-1 px-4 py-2.5 rounded-lg bg-success-green text-white font-label-md hover:brightness-110 shadow-lg" type="submit">Valider l'encaissement</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal Frais par niveau -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalFrais">
+    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalFrais')"></div>
+    <div class="bg-surface-container-lowest w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalFraisContent">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white">
+            <h3 class="font-headline-md text-headline-md">Configuration des frais de scolarité</h3>
+            <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalFrais')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-surface-container-low">
+                        <tr>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Niveau</th>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Inscription</th>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Scolarité</th>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Autres frais</th>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Total</th>
+                            <th class="px-4 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant">
+                        @forelse($levels ?? [] as $level)
+                            @php
+                                $frais = $fraisParNiveau->firstWhere('niveau_id', $level['id']);
+                            @endphp
+                            <tr>
+                                <td class="px-4 py-3 font-label-md">{{ $level['name'] }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->inscription, 0, ',', ' ') : '—' }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->scolarite, 0, ',', ' ') : '—' }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->autres_frais, 0, ',', ' ') : '—' }}</td>
+                                <td class="px-4 py-3 font-bold text-primary">{{ $frais ? number_format((int) $frais->montant_total, 0, ',', ' ') : '—' }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <button class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors" onclick="openEditFrais({{ $level['id'] }}, {{ $frais?->inscription ?? 0 }}, {{ $frais?->scolarite ?? 0 }}, {{ $frais?->autres_frais ?? 0 }})" title="{{ $frais ? 'Modifier' : 'Configurer' }}">
+                                        <span class="material-symbols-outlined text-[18px]">{{ $frais ? 'edit' : 'add' }}</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Aucun niveau configuré.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Formulaire édition frais -->
+            <form method="POST" action="{{ route('client.comptabilite.frais.store') }}" class="mt-6 p-4 bg-surface-container-low rounded-xl space-y-4" id="fraisForm">
+                @csrf
+                <input type="hidden" name="niveau_id" id="fraisNiveauId">
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-label-sm text-on-surface-variant mb-1.5">Inscription (FCFA)</label>
+                        <input class="w-full rounded-lg border-outline-variant text-body-sm" name="inscription" id="fraisInscriptionInput" type="number" min="0" value="0">
+                    </div>
+                    <div>
+                        <label class="block text-label-sm text-on-surface-variant mb-1.5">Scolarité (FCFA)</label>
+                        <input class="w-full rounded-lg border-outline-variant text-body-sm" name="scolarite" id="fraisScolariteInput" type="number" min="0" value="0">
+                    </div>
+                    <div>
+                        <label class="block text-label-sm text-on-surface-variant mb-1.5">Autres frais (FCFA)</label>
+                        <input class="w-full rounded-lg border-outline-variant text-body-sm" name="autres_frais" id="fraisAutresInput" type="number" min="0" value="0">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white font-label-md hover:bg-primary/90">Enregistrer les frais</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -280,18 +425,6 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const realScolariteForm = document.getElementById('scolariteForm');
-        if (realScolariteForm) {
-            realScolariteForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                document.getElementById('studentIdHidden').value = document.getElementById('studentName').value;
-                document.getElementById('amountHidden').value = document.getElementById('amountInput').value;
-                document.getElementById('amountVersementHidden').value = document.getElementById('amountInput').value;
-                HTMLFormElement.prototype.submit.call(realScolariteForm);
-            }, true);
-        }
-
         const realDepenseForm = document.getElementById('depenseForm');
         if (realDepenseForm) {
             realDepenseForm.addEventListener('submit', function(e) {
@@ -305,16 +438,131 @@
         }
     });
 
+    const searchRoute = @json(route('client.comptabilite.search'));
+
+    // Recherche élève dans la section "Rechercher un élève par matricule"
+    function searchEleve() {
+        const matricule = document.getElementById('matriculeSearch').value.trim();
+        const errorBox = document.getElementById('eleveError');
+        const resultBox = document.getElementById('eleveResult');
+        errorBox.classList.add('hidden');
+        resultBox.classList.add('hidden');
+
+        if (!matricule) {
+            errorBox.textContent = 'Veuillez saisir un matricule.';
+            errorBox.classList.remove('hidden');
+            return;
+        }
+
+        fetch(searchRoute + '?matricule=' + encodeURIComponent(matricule), {
+            headers: { Accept: 'application/json' }
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                errorBox.textContent = data.error || 'Aucun élève trouvé.';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+            renderResult(data);
+            resultBox.classList.remove('hidden');
+        })
+        .catch(() => {
+            errorBox.textContent = 'Une erreur est survenue lors de la recherche.';
+            errorBox.classList.remove('hidden');
+        });
+    }
+
+    function renderResult(data) {
+        const e = data.eleve || {};
+        document.getElementById('resultNom').textContent = (e.nom || '') + ' ' + (e.prenom || '');
+        document.getElementById('resultMatricule').textContent = 'Matricule : ' + (e.matricule || '—');
+        document.getElementById('resultClasse').textContent = 'Classe : ' + (e.classe || '—');
+        document.getElementById('resultNiveau').textContent = 'Niveau : ' + (e.niveau || '—');
+        document.getElementById('resultEtab').textContent = 'Établissement : ' + (e.etablissement || '—');
+
+        const photo = document.getElementById('resultPhoto');
+        if (e.photo) {
+            photo.src = e.photo;
+            photo.classList.remove('hidden');
+        } else {
+            photo.classList.add('hidden');
+        }
+
+        const f = data.frais;
+        if (f) {
+            const fmt = n => Number(n || 0).toLocaleString('fr-FR') + ' FCFA';
+            document.getElementById('fraisInscription').textContent = fmt(f.inscription);
+            document.getElementById('fraisScolarite').textContent = fmt(f.scolarite);
+            document.getElementById('fraisAutres').textContent = fmt(f.autres_frais);
+            document.getElementById('fraisTotal').textContent = fmt(f.montant_total);
+        } else {
+            document.getElementById('fraisInscription').textContent = '—';
+            document.getElementById('fraisScolarite').textContent = '—';
+            document.getElementById('fraisAutres').textContent = '—';
+            document.getElementById('fraisTotal').textContent = 'Aucun frais configuré';
+        }
+
+        const list = document.getElementById('versementsList');
+        const versements = data.versements || [];
+        if (versements.length) {
+            list.innerHTML = versements.map(v => `<tr class="border-b border-outline-variant/50">
+                <td class="px-3 py-2">${v.date}</td>
+                <td class="px-3 py-2 text-right font-semibold">${Number(v.montant).toLocaleString('fr-FR')} FCFA</td>
+                <td class="px-3 py-2">${v.methode || '—'}</td>
+            </tr>`).join('');
+        } else {
+            list.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-on-surface-variant">Aucun paiement enregistré.</td></tr>';
+        }
+
+        const s = data.scolarite;
+        document.getElementById('scolaritePaye').textContent = s ? Number(s.montant_paye).toLocaleString('fr-FR') + ' FCFA' : '—';
+        document.getElementById('scolariteReste').textContent = s ? Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : '—';
+    }
+
+    // Vérifie le matricule dans le modal de paiement
+    function searchEleveForPayment() {
+        const matricule = document.getElementById('paymentMatricule').value.trim();
+        const info = document.getElementById('paymentEleveInfo');
+        if (!matricule) {
+            info.textContent = 'Veuillez saisir un matricule.';
+            info.classList.add('text-alert-red');
+            return;
+        }
+        fetch(searchRoute + '?matricule=' + encodeURIComponent(matricule), {
+            headers: { Accept: 'application/json' }
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                info.textContent = (data.error || 'Élève introuvable.');
+                info.className = 'text-sm text-alert-red mt-2';
+                return;
+            }
+            const f = data.frais;
+            info.textContent = (data.eleve.nom + ' ' + data.eleve.prenom) + (f ? ' — Total : ' + Number(f.montant_total).toLocaleString('fr-FR') + ' FCFA' : '');
+            info.className = 'text-sm text-success-green mt-2';
+        });
+    }
+
+    // Remplit le formulaire des frais pour modifier
+    function openEditFrais(niveauId, inscription, scolarite, autres) {
+        document.getElementById('fraisNiveauId').value = niveauId;
+        document.getElementById('fraisInscriptionInput').value = inscription;
+        document.getElementById('fraisScolariteInput').value = scolarite;
+        document.getElementById('fraisAutresInput').value = autres;
+    }
+
     // Modal Handling with animation
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         const contentId = modalId + 'Content';
         const content = document.getElementById(contentId);
-        
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        
+
         setTimeout(() => {
             content.classList.remove('scale-95', 'opacity-0');
             content.classList.add('scale-100', 'opacity-100');
@@ -325,10 +573,10 @@
         const modal = document.getElementById(modalId);
         const contentId = modalId + 'Content';
         const content = document.getElementById(contentId);
-        
+
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-95', 'opacity-0');
-        
+
         setTimeout(() => {
             modal.classList.remove('flex');
             modal.classList.add('hidden');
@@ -339,7 +587,7 @@
     // Close modal on escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            const modals = ['modalScolarite', 'modalDepense'];
+            const modals = ['modalScolarite', 'modalFrais', 'modalDepense'];
             modals.forEach(id => {
                 const modal = document.getElementById(id);
                 if (modal && modal.classList.contains('flex')) {
@@ -349,47 +597,13 @@
         }
     });
 
-    // Form Submission Logic with SweetAlert2
-    const scolariteForm = document.getElementById('scolariteForm');
-    if (scolariteForm) {
-        scolariteForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const studentName = document.getElementById('studentName').value;
-            const amount = document.getElementById('amountInput').value;
-            
-            if (!studentName || !amount) {
-                Swal.fire({
-                    title: 'Champs manquants',
-                    text: 'Veuillez remplir tous les champs obligatoires.',
-                    icon: 'error',
-                    confirmButtonColor: '#1f108e',
-                    borderRadius: '12px'
-                });
-                return;
-            }
-            
-            closeModal('modalScolarite');
-            Swal.fire({
-                title: 'Enregistré !',
-                text: `La scolarité de ${studentName} d'un montant de ${parseInt(amount).toLocaleString()} FCFA a été encaissée avec succès.`,
-                icon: 'success',
-                confirmButtonColor: '#1f108e',
-                timer: 3000,
-                timerProgressBar: true,
-                borderRadius: '12px'
-            }).then(() => {
-                scolariteForm.reset();
-            });
-        });
-    }
-
     const depenseForm = document.getElementById('depenseForm');
     if (depenseForm) {
         depenseForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const label = document.getElementById('expenseLabel').value;
             const amount = document.getElementById('expenseAmount').value;
-            
+
             if (!label || !amount) {
                 Swal.fire({
                     title: 'Champs manquants',
@@ -400,7 +614,7 @@
                 });
                 return;
             }
-            
+
             closeModal('modalDepense');
             Swal.fire({
                 title: 'Dépense Enregistrée',

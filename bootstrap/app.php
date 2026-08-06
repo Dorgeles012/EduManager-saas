@@ -3,6 +3,8 @@
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckUserStatut;
+use App\Http\Middleware\EnsureSubscriptionActive;
+use App\Http\Middleware\MustChangePassword;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,10 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias([
+$middleware->alias([
             'role' => RoleMiddleware::class,
             'client' => ClientMiddleware::class,
             'status' => CheckUserStatut::class,
+            'subscription.active' => EnsureSubscriptionActive::class,
+            'must.change.password' => MustChangePassword::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
