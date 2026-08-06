@@ -75,10 +75,10 @@
             }
         }
 
-        .animate-spin-custom {
+.animate-spin-custom {
             animation: spin 1s linear infinite;
         }
-    </style>
+</style>
 </head>
 <body class="bg-surface min-h-screen flex items-center justify-center relative overflow-hidden p-4">
 

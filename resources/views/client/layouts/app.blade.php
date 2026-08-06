@@ -228,6 +228,7 @@
         }
     </style>
     
+@include('partials.compact-styles')
     @stack('styles')
 </head>
 <body class="font-body-md text-body-md overflow-x-hidden">

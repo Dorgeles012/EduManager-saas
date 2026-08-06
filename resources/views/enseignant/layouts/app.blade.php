@@ -234,12 +234,13 @@
             font-size: 0.875rem !important;
         }
 
-        .swal2-confirm,
+.swal2-confirm,
         .swal2-cancel {
             font-size: 0.8125rem !important;
         }
     </style>
     
+    @include('partials.compact-styles')
     @stack('styles')
 </head>
 <body class="font-body-md text-body-md overflow-x-hidden">

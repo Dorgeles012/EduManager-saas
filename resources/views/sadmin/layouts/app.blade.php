@@ -121,8 +121,9 @@
         .sidebar-shadow { box-shadow: 4px 0 12px rgba(55,48,163,0.04); }
         .card-shadow { box-shadow: 0 4px 12px rgba(55,48,163,0.04); }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .chart-bar { transition: height 1s ease-in-out; }
+.chart-bar { transition: height 1s ease-in-out; }
     </style>
+    @include('partials.compact-styles')
 </head>
 <body class="bg-background text-on-surface font-body-md">
 

@@ -77,8 +77,9 @@
         .sidebar-nav a.nav-active span.material-symbols-outlined { color: #1f108e !important; }
         .sidebar-nav a { transition: all 0.2s ease; border-right: 4px solid transparent; }
         .sidebar-nav a:hover { background-color: #f0f3ff; }
-        .swal2-popup { font-size: 0.9375rem !important; }
+.swal2-popup { font-size: 0.9375rem !important; }
     </style>
+    @include('partials.compact-styles')
     @stack('styles')
 </head>
 <body class="font-body-md text-body-md overflow-x-hidden">
