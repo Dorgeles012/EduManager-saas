@@ -1,9 +1,5 @@
 <style>
-    /* ============================================================
-       EduManager — Optimisation globale de l'interface (compacte)
-       Ne modifie ni le design, ni les couleurs, ni la structure.
-       Réduit uniquement les tailles pour afficher plus d'infos.
-       ============================================================ */
+    
 
     /* ---------- Navbar / Topbar ---------- */
     .navbar-fixed {
@@ -12,11 +8,11 @@
     .main-content-with-fixed-nav {
         margin-top: 52px !important;
     }
-    .navbar-fixed .h-16 {
+.navbar-fixed .h-16 {
         height: 52px !important;
     }
 
-    /* ---------- Tailles de police ---------- */
+    /* ---------- Tailles de police (réduites) ---------- */
     .text-4xl { font-size: 1.5rem !important; line-height: 2rem !important; }
     .text-3xl { font-size: 1.375rem !important; line-height: 1.75rem !important; }
     .text-2xl { font-size: 1.125rem !important; line-height: 1.5rem !important; }
@@ -47,7 +43,7 @@
     .text-label-md{ font-size: .75rem !important;   line-height: .9375rem !important; }
     .text-label-sm{ font-size: .6875rem !important; line-height: .875rem !important; }
 
-    /* ---------- Paddings ---------- */
+/* ---------- Paddings ---------- */
     .p-8 { padding: 1.25rem !important; }
     .p-7 { padding: 1.125rem !important; }
     .p-6 { padding: 1rem !important; }
@@ -193,7 +189,7 @@
     .rounded-md { border-radius: .25rem !important; }
     .rounded-full { border-radius: 9999px !important; }
 
-    /* ---------- Champs de saisie (inputs, selects, textareas) ---------- */
+/* ---------- Champs de saisie (inputs, selects, textareas) ---------- */
     input[type="text"],
     input[type="email"],
     input[type="password"],
@@ -203,7 +199,7 @@
     input[type="time"],
     input[type="search"],
     input[type="url"],
-    select,
+select,
     textarea {
         font-size: .8125rem !important;
         line-height: 1.125rem !important;
@@ -232,15 +228,15 @@
         font-size: .75rem !important;
     }
 
-    /* ---------- Icones Material Symbols ---------- */
+    /* ---------- Icones Material Symbols (taille normale) ---------- */
     .material-symbols-outlined {
-        font-size: 1.125rem !important;
+        font-size: 1.5rem !important;
     }
     .material-symbols-outlined.material-symbols-outlined {
-        font-size: 1.125rem !important;
+        font-size: 1.5rem !important;
     }
 
-/* ---------- Sidebar navigation (augmentée légèrement) ---------- */
+/* ---------- Sidebar navigation (tailles normales) ---------- */
     aside nav a {
         padding-top: .625rem !important;
         padding-bottom: .625rem !important;
@@ -248,15 +244,15 @@
         padding-right: 1.25rem !important;
     }
     aside nav a .material-symbols-outlined {
-        font-size: 1.375rem !important;
+        font-size: 1.5rem !important;
     }
     aside nav a span.font-label-md,
     aside nav a .font-label-md {
-        font-size: .8125rem !important;
+        font-size: .875rem !important;
     }
 
-    /* ---------- Modales ---------- */
+/* ---------- Modales ---------- */
     .swal2-popup {
-        font-size: .875rem !important;
+        font-size: .9375rem !important;
     }
 </style>

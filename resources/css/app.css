@@ -7,6 +7,7 @@
    Ne modifie ni le design, ni les couleurs, ni la structure.
    ============================================================ */
 
+/* ---------- Tailles de police (réduites) ---------- */
 .text-4xl { font-size: 1.5rem !important; line-height: 2rem !important; }
 .text-3xl { font-size: 1.375rem !important; line-height: 1.75rem !important; }
 .text-2xl { font-size: 1.125rem !important; line-height: 1.5rem !important; }
@@ -110,7 +111,4 @@ table td {
 table th {
     font-size: .75rem !important;
 }
-
-.material-symbols-outlined {
-    font-size: 1.125rem !important;
-}
+</content>
