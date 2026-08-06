@@ -4,7 +4,8 @@
 <!-- Header Actions & Welcome -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
-        <p class="font-body-md text-body-md text-on-surface-variant">Gestion financière du portail client</p>
+        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financière </h2>
+        <p class="text-body-md text-on-surface-variant">Gérez les finances de votre établissement avec précision et clarté.</p>
     </div>
     <div class="flex gap-3">
         <button class="flex items-center gap-2 bg-success-green text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">

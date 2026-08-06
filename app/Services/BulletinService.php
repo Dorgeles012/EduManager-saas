@@ -5,6 +5,25 @@ namespace App\Services;
 class BulletinService
 {
     /**
+     * Source unique de vérité pour l'appréciation d'une note (sur 20).
+     * Seuils conservés identiques à l'aperçu "Appréciation suggérée" des notes.
+     */
+    public static function noteAppreciation(?float $note): string
+    {
+        if ($note === null) {
+            return '—';
+        }
+
+        return match (true) {
+            $note >= 16 => 'Très Bien',
+            $note >= 14 => 'Bien',
+            $note >= 12 => 'Assez Bien',
+            $note >= 10 => 'Passable',
+            default     => 'Insuffisant',
+        };
+    }
+
+    /**
      * Returns the official mention and council observation for an average out of 20.
      */
     public function evaluation(?float $moyenne): array
