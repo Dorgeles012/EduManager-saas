@@ -11,7 +11,7 @@
         @if(Auth::user() && Auth::user()->role === 'SADMIN')
 
        <button type="button" class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md"  onclick="toggleModal('addSadminModal')">
-          <span class="material-symbols-outlined text-base">add_circle</span> Ajouter un SAdmin
+          <span class="material-symbols-outlined text-base">add_circle</span> Ajouter un Sadmin
      </button>
 
         @endif

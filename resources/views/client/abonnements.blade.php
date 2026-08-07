@@ -108,38 +108,59 @@
         Abonnements actifs
     </h4>
 
-    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden ambient-shadow">
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden ambient-shadow">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-surface-container-low text-on-surface-variant">
                     <tr>
-                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Plan</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">N°</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Offre</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Montant</th>
-                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Abonnement</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Souscription</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Expiration</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Paiement</th>
-                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Cree le</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Statut paiement</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm uppercase">Validation</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
                     @forelse ($subscriptions as $subscription)
                         @php
-                            $payment = $subscription->payment;
+                            $payment = $subscription->payment ?? $subscription->payments->first();
                             $amount = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
+                            $methode = $payment?->methode_paiement ?? $payment?->payment_method ?? '-';
+                            $paiementStatut = $payment?->statut ?? $payment?->status ?? 'paid';
+                            $aboStatus = $subscription->abonnement_status ?? 'en_attente';
+                            $aboLabel = [
+                                'en_attente' => 'En attente',
+                                'paye' => 'Payé (en attente de validation)',
+                                'actif' => 'Validé (Actif)',
+                                'expire' => 'Expiré',
+                            ][$aboStatus] ?? ucfirst($aboStatus);
+                            $aboColor = match ($aboStatus) {
+                                'actif' => 'bg-success-green/10 text-success-green',
+                                'paye' => 'bg-primary-fixed text-primary',
+                                'expire' => 'bg-red-500/10 text-red-600',
+                                default => 'bg-warning-amber/10 text-warning-amber',
+                            };
                         @endphp
                         <tr>
+                            <td class="px-6 py-4 font-label-md text-on-surface-variant">#{{ $subscription->id }}</td>
                             <td class="px-6 py-4 font-label-md text-on-surface">{{ $subscription->plan?->nom ?? $subscription->name ?? '-' }}</td>
                             <td class="px-6 py-4 text-primary font-semibold">{{ number_format((int) $amount, 0, ',', ' ') }} FCFA</td>
+                            <td class="px-6 py-4 text-on-surface-variant">{{ optional($subscription->date_debut ?? $subscription->created_at)->format('d/m/Y') }}</td>
+                            <td class="px-6 py-4 text-on-surface-variant">{{ optional($subscription->date_fin)->format('d/m/Y') }}</td>
+                            <td class="px-6 py-4 text-on-surface-variant">{{ $methode }}</td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full bg-success-green/10 text-success-green font-label-sm">{{ $subscription->statut ?? $subscription->status ?? 'active' }}</span>
+                                <span class="px-3 py-1 rounded-full bg-primary-fixed text-primary font-label-sm">{{ ucfirst($paiementStatut) }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full bg-primary-fixed text-primary font-label-sm">{{ $payment?->statut ?? $payment?->status ?? 'paid' }}</span>
+                                <span class="px-3 py-1 rounded-full font-label-sm {{ $aboColor }}">{{ $aboLabel }}</span>
                             </td>
-                            <td class="px-6 py-4 text-on-surface-variant">{{ optional($subscription->created_at)->format('d/m/Y H:i') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-on-surface-variant">
+                            <td colspan="8" class="px-6 py-8 text-center text-on-surface-variant">
                                 Aucun abonnement confirme pour le moment.
                             </td>
                         </tr>

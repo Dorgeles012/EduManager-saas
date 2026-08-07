@@ -11,7 +11,7 @@ class PlanStoreRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+public function rules(): array
     {
         return [
             'nom' => ['required', 'string', 'max:255'],
@@ -24,7 +24,13 @@ class PlanStoreRequest extends FormRequest
 
             'prix' => ['required', 'integer', 'min:0'],
 
-            'type' => ['required', 'string', 'max:255', 'exists:subscription_types,type'],
+            // Durée du plan en mois (colonne `duree` de la table `plans`).
+            'duree' => ['nullable', 'integer', 'min:1'],
+
+            // Le type est rendu plus souple : on ne bloque plus la création si
+            // le type n'existe pas encore dans `subscription_types`. Le contrôleur
+            // le créera automatiquement au besoin (firstOrCreate).
+            'type' => ['nullable', 'string', 'max:255'],
             'statut' => ['required', 'in:active,inactive'],
         ];
     }

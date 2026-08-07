@@ -30,8 +30,8 @@ class AbonnementController extends Controller
 
         $plans = $planQuery->orderBy('id')->get();
 
-        $subscriptions = Subscription::query()
-            ->with(['plan', 'payment'])
+$subscriptions = Subscription::query()
+            ->with(['plan', 'payment', 'payments'])
             ->when(Schema::hasColumn('subscriptions', 'user_id'), function ($query) {
                 $query->where('user_id', auth()->id());
             })

@@ -238,8 +238,20 @@
             </div>
         </header>
 
-        <!-- Zone principale -->
+<!-- Zone principale -->
         <div class="p-8 mt-16 max-w-[1440px] mx-auto">
+            {{-- Affichage des erreurs de validation --}}
+            @if ($errors->any())
+                <div class="mb-6 rounded-lg border border-error/30 bg-error-container/30 px-4 py-3 text-error">
+                    <p class="font-label-md mb-2">Veuillez corriger les erreurs suivantes :</p>
+                    <ul class="list-disc pl-5 font-body-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
         </div>
 

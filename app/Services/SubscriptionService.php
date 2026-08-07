@@ -50,14 +50,21 @@ class SubscriptionService
         // et on pourra brancher un "PaymentProvider" (Orange/MTN/Wave/Stripe/PayPal)
         // sans casser la création subscription.
         return DB::transaction(function () use ($user, $plan, $methodePaiement, $referenceTransaction, $dateDebut, $dateFin, $referenceColumn) {
-            // 1) Create subscription
+// 1) Create subscription
             $subscriptionPayload = [
                 'user_id' => $user->id,
                 'plan_id' => $plan->id,
                 'date_debut' => $dateDebut,
                 'date_fin' => $dateFin,
-                'statut' => 'active',
+'statut' => 'active',
+                'abonnement_status' => Subscription::ABONNEMENT_PAYE,
             ];
+
+            // Relation Client ↔ Subscription : on stocke user_id aussi dans client_id
+            // pour que la relation `subscription.client` fonctionne.
+            if (\Schema::hasColumn('subscriptions', 'client_id')) {
+                $subscriptionPayload['client_id'] = $user->id;
+            }
 
             // Si la table contient une colonne "name" (ancien modèle historique),
             // on la renseigne pour maximiser la compat.

@@ -103,10 +103,11 @@
                                 <div class="flex justify-center gap-2">
                                     <button 
                                         onclick="openEditModal(this)"
-                                        data-id="{{ $plan->id }}"
+data-id="{{ $plan->id }}"
                                         data-name="{{ $plan->nom }}"
                                         data-type="{{ $plan->subscriptionType?->type ?? $plan->type }}"
                                         data-price="{{ $plan->prix }}"
+                                        data-duree="{{ $plan->duree ?? 12 }}"
                                         data-features='@json($featuresArray)'
                                         data-status="{{ $plan->statut }}"
                                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-900"
@@ -134,6 +135,94 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Tableau des abonnements des clients -->
+<div class="col-span-12 bg-surface-container-lowest rounded-xl card-shadow border border-outline-variant overflow-hidden">
+    <div class="px-6 py-5 border-b border-surface-subtle flex justify-between items-center">
+        <h3 class="font-headline-md text-headline-md text-on-surface">Abonnements des Clients</h3>
+        <span class="px-3 py-1 bg-primary-fixed text-primary rounded-full font-label-sm text-label-sm">{{ $activeCount }} abonnement(s)</span>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-subtle">
+                <tr>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Client</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Établissement</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Offre</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Montant</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Paiement</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statut</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-subtle">
+                @forelse($subscriptions ?? [] as $subscription)
+                    @php
+                        $client = $subscription->user;
+                        $clientName = $client ? trim(($client->nom ?? '') . ' ' . ($client->prenom ?? '')) : '—';
+                        $etablissement = $client?->etablissement?->nom ?? '—';
+                        $offre = $subscription->plan?->nom ?? $subscription->name ?? '—';
+                        $montant = $subscription->payments->first()?->montant ?? $subscription->payments->first()?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
+                        $methode = $subscription->payments->first()?->methode_paiement ?? $subscription->payments->first()?->payment_method ?? '—';
+                        $aboStatus = $subscription->abonnement_status ?? 'en_attente';
+                        $statusLabel = [
+                            'en_attente' => 'En attente',
+                            'paye' => 'Payé',
+                            'actif' => 'Actif',
+                            'expire' => 'Expiré',
+                        ][$aboStatus] ?? ucfirst($aboStatus);
+                        $statusColor = match ($aboStatus) {
+                            'actif' => 'bg-success-green/10 text-success-green',
+                            'paye' => 'bg-primary-fixed text-primary',
+                            'expire' => 'bg-red-500/10 text-red-600',
+                            default => 'bg-warning-amber/10 text-warning-amber',
+                        };
+                    @endphp
+                    <tr class="hover:bg-surface-dim transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="font-label-md text-label-md text-on-surface">{{ $clientName }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $etablissement }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface">{{ $offre }}</td>
+                        <td class="px-6 py-4 text-right font-body-md font-semibold">{{ number_format((int) $montant, 0, ',', ' ') }} FCFA</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $subscription->created_at?->format('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $methode }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full font-label-sm text-label-sm {{ $statusColor }}">{{ $statusLabel }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-center">
+                                @if($aboStatus !== 'actif')
+                                    <form method="POST" action="{{ route('sadmin.abonnement.validate', $subscription->id) }}" onsubmit="return confirmActivateSweet(event, this)">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-success-green text-white rounded-lg font-label-sm text-label-sm hover:bg-success-green/90 transition-colors">
+                                            <span class="material-symbols-outlined text-[16px]">verified</span>
+                                            Valider / Activer
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-success-green font-label-sm text-label-sm">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                        Activé
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-6 py-10 text-center text-body-sm text-on-surface-variant">
+                            Aucun abonnement client pour le moment.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -179,7 +268,7 @@
                         </select>
                     </div>
 
-                    <div class="space-y-2">
+<div class="space-y-2">
                         <label class="font-label-md text-label-md text-on-surface-variant block">Prix (FCFA)</label>
                         <input
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
@@ -187,6 +276,19 @@
                             type="number"
                             name="prix"
                             min="0"
+                            required
+                        >
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée (en mois)</label>
+                        <input
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
+                            placeholder="12"
+                            type="number"
+                            name="duree"
+                            min="1"
+                            value="12"
                             required
                         >
                     </div>
@@ -276,7 +378,7 @@
                         </select>
                     </div>
 
-                    <div class="space-y-2">
+<div class="space-y-2">
                         <label class="font-label-md text-label-md text-on-surface-variant block">Prix (FCFA)</label>
                         <input
                             id="edit_price"
@@ -285,6 +387,20 @@
                             type="number"
                             name="prix"
                             min="0"
+                            required
+                        >
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée (en mois)</label>
+                        <input
+                            id="edit_duree"
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
+                            placeholder="12"
+                            type="number"
+                            name="duree"
+                            min="1"
+                            value="12"
                             required
                         >
                     </div>
@@ -566,22 +682,25 @@
         return div.innerHTML;
     }
 
-    function openEditModal(button) {
+function openEditModal(button) {
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const type = button.getAttribute('data-type');
         const price = button.getAttribute('data-price');
+        const duree = button.getAttribute('data-duree');
         const status = button.getAttribute('data-status');
 
         const features = normalizeFeaturesData(button.getAttribute('data-features'));
 
         const nameInput = document.getElementById('edit_name');
         const priceInput = document.getElementById('edit_price');
+        const dureeInput = document.getElementById('edit_duree');
         const statusSelect = document.getElementById('edit_status');
         const typeSelect = document.getElementById('edit_type');
 
         if (nameInput) nameInput.value = name || '';
         if (priceInput) priceInput.value = price || 0;
+        if (dureeInput) dureeInput.value = duree || 12;
         if (statusSelect) statusSelect.value = status || 'active';
 
         if (typeSelect && type) {
@@ -599,6 +718,23 @@
         if (form && id) form.action = `/plans/${id}`;
 
         openModal('modal-edit');
+    }
+
+function confirmActivateSweet(event, form) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Valider l\'abonnement ?',
+            text: 'Activer les fonctionnalités pour ce client ?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, activer',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) form.submit();
+        });
+        return false;
     }
 
     function confirmDeleteSweet(event, form) {
