@@ -140,10 +140,7 @@
     <main class="ml-[260px] min-h-screen">
         <!-- TopNavBar -->
         <header class="navbar-fixed flex justify-between items-center px-gutter-desktop">
-            @php($headerUser = auth()->user())
-            <div class="text-sm text-text-muted hidden sm:block">
-                Bienvenue, <span class="font-semibold text-on-surface">{{ $headerUser?->prenom ?? $headerUser?->nom ?? 'Parent' }}</span>
-            </div>
+@php($headerUser = auth()->user())
             <div class="flex items-center gap-1.5 ml-auto">
                 <div class="w-px h-5 bg-outline-variant"></div>
                 <div class="relative">
