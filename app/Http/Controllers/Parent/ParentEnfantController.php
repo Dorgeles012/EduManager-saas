@@ -24,4 +24,23 @@ class ParentEnfantController extends ParentController
             'eleves' => $eleves,
         ]);
     }
+
+    /**
+     * Détail d'un enfant affilié au parent connecté (sécurisé).
+     */
+    public function show(Eleve $eleve): View
+    {
+        $this->childBelongsToParent($eleve);
+
+        $eleve->load(['classe.niveau', 'niveau', 'serie', 'etablissement', 'notes.matiere']);
+
+        $totalNotes = $eleve->notes()->count();
+        $totalBulletins = $eleve->bulletins()->count();
+
+        return view('parent.enfant', [
+            'eleve' => $eleve,
+            'totalNotes' => $totalNotes,
+            'totalBulletins' => $totalBulletins,
+        ]);
+    }
 }

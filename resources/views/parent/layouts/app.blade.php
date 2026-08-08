@@ -125,9 +125,24 @@
                 <span class="font-label-md text-label-md">Bulletins</span>
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.emploi-temps') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.emploi-temps') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
                 <span class="material-symbols-outlined">calendar_month</span>
                 <span class="font-label-md text-label-md">Emploi du temps</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'parent.notifications' ? 'nav-active' : '' }}" href="{{ route('parent.notifications') }}">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="font-label-md text-label-md">Notifications</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.messages') ? 'nav-active' : '' }}" href="{{ route('parent.messages') }}">
+                <span class="material-symbols-outlined">chat</span>
+                <span class="font-label-md text-label-md">Messages</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.profil') ? 'nav-active' : '' }}" href="{{ route('parent.profil') }}">
+                <span class="material-symbols-outlined">person</span>
+                <span class="font-label-md text-label-md">Mon profil</span>
             </a>
 
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors" href="{{ route('parent.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
