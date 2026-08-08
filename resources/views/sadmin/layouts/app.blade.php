@@ -127,74 +127,68 @@
 </head>
 <body class="bg-background text-on-surface font-body-md">
 
-    <!-- Barre latérale de navigation -->
-    <aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest sidebar-shadow flex flex-col py-6 px-4 z-50">
-        <div class="mb-10 px-2 flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-        <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
-    </div>
-    <div>
-        <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
-    </div>
+<!-- Barre latérale de navigation -->
+    <aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest flex flex-col border-r border-outline-variant z-50">
+        <div class="p-6 flex-shrink-0 flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+            </div>
+            <div>
+                <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+            </div>
         </div>
 
-        <nav class="flex-1 space-y-1">
+        <nav class="sidebar-nav mt-2">
             @php
-                $activeClass = 'text-primary font-bold bg-primary-fixed rounded-lg transition-transform active:scale-95';
-                $inactiveClass = 'text-on-surface-variant hover:bg-surface-subtle rounded-lg transition-all duration-200';
-                $route = request()->route();
-                $routeName = $route?->getName();
+                $currentRoute = request()->route()->getName();
             @endphp
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.dashboard') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.dashboard') }}">
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.dashboard' ? 'nav-active' : '' }}" href="{{ route('sadmin.dashboard') }}">
+                <span class="material-symbols-outlined">dashboard</span>
                 <span class="font-label-md text-label-md">Accueil</span>
             </a>
 
-
-            @if(Auth::check() && Auth::user()->role === 'SADMIN')
-                <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.index') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.index') }}">
+            @if(Auth::check() && strtolower((string) Auth::user()->role) === 'sadmin')
+                <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.index' ? 'nav-active' : '' }}" href="{{ route('sadmin.index') }}">
                     <span class="material-symbols-outlined">admin_panel_settings</span>
                     <span class="font-label-md text-label-md">Super Administrateur</span>
                 </a>
             @endif
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.etablissement') || request()->routeIs('sadmin.etablissements.*') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.etablissement') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.etablissement' || str_starts_with($currentRoute, 'sadmin.etablissements') ? 'nav-active' : '' }}" href="{{ route('sadmin.etablissement') }}">
                 <span class="material-symbols-outlined">domain</span>
                 <span class="font-label-md text-label-md">Établissements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.clients.*') || request()->routeIs('sadmin.clients.index') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.clients.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.clients.index' || str_starts_with($currentRoute, 'sadmin.clients') ? 'nav-active' : '' }}" href="{{ route('sadmin.clients.index') }}">
                 <span class="material-symbols-outlined">person_add</span>
                 <span class="font-label-md text-label-md">Clients</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.abonnement') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.abonnement') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.abonnement' ? 'nav-active' : '' }}" href="{{ route('sadmin.abonnement') }}">
                 <span class="material-symbols-outlined">card_membership</span>
                 <span class="font-label-md text-label-md">Abonnements</span>
             </a>
 
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.notifications') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.notifications') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.notifications' ? 'nav-active' : '' }}" href="{{ route('sadmin.notifications') }}">
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="font-label-md text-label-md">Notifications</span>
             </a>
 
-        </nav>
-
-        <div class="pt-6 border-t border-outline-variant mt-auto space-y-1">
-            <a class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('sadmin.parametres') ? $activeClass : $inactiveClass }}" href="{{ route('sadmin.parametres') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'sadmin.parametres' ? 'nav-active' : '' }}" href="{{ route('sadmin.parametres') }}">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Paramètres</span>
             </a>
 
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-label-md text-label-md">Déconnexion</span>
+            </a>
+
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
                 @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-subtle rounded-lg bg-transparent">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="font-label-md text-label-md">Deconnexion</span>
-                </button>
             </form>
-        </div>
+        </nav>
     </aside>
 
     <!-- Zone de contenu principale -->

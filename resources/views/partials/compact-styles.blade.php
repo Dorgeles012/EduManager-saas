@@ -246,9 +246,14 @@ select,
     aside nav a .material-symbols-outlined {
         font-size: 1.5rem !important;
     }
-    aside nav a span.font-label-md,
+aside nav a span.font-label-md,
     aside nav a .font-label-md {
         font-size: .875rem !important;
+        font-weight: 600 !important;
+    }
+    aside nav a.nav-active span.font-label-md,
+    aside nav a.nav-active .font-label-md {
+        font-weight: 700 !important;
     }
 
 /* ---------- Modales ---------- */
