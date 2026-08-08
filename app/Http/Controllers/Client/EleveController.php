@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Str;
 
 class EleveController extends Controller
 {
@@ -104,7 +103,7 @@ class EleveController extends Controller
             // Créer le parent en tant qu'utilisateur (role=parent)
             $parentEmail = $validated['parent_email'] ?? null;
 
-            $parent = User::query()->when(
+$parent = User::query()->when(
                 $parentEmail,
                 fn ($q) => $q->where('email', $parentEmail)
             )
@@ -113,13 +112,17 @@ class EleveController extends Controller
                 ->first();
 
             if (! $parent) {
+                // Mot de passe par défaut pour le parent (à changer obligatoirement au 1er login).
+                $defaultPassword = '12345678';
+
                 $parent = User::create([
                     'tenant_id' => $user->tenant_id,
                     'nom' => $validated['parent_nom'],
                     'prenom' => $validated['parent_prenom'] ?? null,
                     'email' => $parentEmail,
                     'telephone' => $validated['parent_telephone'],
-                    'password' => Hash::make(Str::random(12)),
+                    'password' => Hash::make($defaultPassword),
+                    'must_change_password' => true,
                     'role' => 'parent',
                 ]);
             } else {

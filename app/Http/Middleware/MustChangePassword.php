@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Oblige un utilisateur (ex. élève) à modifier son mot de passe
+ * Oblige un utilisateur (ex. élève ou parent) à modifier son mot de passe
  * avant d'accéder au reste de l'application.
  */
 class MustChangePassword
@@ -21,19 +21,35 @@ class MustChangePassword
         }
 
         // Si l'utilisateur doit changer son mot de passe, on le redirige
-        // vers la page de changement (sauf s'il y est déjà).
+        // vers la page de changement correspondant à son rôle (sauf s'il y est déjà).
         if ((bool) $user->must_change_password) {
             $current = $request->route()?->getName();
 
-            $allowed = [
-                'eleve.password.change',
-                'eleve.password.update',
-                'eleve.logout',
-                'logout',
-            ];
+            $role = strtolower((string) $user->role);
 
-            if (! in_array($current, $allowed, true)) {
-                return redirect()->route('eleve.password.change');
+            // Routes autorisées selon le rôle (pour éviter les boucles).
+            if ($role === 'parent') {
+                $allowed = [
+                    'parent.password.change',
+                    'parent.password.change.update',
+                    'parent.logout',
+                    'logout',
+                ];
+
+                if (! in_array($current, $allowed, true)) {
+                    return redirect()->route('parent.password.change');
+                }
+            } else {
+                $allowed = [
+                    'eleve.password.change',
+                    'eleve.password.update',
+                    'eleve.logout',
+                    'logout',
+                ];
+
+                if (! in_array($current, $allowed, true)) {
+                    return redirect()->route('eleve.password.change');
+                }
             }
         }
 

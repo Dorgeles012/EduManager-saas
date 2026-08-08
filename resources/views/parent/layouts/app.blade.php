@@ -110,26 +110,6 @@
                 <span class="font-label-md text-label-md">Mes enfants</span>
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.scolarite') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
-                <span class="material-symbols-outlined">school</span>
-                <span class="font-label-md text-label-md">Scolarité</span>
-            </a>
-
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.notes') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
-                <span class="material-symbols-outlined">fact_check</span>
-                <span class="font-label-md text-label-md">Notes</span>
-            </a>
-
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.bulletins') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
-                <span class="material-symbols-outlined">description</span>
-                <span class="font-label-md text-label-md">Bulletins</span>
-            </a>
-
-<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.enfant.emploi-temps') ? 'nav-active' : '' }}" href="{{ route('parent.enfants') }}">
-                <span class="material-symbols-outlined">calendar_month</span>
-                <span class="font-label-md text-label-md">Emploi du temps</span>
-            </a>
-
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'parent.notifications' ? 'nav-active' : '' }}" href="{{ route('parent.notifications') }}">
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="font-label-md text-label-md">Notifications</span>

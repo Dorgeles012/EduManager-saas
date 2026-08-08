@@ -60,7 +60,9 @@ class ParentProfilController extends Controller
             return back()->withErrors(['current_password' => 'Le mot de passe actuel est incorrect.']);
         }
 
-        $parent->password = Hash::make($validated['password']);
+$parent->password = Hash::make($validated['password']);
+        $parent->must_change_password = false;
+        $parent->password_changed_at = now();
         $parent->save();
 
         return back()->with('success', 'Votre mot de passe a été modifié avec succès.');

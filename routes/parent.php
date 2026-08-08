@@ -9,15 +9,20 @@ use App\Http\Controllers\Parent\ParentEnfantEmploiTempsController;
 use App\Http\Controllers\Parent\ParentNotificationController;
 use App\Http\Controllers\Parent\ParentMessageController;
 use App\Http\Controllers\Parent\ParentProfilController;
+use App\Http\Controllers\Parent\ParentPasswordController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'status', 'role:parent'])
+Route::middleware(['auth', 'status', 'role:parent', 'must.change.password'])
     ->prefix('parent')
     ->name('parent.')
     ->group(function () {
 
         // Déconnexion (POST requis par le layout)
         Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+        // Changement obligatoire de mot de passe (première connexion)
+        Route::get('/password/change', [ParentPasswordController::class, 'showChangeForm'])->name('password.change');
+        Route::post('/password/change', [ParentPasswordController::class, 'update'])->name('password.change.update');
 
         // Dashboard
         Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
