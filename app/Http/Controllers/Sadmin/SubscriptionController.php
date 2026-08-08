@@ -47,17 +47,30 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    /**
+/**
      * Valide l'abonnement d'un client : passe de "payé" à "actif" et
      * déverrouille automatiquement les fonctionnalités du client.
+     *
+     * Gère aussi le renouvellement : si l'abonnement est expiré (date_fin
+     * dépassée), on prolonge la date_fin à partir d'aujourd'hui selon la
+     * durée du plan, ce qui redonne immédiatement l'accès à tout le tenant.
      */
     public function validate(Request $request, int $id, NotificationService $notifications)
     {
-        $subscription = Subscription::with('user')->findOrFail($id);
+        $subscription = Subscription::with(['user', 'plan'])->findOrFail($id);
 
         $subscription->statut = 'active';
         $subscription->status = 'active';
         $subscription->abonnement_status = Subscription::ABONNEMENT_ACTIF;
+
+        // Renouvellement : si la date de fin est passée, on la prolonge.
+        $isDateFinPassee = $subscription->date_fin && $subscription->date_fin->lt(\Carbon\Carbon::today()->startOfDay());
+        if ($isDateFinPassee) {
+            $dureeMois = $this->planDurationInMonths($subscription->plan);
+            $subscription->date_debut = \Carbon\Carbon::today();
+            $subscription->date_fin = \Carbon\Carbon::today()->addMonthsNoOverflow($dureeMois);
+        }
+
         $subscription->save();
 
         // Notifier le client que son abonnement a été validé.
@@ -116,6 +129,26 @@ public function edit($id)
         $subscription->delete();
 
         return back()->with('success', 'Abonnement supprimé avec succès.');
+    }
+
+    /**
+     * Calcule la durée (en mois) de l'abonnement à partir du plan associé.
+     */
+    private function planDurationInMonths($plan): int
+    {
+        if (! $plan) {
+            return 12;
+        }
+
+        if (isset($plan->duree) && is_numeric($plan->duree)) {
+            return max(1, (int) $plan->duree);
+        }
+
+        if (isset($plan->duration) && is_numeric($plan->duration)) {
+            return max(1, (int) $plan->duration);
+        }
+
+        return 12;
     }
 }
 

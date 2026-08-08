@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnneeAcademique;
 use App\Models\Depense;
 use App\Models\Eleve;
 use App\Models\FraisScolarite;
@@ -41,6 +42,12 @@ class ComptabiliteController extends Controller
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->get();
 
+        $anneesAcademiques = AnneeAcademique::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->orderByDesc('date_debut')
+            ->get(['id', 'libelle', 'statut']);
+
         $totalIncome = $versements->sum('montant');
         $totalExpense = $expenses->sum('montant');
 
@@ -73,7 +80,8 @@ class ComptabiliteController extends Controller
                 'classe_id' => $eleve->classe_id,
                 'niveau_id' => $eleve->niveau_id,
             ]),
-            'fraisParNiveau' => $fraisParNiveau,
+'fraisParNiveau' => $fraisParNiveau,
+            'anneesAcademiques' => $anneesAcademiques,
             'paymentMethods' => PaymentProviderService::METHODS,
             'currentYear' => now()->year . '-' . now()->addYear()->year,
         ]);

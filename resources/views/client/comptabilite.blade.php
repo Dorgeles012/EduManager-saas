@@ -255,7 +255,15 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <div class="p-6">
+<div class="p-6">
+            <div class="mb-4">
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">Année académique</label>
+                <select class="w-full rounded-lg border-outline-variant text-body-sm" id="fraisAnneeId" onchange="filterFraisByAnnee(this.value)">
+                    @foreach($anneesAcademiques ?? [] as $annee)
+                        <option value="{{ $annee->id }}" @if(($annee->statut ?? '') === 'active') selected @endif>{{ $annee->libelle }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-surface-container-low">
@@ -268,7 +276,7 @@
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-outline-variant">
+                    <tbody class="divide-y divide-outline-variant" id="fraisTableBody">
                         @forelse($levels ?? [] as $level)
                             @php
                                 $frais = $fraisParNiveau->firstWhere('niveau_id', $level['id']);
@@ -294,6 +302,7 @@
             <form method="POST" action="{{ route('client.comptabilite.frais.store') }}" class="mt-6 p-4 bg-surface-container-low rounded-xl space-y-4">
                 @csrf
                 <input type="hidden" name="niveau_id" id="fraisNiveauId">
+                <input type="hidden" name="annee_academique_id" id="fraisAnneeIdHidden">
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-label-sm text-on-surface-variant mb-1.5">Inscription</label>
@@ -454,9 +463,22 @@
         document.getElementById('fraisInscriptionInput').value = inscription;
         document.getElementById('fraisScolariteInput').value = scolarite;
         document.getElementById('fraisAutresInput').value = autres;
+        const annee = document.getElementById('fraisAnneeId');
+        if (annee) {
+            document.getElementById('fraisAnneeIdHidden').value = annee.value;
+        }
     }
 
-    function openModal(modalId) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const annee = document.getElementById('fraisAnneeId');
+        if (annee) {
+            document.getElementById('fraisAnneeIdHidden').value = annee.value;
+            filterFraisByAnnee(annee.value);
+            annee.addEventListener('change', () => filterFraisByAnnee(annee.value));
+        }
+    });
+
+function openModal(modalId) {
         const modal = document.getElementById(modalId);
         const content = document.getElementById(modalId + 'Content');
         modal.classList.remove('hidden');
@@ -466,6 +488,41 @@
             content.classList.remove('scale-95', 'opacity-0');
             content.classList.add('scale-100', 'opacity-100');
         }, 10);
+    }
+
+    // Frais par niveau et par année (JSON généré côté serveur)
+    const fraisData = @json(
+        $fraisParNiveau->map(fn ($f) => [
+            'niveau_id' => $f->niveau_id,
+            'annee_academique_id' => $f->annee_academique_id,
+            'inscription' => (int) $f->inscription,
+            'scolarite' => (int) $f->scolarite,
+            'autres_frais' => (int) $f->autres_frais,
+            'montant_total' => (int) $f->montant_total,
+        ])->values()
+    );
+    const levelsData = @json(($levels ?? collect())->map(fn ($l) => ['id' => $l['id'], 'name' => $l['name']])->values());
+
+    function filterFraisByAnnee(anneeId) {
+        document.getElementById('fraisAnneeIdHidden').value = anneeId;
+        const tbody = document.getElementById('fraisTableBody');
+        const selected = String(anneeId);
+        const fmt = n => n ? Number(n).toLocaleString('fr-FR') : '—';
+        tbody.innerHTML = levelsData.map(level => {
+            const f = fraisData.find(item => String(item.annee_academique_id) === selected && item.niveau_id === level.id);
+            return `<tr>
+                <td class="px-4 py-3 font-label-md">${level.name}</td>
+                <td class="px-4 py-3">${f ? fmt(f.inscription) : '—'}</td>
+                <td class="px-4 py-3">${f ? fmt(f.scolarite) : '—'}</td>
+                <td class="px-4 py-3">${f ? fmt(f.autres_frais) : '—'}</td>
+                <td class="px-4 py-3 font-bold text-primary">${f ? fmt(f.montant_total) : '—'}</td>
+                <td class="px-4 py-3 text-right">
+                    <button class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors" onclick="openEditFrais(${level.id}, ${f ? f.inscription : 0}, ${f ? f.scolarite : 0}, ${f ? f.autres_frais : 0})">
+                        <span class="material-symbols-outlined text-[18px]">${f ? 'edit' : 'add'}</span>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
     }
 
     function closeModal(modalId) {

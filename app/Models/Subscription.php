@@ -42,6 +42,7 @@ class Subscription extends Model
     public const ABONNEMENT_PAYE = 'paye';
     public const ABONNEMENT_ACTIF = 'actif';
     public const ABONNEMENT_EXPIRE = 'expire';
+    public const GRACE_DAYS = 7;
 
     public function isAbonnementActif(): bool
     {
@@ -58,6 +59,48 @@ class Subscription extends Model
         return $this->abonnement_status === self::ABONNEMENT_EN_ATTENTE;
     }
 
+    public function dateFinGrace(): ?\Carbon\Carbon
+    {
+        return $this->date_fin ? $this->date_fin->copy()->addDays(self::GRACE_DAYS) : null;
+    }
+
+    public function isWithinGracePeriod(): bool
+    {
+        if (! $this->date_fin) {
+            return false;
+        }
+
+        $finGrace = $this->dateFinGrace();
+
+        return $finGrace !== null && \Carbon\Carbon::today()->startOfDay()->lte($finGrace->startOfDay()) && $this->isExpired();
+    }
+
+    public function isGraceExpired(): bool
+    {
+        if (! $this->date_fin) {
+            return false;
+        }
+
+        $finGrace = $this->dateFinGrace();
+
+        return $finGrace !== null && \Carbon\Carbon::today()->startOfDay()->gt($finGrace->startOfDay());
+    }
+
+    public function remainingGraceDays(): ?int
+    {
+        if (! $this->date_fin) {
+            return null;
+        }
+
+        $finGrace = $this->dateFinGrace();
+        if (! $finGrace) {
+            return null;
+        }
+
+        $days = $finGrace->startOfDay()->diffInDays(\Carbon\Carbon::today()->startOfDay(), false);
+
+        return $days >= 0 ? $days : 0;
+    }
 
     protected $casts = [
         'date_debut' => 'date',

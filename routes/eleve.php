@@ -21,7 +21,7 @@ Route::middleware('guest')->prefix('eleve')->name('eleve.')
         Route::post('/login', [EleveAuthController::class, 'store'])->name('login.store');
     });
 
-Route::middleware(['auth', 'status', 'role:eleve', 'must.change.password'])
+Route::middleware(['auth', 'status', 'role:eleve', 'must.change.password', 'subscription.active'])
     ->prefix('eleve')
     ->name('eleve.')
     ->group(function () {

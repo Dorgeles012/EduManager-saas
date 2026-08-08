@@ -166,6 +166,8 @@
                 </div>
             @endif
 
+            @include('partials.subscription-grace-warning')
+
             @yield('content')
         </div>
     </main>

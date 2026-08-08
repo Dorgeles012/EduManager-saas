@@ -167,9 +167,10 @@ public function unblock(User $client): RedirectResponse
      * Valide l'abonnement du client et active ses fonctionnalités.
      * Fait passer l'abonnement de "payé" à "actif".
      */
-    public function validateSubscription(User $client): RedirectResponse
+public function validateSubscription(User $client): RedirectResponse
     {
         $subscription = Subscription::query()
+            ->with('plan')
             ->where('user_id', $client->id)
             ->orWhere('client_id', $client->id)
             ->latest()
@@ -180,10 +181,39 @@ public function unblock(User $client): RedirectResponse
         }
 
         $subscription->statut = 'active';
+        $subscription->status = 'active';
         $subscription->abonnement_status = Subscription::ABONNEMENT_ACTIF;
+
+        // Renouvellement : si la date de fin est passée, on la prolonge.
+        if ($subscription->date_fin && $subscription->date_fin->lt(\Carbon\Carbon::today()->startOfDay())) {
+            $dureeMois = $this->planDurationInMonths($subscription->plan);
+            $subscription->date_debut = \Carbon\Carbon::today();
+            $subscription->date_fin = \Carbon\Carbon::today()->addMonthsNoOverflow($dureeMois);
+        }
+
         $subscription->save();
 
         return back()->with('success', 'Abonnement validé. Les fonctionnalités du client sont maintenant actives.');
+    }
+
+    /**
+     * Calcule la durée (en mois) de l'abonnement à partir du plan associé.
+     */
+    private function planDurationInMonths($plan): int
+    {
+        if (! $plan) {
+            return 12;
+        }
+
+        if (isset($plan->duree) && is_numeric($plan->duree)) {
+            return max(1, (int) $plan->duree);
+        }
+
+        if (isset($plan->duration) && is_numeric($plan->duration)) {
+            return max(1, (int) $plan->duration);
+        }
+
+        return 12;
     }
 
     private function handlePhotoUpload(Request $request): ?string

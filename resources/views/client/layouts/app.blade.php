@@ -247,14 +247,12 @@
         <nav class="sidebar-nav mt-2">
 @php
                 $currentRoute = request()->route()->getName();
-                // Vérifier si l'abonnement du client est actif (fonctionnalités débloquées)
-                $subscriptionActive = \App\Models\Subscription::query()
-                    ->where('user_id', auth()->id())
-                    ->orWhere('client_id', auth()->id())
-                    ->latest()
-                    ->value('abonnement_status') === 'actif';
+                // Vérification centralisée : le tenant du client dispose-t-il d'un abonnement actif ?
+                // (prend en compte l'abonnement_status ET la date_fin)
+                $subscriptionActive = app(\App\Services\SubscriptionStatusService::class)
+                    ->isActiveForUser(auth()->user());
 
-                // Rubriques à griser tant que l'abonnement n'est pas validé
+                // Rubriques à griser tant que l'abonnement n'est pas actif
                 $lockedModules = ['client.annee', 'client.personnel', 'client.series', 'client.niveaux', 'client.classe', 'client.eleve', 'client.matiere', 'client.enseignant', 'client.bulletin', 'client.comptabilite'];
                 $isLocked = ! $subscriptionActive;
             @endphp
@@ -397,6 +395,8 @@
                     </ul>
                 </div>
             @endif
+
+            @include('partials.subscription-grace-warning')
 
             @yield('content')
         </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Eleve;
 use App\Models\User;
 use App\Services\RoleDashboardService;
+use App\Services\SubscriptionStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -69,8 +70,22 @@ class EleveAuthController extends Controller
             ]);
         }
 
-        Auth::login($user, $request->boolean('remember'));
+Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+
+        // Vérification immédiate de l'abonnement du tenant après authentification.
+        $subscriptionStatus = app(SubscriptionStatusService::class);
+        $subscription = $subscriptionStatus->subscriptionForUser($user);
+
+        if (! $subscriptionStatus->isExempt($user)) {
+            if (! $subscription && strtolower(trim((string) $user->role)) === 'client') {
+                return redirect()->route('client.abonnement.index');
+            }
+
+            if (! $subscriptionStatus->isActiveForUser($user)) {
+                return redirect()->route('subscription.expired');
+            }
+        }
 
         return redirect()->route('eleve.dashboard');
     }

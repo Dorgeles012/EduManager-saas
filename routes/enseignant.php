@@ -8,7 +8,7 @@ use App\Http\Controllers\Enseignant\EnseignantEmploiTempsController;
 use App\Http\Controllers\Enseignant\EnseignantParametreController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'status', 'role:enseignant'])
+Route::middleware(['auth', 'status', 'role:enseignant', 'subscription.active'])
     ->prefix('enseignant')
     ->name('enseignant.')
     ->group(function () {

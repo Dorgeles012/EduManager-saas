@@ -49,6 +49,23 @@
 <div class="dashboard-wrapper">
     <div class="dashboard-content">
         <div class="p-6 space-y-8">
+            @php
+                $subscription = app(\App\Services\SubscriptionStatusService::class)
+                    ->subscriptionForUser(auth()->user());
+            @endphp
+
+            @if (! $subscription)
+                <div class="rounded-3xl border border-primary/20 bg-primary/5 p-6 text-primary shadow-sm">
+                    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="font-semibold text-lg">Vous n'avez pas encore d'abonnement.</p>
+                            <p class="mt-1 text-sm text-primary/80">Choisissez un abonnement pour commencer à utiliser EduManager.</p>
+                        </div>
+                        <a href="{{ route('client.abonnement.index') }}" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-container transition">Voir les abonnements</a>
+                    </div>
+                </div>
+            @endif
+
             <!-- Page Header -->
             <div class="flex justify-between items-end flex-wrap gap-3">
                 <div>

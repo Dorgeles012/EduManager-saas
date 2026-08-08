@@ -37,6 +37,18 @@
 </div>
 
 <section class="mb-10">
+    @if($subscriptions->isEmpty())
+        <div class="mb-8 rounded-3xl border border-primary/20 bg-primary/5 p-6 text-primary shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="font-semibold text-lg">Vous n'avez pas encore d'abonnement.</p>
+                    <p class="mt-1 text-sm text-primary/80">Choisissez une formule pour commencer à utiliser EduManager.</p>
+                </div>
+                <a href="{{ route('client.abonnement.index') }}" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-container transition">Voir les abonnements</a>
+            </div>
+        </div>
+    @endif
+
     <h4 class="font-headline-md text-headline-md text-on-surface mb-5 flex items-center gap-2">
         <span class="material-symbols-outlined text-primary">workspace_premium</span>
         Formules disponibles

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\RoleDashboardService;
+use App\Services\SubscriptionStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,12 +18,28 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
-    public function store(LoginRequest $request): RedirectResponse
+public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
         $request->session()->regenerate();
 
-        $routeName = app(RoleDashboardService::class)->routeNameFor($request->user());
+        $user = $request->user();
+
+        // Vérification immédiate de l'abonnement du tenant après authentification.
+        $subscriptionStatus = app(SubscriptionStatusService::class);
+        $subscription = $subscriptionStatus->subscriptionForUser($user);
+
+        if (! $subscriptionStatus->isExempt($user)) {
+            if (! $subscription && strtolower(trim((string) $user->role)) === 'client') {
+                return redirect()->route('client.abonnement.index');
+            }
+
+            if (! $subscriptionStatus->isActiveForUser($user)) {
+                return redirect()->route('subscription.expired');
+            }
+        }
+
+        $routeName = app(RoleDashboardService::class)->routeNameFor($user);
         if (! $routeName) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();

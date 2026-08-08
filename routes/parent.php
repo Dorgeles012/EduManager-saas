@@ -12,7 +12,7 @@ use App\Http\Controllers\Parent\ParentProfilController;
 use App\Http\Controllers\Parent\ParentPasswordController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'status', 'role:parent', 'must.change.password'])
+Route::middleware(['auth', 'status', 'role:parent', 'must.change.password', 'subscription.active'])
     ->prefix('parent')
     ->name('parent.')
     ->group(function () {

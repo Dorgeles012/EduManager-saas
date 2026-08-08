@@ -12,7 +12,7 @@ use App\Http\Controllers\Personnel\PersonnelParametreController;
 use App\Http\Controllers\Personnel\PersonnelEmploiTempsController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'status', 'role:personnel'])
+Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
     ->prefix('personnel')
     ->name('personnel.')
 ->group(function () {
@@ -55,8 +55,9 @@ Route::middleware(['auth', 'status', 'role:personnel'])
         Route::put('/matieres/{matiere}', [PersonnelMatiereController::class, 'update'])->name('matieres.update');
         Route::delete('/matieres/{matiere}', [PersonnelMatiereController::class, 'destroy'])->name('matieres.destroy');
 
-        // Comptabilité
+// Comptabilité
         Route::get('/comptabilite', [PersonnelComptabiliteController::class, 'index'])->name('comptabilite.index');
+        Route::get('/comptabilite/eleve/recherche', [PersonnelComptabiliteController::class, 'searchByMatricule'])->name('comptabilite.search');
         Route::post('/comptabilite/scolarite', [PersonnelComptabiliteController::class, 'storeScolarite'])->name('comptabilite.scolarite.store');
         Route::post('/comptabilite/depense', [PersonnelComptabiliteController::class, 'storeDepense'])->name('comptabilite.depense.store');
         Route::put('/comptabilite/depense/{depense}', [PersonnelComptabiliteController::class, 'updateDepense'])->name('comptabilite.depense.update');

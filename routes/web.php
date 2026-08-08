@@ -114,7 +114,19 @@ require __DIR__ . '/parent.php';
 // Module élève
 require __DIR__ . '/eleve.php';
 
-Route::middleware(['auth', 'status'])->group(function () {
+// Page de blocage : accessible à tout utilisateur authentifié, mais hors du
+// middleware subscription.active (sinon boucle de redirection).
+Route::middleware(['auth'])->group(function () {
+    Route::get('/subscription-expired', function () {
+        return view('subscription-expired', [
+            'subscription' => app(\App\Services\SubscriptionStatusService::class)
+                ->subscriptionForUser(auth()->user()),
+            'user' => auth()->user(),
+        ]);
+    })->name('subscription.expired');
+});
+
+Route::middleware(['auth', 'status', 'subscription.active'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notificationRecipient}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::patch('/notifications/{notificationRecipient}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

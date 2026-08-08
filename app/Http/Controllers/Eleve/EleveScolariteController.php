@@ -2,27 +2,20 @@
 
 namespace App\Http\Controllers\Eleve;
 
-use App\Models\AnneeAcademique;
+use App\Services\ScolariteService;
 use Illuminate\View\View;
 
 class EleveScolariteController extends EleveController
 {
-    public function index(): View
+    public function index(ScolariteService $scolariteService): View
     {
         $eleve = $this->currentEleve();
-        $user = auth()->user();
 
-        $anneeActive = AnneeAcademique::where('tenant_id', $user->tenant_id)
-            ->where('statut', 'active')
-            ->orderByDesc('date_debut')
-            ->first();
-
-        $scolarites = $eleve->scolarites()->latest()->get();
+        $situation = $scolariteService->situation($eleve);
 
         return view('eleve.scolarite', [
             'eleve' => $eleve,
-            'scolarites' => $scolarites,
-            'anneeActive' => $anneeActive,
+            'situation' => $situation,
         ]);
     }
 }

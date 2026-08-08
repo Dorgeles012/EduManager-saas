@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Parent;
 
 use App\Models\Eleve;
-use App\Models\AnneeAcademique;
+use App\Services\ScolariteService;
 use Illuminate\View\View;
 
 class ParentEnfantScolariteController extends ParentController
@@ -11,20 +11,18 @@ class ParentEnfantScolariteController extends ParentController
     /**
      * Scolarité d'un enfant (consultation seule).
      */
-    public function show(Eleve $eleve): View
+    public function show(Eleve $eleve, ScolariteService $scolariteService): View
     {
         $this->childBelongsToParent($eleve);
 
-        $eleve->load(['classe.niveau', 'niveau', 'serie', 'etablissement', 'scolarites.versements']);
+        $eleve->load(['classe.niveau', 'niveau', 'serie', 'etablissement']);
 
-        $anneeActive = AnneeAcademique::where('tenant_id', auth()->user()->tenant_id)
-            ->where('statut', 'active')
-            ->orderByDesc('date_debut')
-            ->first();
+        $situation = $scolariteService->situation($eleve);
 
         return view('parent.scolarite', [
             'eleve' => $eleve,
-            'anneeActive' => $anneeActive,
+            'situation' => $situation,
         ]);
     }
 }
+

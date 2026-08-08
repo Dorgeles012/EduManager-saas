@@ -18,6 +18,11 @@ class DashboardController extends Controller
             return view('client.dashboard', ['counts' => [], 'activeYear' => null]);
         }
 
+        $subscriptionStatus = app(\App\Services\SubscriptionStatusService::class);
+        if (! $subscriptionStatus->hasSubscription($user)) {
+            return redirect()->route('client.abonnement.index');
+        }
+
         $schoolId = $user->etablissement_id;
         $forSchool = static fn ($query) => $query->when($schoolId, fn ($q) => $q->where('etablissement_id', $schoolId));
 
