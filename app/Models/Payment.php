@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Subscription;
+use App\Models\Tenant;
 
 class Payment extends Model
 {
@@ -27,10 +29,17 @@ class Payment extends Model
 
     protected $casts = [
         'date_paiement' => 'date',
+        'montant' => 'integer',
+        'amount' => 'integer',
     ];
 
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class, 'subscription_id');
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class, 'tenant_id');
     }
 }

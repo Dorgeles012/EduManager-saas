@@ -2,17 +2,26 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Subscription;
 use App\Services\SubscriptionStatusService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Blocage global du tenant via l'abonnement EduManager.
+ * Contrôle d'abonnement global du tenant EduManager.
  *
- * Tout utilisateur (client, personnel, enseignant, parent, élève) dont le
- * tenant n'a pas un abonnement actif est redirigé vers la page de blocage
- * (ou reçoit un 403 JSON pour les requêtes AJAX).
+ * LOGIQUE D'ACCÈS :
+ * ─────────────────────────────────────────────────────────────────
+ *  SADMIN                        → toujours autorisé (isExempt)
+ *  Client sans abonnement        → dashboard + page abonnement
+ *  Client abonnement `en_attente`→ dashboard + page abonnement
+ *  Client abonnement `paye`      → dashboard + page abonnement
+ *  Client abonnement `actif`     → accès complet (non expiré)
+ *  Client en période de grâce    → accès complet + banderole avertissement
+ *  Client grâce expirée          → redirection subscription.expired
+ *  Autres rôles (personnel, etc.)→ même logique via tenant_id
+ * ─────────────────────────────────────────────────────────────────
  *
  * Le SADMIN n'est jamais bloqué par l'abonnement d'un client.
  */
@@ -37,29 +46,46 @@ class EnsureSubscriptionActive
         }
 
         $routeName = $request->route()?->getName();
-        $allowed = [
-            'subscription.expired',
-            'logout',
-        ];
 
-        if ($routeName && in_array($routeName, $allowed, true)) {
+        // Routes toujours accessibles quel que soit le statut d'abonnement.
+        if ($routeName && in_array($routeName, $this->alwaysAllowedRoutes(), true)) {
             return $next($request);
         }
 
         $subscription = $this->subscriptionStatus->subscriptionForUser($user);
 
-        if (! $subscription && $this->allowsClientWithoutSubscription($user, $routeName)) {
-            return $next($request);
+        // Cas 1 : Aucun abonnement → dashboard + abonnement autorisés.
+        if (! $subscription) {
+            if ($this->isAbonnementOrDashboardRoute($user, $routeName)) {
+                return $next($request);
+            }
+            // Toute autre route → redirection vers la page abonnement.
+            if (strtolower(trim((string) $user->role)) === 'client') {
+                return redirect()->route('client.abonnement.index');
+            }
+            return redirect()->route('subscription.expired');
         }
 
+        // Cas 2 : Abonnement en attente de paiement ou de validation (paye/en_attente)
+        // → dashboard + page abonnement uniquement.
+        if ($this->isPendingOrPaid($subscription)) {
+            if ($this->isAbonnementOrDashboardRoute($user, $routeName)) {
+                return $next($request);
+            }
+            // Toute autre fonctionnalité est bloquée.
+            if (strtolower(trim((string) $user->role)) === 'client') {
+                return redirect()->route('client.abonnement.index')
+                    ->with('info', 'Votre paiement est en attente de validation par l\'administrateur. L\'accès complet sera disponible après validation.');
+            }
+            return redirect()->route('subscription.expired');
+        }
+
+        // Cas 3 : Abonnement actif et non expiré → accès complet.
         if ($this->subscriptionStatus->isActiveForUser($user)) {
             return $next($request);
         }
 
-        if (! $subscription && strtolower(trim((string) $user->role)) === 'client') {
-            return redirect()->route('client.abonnement.index');
-        }
-
+        // Cas 4 : Accès refusé (grâce expirée) → JSON pour AJAX, redirect sinon.
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Votre abonnement EduManager n\'est plus actif.',
@@ -71,18 +97,56 @@ class EnsureSubscriptionActive
         return redirect()->route('subscription.expired');
     }
 
-    protected function allowsClientWithoutSubscription($user, ?string $routeName): bool
+    /**
+     * Routes toujours accessibles (peu importe le statut d'abonnement).
+     */
+    protected function alwaysAllowedRoutes(): array
     {
-        if (strtolower(trim((string) $user->role)) !== 'client') {
-            return false;
-        }
+        return [
+            'subscription.expired',
+            'logout',
+        ];
+    }
 
+    /**
+     * Vérifie si l'abonnement est en statut "payé" (attendant validation SADMIN)
+     * ou "en attente" (pas encore payé).
+     */
+    protected function isPendingOrPaid(Subscription $subscription): bool
+    {
+        return in_array($subscription->abonnement_status, [
+            Subscription::ABONNEMENT_EN_ATTENTE,
+            Subscription::ABONNEMENT_PAYE,
+        ], true);
+    }
+
+    /**
+     * Vérifie si la route est la page abonnement ou le dashboard client.
+     * Ces routes restent accessibles même sans abonnement actif.
+     */
+    protected function isAbonnementOrDashboardRoute($user, ?string $routeName): bool
+    {
         if (! $routeName) {
             return false;
         }
 
-        return $routeName === 'client.dashboard'
-            || str_starts_with($routeName, 'client.abonnement')
-            || str_starts_with($routeName, 'client.abonnements');
+        $role = strtolower(trim((string) $user->role));
+
+        // Client : dashboard et toutes les routes abonnement
+        if ($role === 'client') {
+            return $routeName === 'client.dashboard'
+                || str_starts_with($routeName, 'client.abonnement')
+                || str_starts_with($routeName, 'client.abonnements');
+        }
+
+        // Autres rôles non-SADMIN : accès dashboard uniquement
+        $dashboardRoutes = [
+            'personnel.dashboard',
+            'enseignant.dashboard',
+            'parent.dashboard',
+            'eleve.dashboard',
+        ];
+
+        return in_array($routeName, $dashboardRoutes, true);
     }
 }

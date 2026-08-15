@@ -121,11 +121,7 @@ class SubscriptionStatusService
      */
     public function isExpired(Subscription $subscription): bool
     {
-        if (! $subscription->date_fin) {
-            return false;
-        }
-
-        return $subscription->date_fin->lt(Carbon::today()->startOfDay());
+        return $subscription->isExpired();
     }
 
     /**
@@ -139,7 +135,7 @@ class SubscriptionStatusService
             $subscription->update([
                 'abonnement_status' => Subscription::ABONNEMENT_EXPIRE,
                 'statut' => 'expired',
-                'status' => 'expired',
+                'status' => 'inactive',
             ]);
         }
     }

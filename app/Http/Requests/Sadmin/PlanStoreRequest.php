@@ -20,10 +20,9 @@ class PlanStoreRequest extends FormRequest
             'features.*' => ['string', 'max:255'],
             'prix' => ['required', 'integer', 'min:0'],
             'duration_type' => ['required', 'in:monthly,annual'],
-            'duration_value' => ['nullable', 'integer', 'min:1'],
+            'school_limit' => ['nullable', 'string', 'in:1,3,unlimited'],
             'max_schools' => ['nullable', 'integer', 'min:1'],
             'is_unlimited' => ['nullable', 'boolean'],
-            'duree' => ['nullable', 'integer', 'min:1'],
             'type' => ['nullable', 'string', 'max:255'],
             'statut' => ['required', 'in:active,inactive'],
         ];

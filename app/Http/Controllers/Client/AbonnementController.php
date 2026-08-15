@@ -83,7 +83,8 @@ class AbonnementController extends Controller
 
         return redirect()
             ->route('client.abonnements.index')
-            ->with('success', 'Paiement confirme. L abonnement est maintenant actif.');
+            ->with('success', 'Paiement soumis. Votre abonnement sera activé après validation par l\'administrateur.');
+
     }
 
     public function show($abonnement): RedirectResponse

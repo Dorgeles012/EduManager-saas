@@ -13,7 +13,7 @@
             <span class="material-symbols-outlined" data-icon="category">category</span>
             Gérer les Types
         </button>
-        <button class="bg-primary-container text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md" onclick="openModal('modal-add')">
+        <button class="bg-primary text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md font-label-md text-label-md" onclick="openModal('modal-add')">
             <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
             Nouveau Plan
         </button>
@@ -34,17 +34,23 @@
     </div>
 
     <div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl card-shadow border border-outline-variant flex items-center gap-4">
-        <div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-[32px]" data-icon="calendar_today">calendar_today</span>
+        <div class="w-12 h-12 rounded-lg bg-success-green/10 flex items-center justify-center text-success-green">
+            <span class="material-symbols-outlined text-[32px]" data-icon="verified">verified</span>
         </div>
         <div>
-            <p class="text-label-sm text-outline uppercase tracking-wider">Dernière Mise à Jour</p>
-            <p class="font-headline-md text-headline-md text-on-surface">
-                @if(!empty($lastUpdatedAt))
-                    {{ \Carbon\Carbon::parse($lastUpdatedAt)->translatedFormat('d/m/Y, H:i') }}
-                @else
-                    —
-                @endif
+            <p class="text-label-sm text-outline uppercase tracking-wider">Abonnements Actifs</p>
+            <p class="font-headline-md text-headline-md text-on-surface">{{ $activeCount ?? 0 }} Actif(s)</p>
+        </div>
+    </div>
+
+    <div class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl card-shadow border {{ ($pendingCount ?? 0) > 0 ? 'border-warning-amber bg-amber-50/40' : 'border-outline-variant' }} flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg {{ ($pendingCount ?? 0) > 0 ? 'bg-amber-100 text-amber-700 animate-pulse' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center">
+            <span class="material-symbols-outlined text-[32px]" data-icon="pending_actions">pending_actions</span>
+        </div>
+        <div>
+            <p class="text-label-sm text-outline uppercase tracking-wider">Paiements en Attente</p>
+            <p class="font-headline-md text-headline-md {{ ($pendingCount ?? 0) > 0 ? 'text-amber-800' : 'text-on-surface' }}">
+                {{ $pendingCount ?? 0 }} Demande(s)
             </p>
         </div>
     </div>
@@ -61,8 +67,8 @@
                     <tr>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Libellé du plan</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statut</th>
-                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Ecoles</th>
-                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Duree</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Écoles</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Durée</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Prix (FCFA)</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Actions</th>
@@ -92,33 +98,39 @@
                         @endphp
                         <tr class="hover:bg-surface-dim transition-colors">
                             <td class="px-6 py-4">
-                                <span class="font-label-md text-label-md text-on-surface">{{ $plan->nom }}</span>
+                                <span class="font-label-md text-label-md text-on-surface font-semibold">{{ $plan->nom }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 bg-primary-fixed text-primary rounded-full font-label-sm text-label-sm">{{ $plan->statut }}</span>
+                                <span class="px-3 py-1 rounded-full font-label-sm text-label-sm {{ $plan->statut === 'active' ? 'bg-success-green/10 text-success-green' : 'bg-surface-container-high text-on-surface-variant' }}">
+                                    {{ $plan->statut === 'active' ? 'Actif' : 'Inactif' }}
+                                </span>
                             </td>
-                            <td class="px-6 py-4 text-body-sm text-on-surface">{{ $plan->schoolsLimitLabel() }}</td>
-                            <td class="px-6 py-4 text-body-sm text-on-surface">{{ $plan->durationLabel() }}</td>
+                            <td class="px-6 py-4 text-body-sm text-on-surface">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                                    {{ $plan->schoolsLimitLabel() }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-body-sm text-on-surface">
+                                {{ $plan->durationLabel() }} ({{ $plan->durationInMonths() }} mois)
+                            </td>
                             <td class="px-6 py-4 text-right">
-                                <span class="font-body-md text-body-md font-semibold">{{ number_format((int) $plan->prix, 0, ',', ' ') }} FCFA</span>
+                                <span class="font-body-md text-body-md font-semibold text-primary">{{ number_format((int) $plan->prix, 0, ',', ' ') }} FCFA</span>
                             </td>
                             <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $plan->created_at?->format('d/m/Y') }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center gap-2">
                                     <button 
                                         onclick="openEditModal(this)"
-data-id="{{ $plan->id }}"
+                                        data-id="{{ $plan->id }}"
                                         data-name="{{ $plan->nom }}"
                                         data-type="{{ $plan->subscriptionType?->type ?? $plan->type }}"
                                         data-price="{{ $plan->prix }}"
-                                        data-duree="{{ $plan->duree ?? 12 }}"
                                         data-duration-type="{{ $plan->duration_type ?? 'monthly' }}"
-                                        data-duration-value="{{ $plan->duration_value ?? 1 }}"
-                                        data-max-schools="{{ $plan->max_schools }}"
-                                        data-is-unlimited="{{ $plan->is_unlimited ? '1' : '0' }}"
+                                        data-school-limit="{{ $plan->is_unlimited ? 'unlimited' : ($plan->max_schools ?? $plan->max_ecoles ?? 1) }}"
                                         data-features='@json($featuresArray)'
                                         data-status="{{ $plan->statut }}"
                                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-900"
+                                        title="Modifier"
                                     >
                                         <span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
                                     </button>
@@ -126,7 +138,7 @@ data-id="{{ $plan->id }}"
                                     <form method="POST" action="{{ route('plans.destroy', $plan->id) }}" class="m-0" onsubmit="return confirmDeleteSweet(event, this)">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-error-container text-error">
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-error-container text-error" title="Supprimer">
                                             <span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
                                         </button>
                                     </form>
@@ -146,11 +158,136 @@ data-id="{{ $plan->id }}"
     </div>
 </div>
 
-<!-- Tableau des abonnements des clients -->
-<div class="col-span-12 bg-surface-container-lowest rounded-xl card-shadow border border-outline-variant overflow-hidden">
-    <div class="px-6 py-5 border-b border-surface-subtle flex justify-between items-center">
-        <h3 class="font-headline-md text-headline-md text-on-surface">Abonnements des Clients</h3>
-        <span class="px-3 py-1 bg-primary-fixed text-primary rounded-full font-label-sm text-label-sm">{{ $activeCount }} abonnement(s)</span>
+<!-- Section: Demandes de Paiement en Attente de Validation -->
+<div class="col-span-12 bg-surface-container-lowest rounded-xl card-shadow border {{ ($pendingCount ?? 0) > 0 ? 'border-warning-amber/60 ring-2 ring-warning-amber/20' : 'border-outline-variant' }} overflow-hidden mt-6">
+    <div class="px-6 py-5 border-b border-surface-subtle flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r {{ ($pendingCount ?? 0) > 0 ? 'from-amber-50/70 to-surface-container-lowest' : 'from-surface-subtle/50 to-surface-container-lowest' }}">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl {{ ($pendingCount ?? 0) > 0 ? 'bg-amber-500 text-white animate-bounce' : 'bg-primary/10 text-primary' }} flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">pending_actions</span>
+            </div>
+            <div>
+                <h3 class="font-headline-md text-headline-md text-on-surface">Paiements d'Abonnement en Attente de Validation</h3>
+                <p class="text-body-sm text-text-muted">Validez ou refusez les demandes de paiement soumises par les clients.</p>
+            </div>
+        </div>
+        <div>
+            @if(($pendingCount ?? 0) > 0)
+                <span class="px-4 py-1.5 bg-amber-100 border border-amber-300 text-amber-900 rounded-full font-label-sm font-semibold text-xs inline-flex items-center gap-1.5">
+                    <span class="h-2 w-2 rounded-full bg-amber-600 animate-ping"></span>
+                    {{ $pendingCount }} paiement(s) à traiter
+                </span>
+            @else
+                <span class="px-3 py-1 bg-success-green/10 text-success-green rounded-full font-label-sm text-xs inline-flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    À jour
+                </span>
+            @endif
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-subtle">
+                <tr>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Client</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Établissement</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Formule</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Montant</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Méthode / Réf</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statut</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-subtle">
+                @forelse($pendingSubscriptions ?? [] as $subscription)
+                    @php
+                        $client = $subscription->user;
+                        $clientName = $client ? trim(($client->nom ?? '') . ' ' . ($client->prenom ?? '')) : '—';
+                        $etablissement = $client?->etablissement?->nom ?? '—';
+                        $offre = $subscription->plan?->nom ?? $subscription->name ?? '—';
+                        $payment = $subscription->payments->first();
+                        $montant = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
+                        $methode = $payment?->methode_paiement ?? $payment?->payment_method ?? '—';
+                        $reference = $payment?->reference_paiement ?? $payment?->reference_transaction ?? '—';
+                    @endphp
+                    <tr class="hover:bg-amber-50/30 transition-colors bg-amber-50/10">
+                        <td class="px-6 py-4">
+                            <div class="font-label-md text-label-md text-on-surface font-semibold">{{ $clientName }}</div>
+                            <div class="text-xs text-text-muted">{{ $client?->email }}</div>
+                            @if($client?->telephone)
+                                <div class="text-xs text-text-muted">{{ $client->telephone }}</div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $etablissement }}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-semibold text-primary text-body-sm">{{ $offre }}</span>
+                            <div class="text-xs text-text-muted">{{ $subscription->type ?? 'Mensuel' }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="font-headline-md text-body-md font-bold text-on-surface">{{ number_format((int) $montant, 0, ',', ' ') }} FCFA</span>
+                        </td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
+                            <div class="font-medium text-on-surface">{{ $methode }}</div>
+                            <div class="text-xs font-mono text-text-muted">{{ $reference }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
+                            {{ optional($payment?->date_paiement ?? $subscription->created_at)->format('d/m/Y H:i') }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full font-label-sm text-xs bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                                En attente
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                {{-- Bouton Valider --}}
+                                <form method="POST" action="{{ route('sadmin.abonnement.validate', $subscription->id) }}" onsubmit="return confirmActivateSweet(event, this)" class="m-0">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-success-green text-white rounded-lg font-label-sm text-xs hover:bg-emerald-700 shadow-sm transition-colors" title="Valider le paiement et activer les fonctionnalités">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                        Valider
+                                    </button>
+                                </form>
+
+                                {{-- Bouton Refuser --}}
+                                <form method="POST" action="{{ route('sadmin.abonnement.reject', $subscription->id) }}" onsubmit="return confirmRejectSweet(event, this)" class="m-0">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-error text-white rounded-lg font-label-sm text-xs hover:bg-red-800 shadow-sm transition-colors" title="Refuser le paiement">
+                                        <span class="material-symbols-outlined text-[16px]">cancel</span>
+                                        Refuser
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-6 py-8 text-center text-body-sm text-on-surface-variant">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-success-green">task_alt</span>
+                                <p class="font-medium text-on-surface">Aucun paiement en attente de validation.</p>
+                                <p class="text-xs text-text-muted">Toutes les demandes de souscription ont été traitées.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Section: Abonnements Actifs Validés -->
+<div class="col-span-12 bg-surface-container-lowest rounded-xl card-shadow border border-outline-variant overflow-hidden mt-6">
+    <div class="px-6 py-5 border-b border-surface-subtle flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+            <h3 class="font-headline-md text-headline-md text-on-surface">Abonnements Actifs Validés</h3>
+            <p class="text-body-sm text-text-muted">Liste des abonnements validés et actifs.</p>
+        </div>
+        <span class="px-3 py-1 bg-success-green/10 text-success-green rounded-full font-label-sm text-label-sm">{{ $activeSubscriptions->count() }} abonnement(s) actif(s)</span>
     </div>
 
     <div class="overflow-x-auto">
@@ -161,71 +298,60 @@ data-id="{{ $plan->id }}"
                     <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Établissement</th>
                     <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Offre</th>
                     <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Montant</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Paiement</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Début</th>
+                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Expiration</th>
                     <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statut</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-subtle">
-                @forelse($subscriptions ?? [] as $subscription)
+                @forelse($activeSubscriptions ?? [] as $subscription)
                     @php
                         $client = $subscription->user;
                         $clientName = $client ? trim(($client->nom ?? '') . ' ' . ($client->prenom ?? '')) : '—';
                         $etablissement = $client?->etablissement?->nom ?? '—';
                         $offre = $subscription->plan?->nom ?? $subscription->name ?? '—';
-                        $montant = $subscription->payments->first()?->montant ?? $subscription->payments->first()?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
-                        $methode = $subscription->payments->first()?->methode_paiement ?? $subscription->payments->first()?->payment_method ?? '—';
-                        $aboStatus = $subscription->abonnement_status ?? 'en_attente';
+                        $payment = $subscription->payments->first();
+                        $montant = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
+                        $aboStatus = $subscription->abonnement_status ?? 'actif';
                         $statusLabel = [
-                            'en_attente' => 'En attente',
-                            'paye' => 'Payé',
                             'actif' => 'Actif',
-                            'expire' => 'Expiré',
-                        ][$aboStatus] ?? ucfirst($aboStatus);
-                        $statusColor = match ($aboStatus) {
-                            'actif' => 'bg-success-green/10 text-success-green',
-                            'paye' => 'bg-primary-fixed text-primary',
-                            'expire' => 'bg-red-500/10 text-red-600',
-                            default => 'bg-warning-amber/10 text-warning-amber',
-                        };
+                        ][$aboStatus] ?? 'Actif';
                     @endphp
                     <tr class="hover:bg-surface-dim transition-colors">
                         <td class="px-6 py-4">
-                            <span class="font-label-md text-label-md text-on-surface">{{ $clientName }}</span>
+                            <span class="font-label-md text-label-md text-on-surface font-semibold">{{ $clientName }}</span>
+                            <div class="text-xs text-text-muted">{{ $client?->email }}</div>
                         </td>
                         <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $etablissement }}</td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface">{{ $offre }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface font-medium">{{ $offre }}</td>
                         <td class="px-6 py-4 text-right font-body-md font-semibold">{{ number_format((int) $montant, 0, ',', ' ') }} FCFA</td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $subscription->created_at?->format('d/m/Y H:i') }}</td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $methode }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full font-label-sm text-label-sm {{ $statusColor }}">{{ $statusLabel }}</span>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ optional($subscription->date_debut ?? $subscription->created_at)->format('d/m/Y') }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
+                            @if($subscription->date_fin)
+                                <span class="{{ $subscription->isExpired() ? 'text-red-600 font-semibold' : 'text-on-surface' }}">
+                                    {{ $subscription->date_fin->format('d/m/Y') }}
+                                </span>
+                            @else
+                                —
+                            @endif
                         </td>
                         <td class="px-6 py-4">
-                            <div class="flex justify-center">
-                                @if($aboStatus !== 'actif')
-                                    <form method="POST" action="{{ route('sadmin.abonnement.validate', $subscription->id) }}" onsubmit="return confirmActivateSweet(event, this)">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-success-green text-white rounded-lg font-label-sm text-label-sm hover:bg-success-green/90 transition-colors">
-                                            <span class="material-symbols-outlined text-[16px]">verified</span>
-                                            Valider / Activer
-                                        </button>
-                                    </form>
-                                @else
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-success-green font-label-sm text-label-sm">
-                                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                                        Activé
-                                    </span>
-                                @endif
-                            </div>
+                            <span class="px-3 py-1 rounded-full font-label-sm text-xs bg-success-green/10 text-success-green border border-success-green/20">
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-success-green animate-pulse"></span>
+                                    {{ $statusLabel }}
+                                </span>
+                            </span>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-10 text-center text-body-sm text-on-surface-variant">
-                            Aucun abonnement client pour le moment.
+                        <td colspan="7" class="px-6 py-10 text-center text-body-sm text-on-surface-variant">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-text-muted">inbox</span>
+                                <p class="font-medium text-on-surface">Aucun abonnement actif validé.</p>
+                                <p class="text-xs text-text-muted">Les abonnements validés apparaîtront ici.</p>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
@@ -255,7 +381,7 @@ data-id="{{ $plan->id }}"
                     <label class="font-label-md text-label-md text-on-surface-variant block">Nom du Plan</label>
                     <input
                         class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                        placeholder="ex: Plan Gold Illimité"
+                        placeholder="ex: Basic, Standard, Full..."
                         type="text"
                         name="nom"
                         required
@@ -264,19 +390,33 @@ data-id="{{ $plan->id }}"
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Type d'abonnement</label>
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre d'écoles</label>
                         <select
+                            name="school_limit"
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                            name="type"
                             required
                         >
-                            @foreach(($subscriptionTypes ?? []) as $t)
-                                <option value="{{ $t->type }}">{{ $t->type }}</option>
-                            @endforeach
+                            <option value="1">1 école</option>
+                            <option value="3">3 écoles</option>
+                            <option value="unlimited">Illimité / Full</option>
                         </select>
                     </div>
 
-<div class="space-y-2">
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée</label>
+                        <select
+                            name="duration_type"
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
+                            required
+                        >
+                            <option value="monthly">Mensuel</option>
+                            <option value="annual">Annuel</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
                         <label class="font-label-md text-label-md text-on-surface-variant block">Prix (FCFA)</label>
                         <input
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
@@ -289,39 +429,16 @@ data-id="{{ $plan->id }}"
                     </div>
 
                     <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée (en mois)</label>
-                        <input
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Statut</label>
+                        <select
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                            placeholder="12"
-                            type="number"
-                            name="duree"
-                            min="1"
-                            value="12"
+                            name="statut"
                             required
                         >
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Duree du plan</label>
-                        <select name="duration_type" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" required>
-                            <option value="monthly">Mensuel</option>
-                            <option value="annual">Annuel</option>
+                            <option value="active">Actif</option>
+                            <option value="inactive">Inactif</option>
                         </select>
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre de periodes</label>
-                        <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" type="number" name="duration_value" min="1" value="1" required>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre maximum d'ecoles</label>
-                        <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" type="number" name="max_schools" min="1" value="1">
-                    </div>
-                    <label class="flex items-center gap-3 mt-8 text-body-sm text-on-surface">
-                        <input type="checkbox" name="is_unlimited" value="1" class="rounded border-outline-variant text-primary focus:ring-primary">
-                        Ecoles illimitees
-                    </label>
                 </div>
 
                 <!-- Section Features avec check_circle -->
@@ -329,12 +446,11 @@ data-id="{{ $plan->id }}"
                     <label class="font-label-md text-label-md text-on-surface-variant block">Fonctionnalités incluses</label>
                     <div class="border border-outline-variant rounded-lg p-4 bg-surface-container-low">
                         <div class="space-y-3" id="addFeaturesContainer">
-                            <!-- Les features seront ajoutées dynamiquement -->
                             <div class="feature-item flex items-center gap-3 group">
                                 <button type="button" class="feature-toggle w-6 h-6 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center hover:border-primary transition-colors" data-checked="true">
                                     <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
                                 </button>
-                                <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder=" Ajouter des avantages" value="">
+                                <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder="Ajouter un avantage" value="">
                                 <button type="button" class="remove-feature text-error opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
@@ -348,14 +464,12 @@ data-id="{{ $plan->id }}"
                     <input type="hidden" name="features_json" id="addFeaturesJson">
                 </div>
 
-                <input type="hidden" name="statut" value="active">
-
                 <div class="pt-4 flex gap-4">
                     <button class="flex-1 px-6 py-2.5 bg-surface-container-high text-on-surface-variant rounded-lg font-label-md text-label-md hover:bg-surface-dim" onclick="closeModal('modal-add')" type="button">
                         Annuler
                     </button>
-                    <button class="flex-1 px-6 py-2.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-md" type="submit">
-                        Enregistrer
+                    <button class="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md shadow-md" type="submit">
+                        Créer le plan
                     </button>
                 </div>
             </form>
@@ -380,17 +494,13 @@ data-id="{{ $plan->id }}"
             <form class="space-y-6" method="POST" id="editForm" action="">
                 @csrf
                 @method('PUT')
-                <input type="hidden" id="edit_duration_type" name="duration_type" value="monthly">
-                <input type="hidden" id="edit_duration_value" name="duration_value" value="1">
-                <input type="hidden" id="edit_max_schools" name="max_schools" value="1">
-                <input type="hidden" id="edit_is_unlimited_hidden" name="is_unlimited" value="0">
                 
                 <div class="space-y-2">
                     <label class="font-label-md text-label-md text-on-surface-variant block">Nom du Plan</label>
                     <input
                         id="edit_name"
                         class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                        placeholder="ex: Plan Gold Illimité"
+                        placeholder="ex: Basic, Standard, Full..."
                         type="text"
                         name="nom"
                         required
@@ -399,20 +509,35 @@ data-id="{{ $plan->id }}"
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Type d'abonnement</label>
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre d'écoles</label>
                         <select
-                            id="edit_type"
+                            id="edit_school_limit"
+                            name="school_limit"
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                            name="type"
                             required
                         >
-                            @foreach(($subscriptionTypes ?? []) as $t)
-                                <option value="{{ $t->type }}">{{ $t->type }}</option>
-                            @endforeach
+                            <option value="1">1 école</option>
+                            <option value="3">3 écoles</option>
+                            <option value="unlimited">Illimité / Full</option>
                         </select>
                     </div>
 
-<div class="space-y-2">
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée</label>
+                        <select
+                            id="edit_duration_type"
+                            name="duration_type"
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
+                            required
+                        >
+                            <option value="monthly">Mensuel</option>
+                            <option value="annual">Annuel</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
                         <label class="font-label-md text-label-md text-on-surface-variant block">Prix (FCFA)</label>
                         <input
                             id="edit_price"
@@ -426,17 +551,16 @@ data-id="{{ $plan->id }}"
                     </div>
 
                     <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface-variant block">Durée (en mois)</label>
-                        <input
-                            id="edit_duree"
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Statut</label>
+                        <select
+                            id="edit_status"
                             class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                            placeholder="12"
-                            type="number"
-                            name="duree"
-                            min="1"
-                            value="12"
+                            name="statut"
                             required
                         >
+                            <option value="active">Actif</option>
+                            <option value="inactive">Inactif</option>
+                        </select>
                     </div>
                 </div>
 
@@ -455,24 +579,11 @@ data-id="{{ $plan->id }}"
                     <input type="hidden" name="features_json" id="editFeaturesJson">
                 </div>
 
-                <div class="space-y-2">
-                    <label class="font-label-md text-label-md text-on-surface-variant block">Statut</label>
-                    <select
-                        id="edit_status"
-                        class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none"
-                        name="statut"
-                        required
-                    >
-                        <option value="active">Actif</option>
-                        <option value="inactive">Inactif</option>
-                    </select>
-                </div>
-
                 <div class="pt-4 flex gap-4">
                     <button class="flex-1 px-6 py-2.5 bg-surface-container-high text-on-surface-variant rounded-lg font-label-md text-label-md hover:bg-surface-dim" onclick="closeModal('modal-edit')" type="button">
                         Annuler
                     </button>
-                    <button class="flex-1 px-6 py-2.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-md" type="submit">
+                    <button class="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md shadow-md" type="submit">
                         Mettre à jour
                     </button>
                 </div>
@@ -538,19 +649,25 @@ data-id="{{ $plan->id }}"
 <script>
     function openModal(id) {
         const modal = document.getElementById(id);
+        if (!modal) return;
         const content = modal.querySelector('.modal-content');
         modal.classList.remove('hidden');
         setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
+            if (content) {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }
         }, 10);
     }
 
     function closeModal(id) {
         const modal = document.getElementById(id);
+        if (!modal) return;
         const content = modal.querySelector('.modal-content');
-        content.classList.add('scale-95', 'opacity-0');
-        content.classList.remove('scale-100', 'opacity-100');
+        if (content) {
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+        }
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
@@ -558,13 +675,14 @@ data-id="{{ $plan->id }}"
 
     function addFeatureField(containerId) {
         const container = document.getElementById(containerId);
+        if (!container) return;
         const newFeatureDiv = document.createElement('div');
         newFeatureDiv.className = 'feature-item flex items-center gap-3 group';
         newFeatureDiv.innerHTML = `
-            <button type="button" class="feature-toggle w-6 h-6 rounded-full border-2 border-outline bg-white flex items-center justify-center hover:border-primary transition-colors" data-checked="true">
+            <button type="button" class="feature-toggle w-6 h-6 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center hover:border-primary transition-colors" data-checked="true">
                 <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
             </button>
-            <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder="Ex: Nouvelle fonctionnalité" value="">
+            <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder="Ajouter un avantage" value="">
             <button type="button" onclick="this.closest('.feature-item').remove()" class="remove-feature text-error opacity-0 group-hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined text-[18px]">delete</span>
             </button>
@@ -696,7 +814,7 @@ data-id="{{ $plan->id }}"
                     <button type="button" class="feature-toggle w-6 h-6 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center hover:border-primary transition-colors" data-checked="true">
                         <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
                     </button>
-                    <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder="Ex: Fonctionnalité" value="${escapeHtml(featureText)}">
+                    <input type="text" name="features[]" class="flex-1 px-3 py-2 rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim outline-none" placeholder="Ajouter un avantage" value="${escapeHtml(featureText)}">
                     <button type="button" onclick="this.closest('.feature-item').remove()" class="remove-feature text-error opacity-0 group-hover:opacity-100 transition-opacity">
                         <span class="material-symbols-outlined text-[18px]">delete</span>
                     </button>
@@ -716,47 +834,26 @@ data-id="{{ $plan->id }}"
         return div.innerHTML;
     }
 
-function openEditModal(button) {
+    function openEditModal(button) {
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
-        const type = button.getAttribute('data-type');
         const price = button.getAttribute('data-price');
-        const duree = button.getAttribute('data-duree');
         const durationType = button.getAttribute('data-duration-type') || 'monthly';
-        const durationValue = button.getAttribute('data-duration-value') || '1';
-        const maxSchools = button.getAttribute('data-max-schools') || '1';
-        const isUnlimited = button.getAttribute('data-is-unlimited') || '0';
-        const status = button.getAttribute('data-status');
-
+        const schoolLimit = button.getAttribute('data-school-limit') || '1';
+        const status = button.getAttribute('data-status') || 'active';
         const features = normalizeFeaturesData(button.getAttribute('data-features'));
 
         const nameInput = document.getElementById('edit_name');
         const priceInput = document.getElementById('edit_price');
-        const dureeInput = document.getElementById('edit_duree');
+        const durationTypeSelect = document.getElementById('edit_duration_type');
+        const schoolLimitSelect = document.getElementById('edit_school_limit');
         const statusSelect = document.getElementById('edit_status');
-        const typeSelect = document.getElementById('edit_type');
-        const durationTypeInput = document.getElementById('edit_duration_type');
-        const durationValueInput = document.getElementById('edit_duration_value');
-        const maxSchoolsInput = document.getElementById('edit_max_schools');
-        const isUnlimitedInput = document.getElementById('edit_is_unlimited_hidden');
 
         if (nameInput) nameInput.value = name || '';
         if (priceInput) priceInput.value = price || 0;
-        if (dureeInput) dureeInput.value = duree || 12;
-        if (durationTypeInput) durationTypeInput.value = durationType;
-        if (durationValueInput) durationValueInput.value = durationValue;
-        if (maxSchoolsInput) maxSchoolsInput.value = maxSchools || '1';
-        if (isUnlimitedInput) isUnlimitedInput.value = isUnlimited;
-        if (statusSelect) statusSelect.value = status || 'active';
-
-        if (typeSelect && type) {
-            for (let i = 0; i < typeSelect.options.length; i++) {
-                if (typeSelect.options[i].value === type) {
-                    typeSelect.selectedIndex = i;
-                    break;
-                }
-            }
-        }
+        if (durationTypeSelect) durationTypeSelect.value = durationType;
+        if (schoolLimitSelect) schoolLimitSelect.value = schoolLimit;
+        if (statusSelect) statusSelect.value = status;
 
         loadFeatures('editFeaturesContainer', features);
 
@@ -766,19 +863,48 @@ function openEditModal(button) {
         openModal('modal-edit');
     }
 
-function confirmActivateSweet(event, form) {
+    function confirmActivateSweet(event, form) {
         event.preventDefault();
         Swal.fire({
-            title: 'Valider l\'abonnement ?',
-            text: 'Activer les fonctionnalités pour ce client ?',
+            title: 'Valider le paiement ?',
+            text: 'Activer l\'abonnement et débloquer toutes les fonctionnalités pour ce client ?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#059669',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Oui, activer',
+            confirmButtonText: 'Oui, valider et activer',
             cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) form.submit();
+        });
+        return false;
+    }
+
+    function confirmRejectSweet(event, form) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Refuser le paiement ?',
+            text: 'Indiquez un motif de refus (optionnel) :',
+            input: 'text',
+            inputPlaceholder: 'Ex: Référence introuvable, montant incorrect...',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ba1a1a',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'Oui, refuser le paiement',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let motifInput = form.querySelector('input[name="motif"]');
+                if (!motifInput) {
+                    motifInput = document.createElement('input');
+                    motifInput.type = 'hidden';
+                    motifInput.name = 'motif';
+                    form.appendChild(motifInput);
+                }
+                motifInput.value = result.value || '';
+                form.submit();
+            }
         });
         return false;
     }
@@ -819,5 +945,27 @@ function confirmActivateSweet(event, form) {
             setupFormSubmit('editForm', 'editFeaturesContainer', 'editFeaturesJson');
         }, 100);
     });
+
+    @if (session('success'))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Succès',
+                text: @json(session('success')),
+                icon: 'success',
+                confirmButtonColor: '#1f108e',
+            });
+        });
+    @endif
+
+    @if (session('error'))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Erreur',
+                text: @json(session('error')),
+                icon: 'error',
+                confirmButtonColor: '#ba1a1a',
+            });
+        });
+    @endif
 </script>
 @endsection

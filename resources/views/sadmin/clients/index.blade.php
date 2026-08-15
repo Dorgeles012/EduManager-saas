@@ -92,7 +92,7 @@
                                 </button>
                             </form>
 
-@if(($client->statut ?? null) === 'actif')
+                            @if(($client->statut ?? null) === 'actif')
                                 <form method="POST" action="{{ route('sadmin.clients.block', $client) }}" class="m-0">
                                     @csrf
                                     @method('PATCH')
@@ -109,24 +109,6 @@
                                     </button>
                                 </form>
                             @endif
-
-                            @php
-                                $clientSubscription = \App\Models\Subscription::query()
-                                    ->where('user_id', $client->id)
-                                    ->orWhere('client_id', $client->id)
-                                    ->latest()
-                                    ->first();
-                                $needsValidation = $clientSubscription && $clientSubscription->abonnement_status !== 'actif';
-                            @endphp
-                            @if($needsValidation)
-                                <form method="POST" action="{{ route('sadmin.clients.validate-subscription', $client) }}" class="m-0" onsubmit="return confirmActivateSweet(event, this)">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="p-2 rounded-lg bg-success-green/10 hover:bg-success-green/20 transition-colors" title="Valider l'abonnement / Activer les fonctionnalités">
-                                        <span class="material-symbols-outlined text-[18px]" style="color:#059669">verified</span>
-                                    </button>
-                                </form>
-                            @endif
                         </div>
                     </td>
                 </tr>
@@ -139,7 +121,7 @@
         </table>
     </div>
 
-<div class="px-6 py-4 border-t border-surface-subtle">
+    <div class="px-6 py-4 border-t border-surface-subtle">
         {{ $clients->links() }}
     </div>
 </div>

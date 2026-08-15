@@ -36,11 +36,14 @@ Route::middleware(['auth', 'status', 'role:sadmin'])->group(function () {
     Route::resource('etablissements', \App\Http\Controllers\Sadmin\EtablissementCrudController::class)
         ->names('sadmin.etablissements');
 
-Route::get('/sadmin/abonnement', [\App\Http\Controllers\Sadmin\SubscriptionController::class, 'index'])
+    Route::get('/sadmin/abonnement', [\App\Http\Controllers\Sadmin\SubscriptionController::class, 'index'])
         ->name('sadmin.abonnement');
 
     Route::patch('/sadmin/abonnement/{subscription}/validate', [\App\Http\Controllers\Sadmin\SubscriptionController::class, 'validate'])
         ->name('sadmin.abonnement.validate');
+
+    Route::patch('/sadmin/abonnement/{subscription}/reject', [\App\Http\Controllers\Sadmin\SubscriptionController::class, 'reject'])
+        ->name('sadmin.abonnement.reject');
 
     Route::resource('plans', \App\Http\Controllers\Sadmin\PlanController::class)
         ->names('plans');

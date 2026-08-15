@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Sadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Models\Subscription;
+use App\Models\SubscriptionType;
 use App\Http\Requests\Sadmin\PlanStoreRequest;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class PlanController extends Controller
 {
-public function index(): View
+    public function index(): View
     {
         $plans = Plan::query()->orderByDesc('created_at')->get();
-        $subscriptionTypes = \App\Models\SubscriptionType::query()->orderBy('created_at', 'desc')->get();
+        $subscriptionTypes = SubscriptionType::query()->orderBy('created_at', 'desc')->get();
 
-        $subscriptions = \App\Models\Subscription::query()
+        $subscriptions = Subscription::query()
             ->with(['user', 'plan', 'payments'])
             ->orderByDesc('created_at')
             ->get();
@@ -34,14 +37,12 @@ public function index(): View
     {
         $validated = $request->validated();
 
-        // Le champ 'type' fait référence à subscription_types.type (ex: mensuel, annuel...).
-        // En base, la table plans référence désormais subscription_types via subscription_type_id.
-        // On crée automatiquement le type s'il n'existe pas encore pour ne jamais bloquer la création.
-        $subscriptionTypeId = $this->resolveSubscriptionTypeId($validated['type'] ?? null);
+        $durationType = $validated['duration_type'] ?? 'monthly';
+        $typeDefault = $durationType === 'annual' ? 'Annuel' : 'Mensuel';
+        $subscriptionTypeId = $this->resolveSubscriptionTypeId($validated['type'] ?? $typeDefault);
 
         $features = $this->checkedFeaturesFromRequest($request);
-        // Une ligne par fonctionnalité cochée dans plans.description.
-        $description = implode(PHP_EOL, $features);
+        $description = ! empty($features) ? implode(PHP_EOL, $features) : ($validated['description'] ?? '');
 
         try {
             Plan::create([
@@ -53,27 +54,34 @@ public function index(): View
                 'statut' => $validated['statut'],
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('PlanController@store failed', [
+            Log::error('PlanController@store failed', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'payload' => $validated,
             ]);
 
+            $errorMessage = config('app.debug')
+                ? "Impossible de créer le plan : " . $e->getMessage()
+                : "Impossible de créer le plan. Veuillez réessayer.";
+
             return back()
-                ->with('error', 'Impossible de créer le plan. Veuillez réessayer.')
+                ->with('error', $errorMessage)
                 ->withInput();
         }
 
-        return back()->with('success', 'Plan créé avec succès.');
+        return redirect()->route('sadmin.abonnement')->with('success', 'Plan créé avec succès.');
     }
 
     public function update(PlanStoreRequest $request, Plan $plan): RedirectResponse
     {
         $validated = $request->validated();
 
-        $subscriptionTypeId = $this->resolveSubscriptionTypeId($validated['type'] ?? null);
+        $durationType = $validated['duration_type'] ?? 'monthly';
+        $typeDefault = $durationType === 'annual' ? 'Annuel' : 'Mensuel';
+        $subscriptionTypeId = $this->resolveSubscriptionTypeId($validated['type'] ?? $typeDefault);
 
         $features = $this->checkedFeaturesFromRequest($request);
-        $description = implode(PHP_EOL, $features);
+        $description = ! empty($features) ? implode(PHP_EOL, $features) : ($validated['description'] ?? '');
 
         try {
             $plan->update([
@@ -85,18 +93,22 @@ public function index(): View
                 'statut' => $validated['statut'],
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('PlanController@update failed', [
+            Log::error('PlanController@update failed', [
                 'error' => $e->getMessage(),
                 'plan_id' => $plan->id,
                 'payload' => $validated,
             ]);
 
+            $errorMessage = config('app.debug')
+                ? "Impossible de mettre à jour le plan : " . $e->getMessage()
+                : "Impossible de mettre à jour le plan. Veuillez réessayer.";
+
             return back()
-                ->with('error', 'Impossible de mettre à jour le plan. Veuillez réessayer.')
+                ->with('error', $errorMessage)
                 ->withInput();
         }
 
-        return back()->with('success', 'Plan mis à jour avec succès.');
+        return redirect()->route('sadmin.abonnement')->with('success', 'Plan mis à jour avec succès.');
     }
 
     /**
@@ -108,7 +120,7 @@ public function index(): View
             return null;
         }
 
-        return \App\Models\SubscriptionType::query()
+        return SubscriptionType::query()
             ->firstOrCreate(
                 ['type' => $type],
                 ['status' => 'active']
@@ -120,20 +132,35 @@ public function index(): View
     {
         $plan->delete();
 
-        return back()->with('success', 'Plan supprimé avec succès.');
+        return redirect()->route('sadmin.abonnement')->with('success', 'Plan supprimé avec succès.');
     }
+
     private function durationAndSchoolPayload(array $validated): array
     {
         $durationType = $validated['duration_type'] ?? 'monthly';
-        $durationValue = max(1, (int) ($validated['duration_value'] ?? 1));
-        $durationMonths = $durationType === 'annual' ? $durationValue * 12 : $durationValue;
-        $isUnlimited = (bool) ($validated['is_unlimited'] ?? false);
+        $durationMonths = $durationType === 'annual' ? 12 : 1;
+
+        $schoolLimit = $validated['school_limit'] ?? null;
+        if ($schoolLimit === 'unlimited' || ! empty($validated['is_unlimited'])) {
+            $isUnlimited = true;
+            $maxSchools = null;
+            $maxEcoles = 999999;
+        } elseif (is_numeric($schoolLimit)) {
+            $isUnlimited = false;
+            $maxSchools = (int) $schoolLimit;
+            $maxEcoles = $maxSchools;
+        } else {
+            $isUnlimited = (bool) ($validated['is_unlimited'] ?? false);
+            $maxSchools = $isUnlimited ? null : max(1, (int) ($validated['max_schools'] ?? 1));
+            $maxEcoles = $isUnlimited ? 999999 : $maxSchools;
+        }
 
         return [
             'duration_type' => $durationType,
-            'duration_value' => $durationValue,
+            'duration_value' => 1,
             'duree' => $durationMonths,
-            'max_schools' => $isUnlimited ? null : max(1, (int) ($validated['max_schools'] ?? 1)),
+            'max_schools' => $maxSchools,
+            'max_ecoles' => $maxEcoles,
             'is_unlimited' => $isUnlimited,
         ];
     }
@@ -155,7 +182,3 @@ public function index(): View
             ->all();
     }
 }
-
-
-
-

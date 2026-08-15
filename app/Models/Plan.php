@@ -31,6 +31,7 @@ class Plan extends Model
         'duration_type',
         'duration_value',
         'max_schools',
+        'max_ecoles',
         'is_unlimited',
         'duree',
         'subscription_type_id',
@@ -41,35 +42,48 @@ class Plan extends Model
         'prix' => 'integer',
         'duration_value' => 'integer',
         'max_schools' => 'integer',
+        'max_ecoles' => 'integer',
         'is_unlimited' => 'boolean',
         'duree' => 'integer',
     ];
 
     public function durationInMonths(): int
     {
-        $value = max(1, (int) ($this->duration_value ?: 1));
+        if ($this->duration_type === 'annual') {
+            return 12;
+        }
 
-        return $this->duration_type === 'annual' ? $value * 12 : $value;
+        if ($this->duration_type === 'monthly') {
+            return 1;
+        }
+
+        return max(1, (int) ($this->duree ?: 1));
     }
 
     public function durationLabel(): string
     {
-        return $this->duration_type === 'annual' ? 'Annuel' : 'Mensuel';
+        return ($this->duration_type === 'annual' || (int) $this->duree >= 12) ? 'Annuel' : 'Mensuel';
     }
 
     public function schoolsLimitLabel(): string
     {
-        if ($this->is_unlimited) {
-            return 'Illimite';
+        if ($this->is_unlimited || ($this->max_schools === null && (int) ($this->max_ecoles ?? 1) >= 999)) {
+            return 'Illimité';
         }
 
-        return (string) max(1, (int) ($this->max_schools ?? 1));
+        $count = $this->max_schools ?? $this->max_ecoles ?? 1;
+        $val = max(1, (int) $count);
+        return $val === 1 ? '1 école' : "{$val} écoles";
     }
 
     public function allowsSchoolCount(int $schoolCount): bool
     {
-        return $this->is_unlimited || $schoolCount <= max(1, (int) ($this->max_schools ?? 1));
-    }
+        if ($this->is_unlimited || ($this->max_schools === null && (int) ($this->max_ecoles ?? 1) >= 999)) {
+            return true;
+        }
 
+        $count = $this->max_schools ?? $this->max_ecoles ?? 1;
+        return $schoolCount <= max(1, (int) $count);
+    }
 }
 

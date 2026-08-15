@@ -8,6 +8,7 @@ use App\Http\Requests\Sadmin\UpdateClientRequest;
 use App\Models\Etablissement;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -166,54 +167,33 @@ public function unblock(User $client): RedirectResponse
     /**
      * Valide l'abonnement du client et active ses fonctionnalités.
      * Fait passer l'abonnement de "payé" à "actif".
+     *
+     * Résolution via tenant_id (architecture multi-tenant — PAS de client_id sur etablissements).
      */
-public function validateSubscription(User $client): RedirectResponse
+    public function validateSubscription(User $client, SubscriptionService $subscriptionService): RedirectResponse
     {
+        // Résolution correcte via tenant_id du client (architecture multi-tenant).
+        $tenantId = $client->tenant_id;
+
         $subscription = Subscription::query()
             ->with('plan')
-            ->where('user_id', $client->id)
-            ->orWhere('client_id', $client->id)
-            ->latest()
+            ->when($tenantId, function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
+            ->when(! $tenantId, function ($q) use ($client) {
+                $q->where('user_id', $client->id);
+            })
+            ->latest('id')
             ->first();
 
         if (! $subscription) {
             return back()->with('error', 'Ce client n\'a pas encore d\'abonnement.');
         }
 
-        $subscription->statut = 'active';
-        $subscription->status = 'active';
-        $subscription->abonnement_status = Subscription::ABONNEMENT_ACTIF;
-
-        // Renouvellement : si la date de fin est passée, on la prolonge.
-        if ($subscription->date_fin && $subscription->date_fin->lt(\Carbon\Carbon::today()->startOfDay())) {
-            $dureeMois = $this->planDurationInMonths($subscription->plan);
-            $subscription->date_debut = \Carbon\Carbon::today();
-            $subscription->date_fin = \Carbon\Carbon::today()->addMonthsNoOverflow($dureeMois);
-        }
-
-        $subscription->save();
+        // Délégation à SubscriptionService::activate() — logique centralisée.
+        $subscriptionService->activate($subscription);
 
         return back()->with('success', 'Abonnement validé. Les fonctionnalités du client sont maintenant actives.');
-    }
-
-    /**
-     * Calcule la durée (en mois) de l'abonnement à partir du plan associé.
-     */
-    private function planDurationInMonths($plan): int
-    {
-        if (! $plan) {
-            return 12;
-        }
-
-        if (method_exists($plan, 'durationInMonths')) {
-            return $plan->durationInMonths();
-        }
-
-        if (isset($plan->duree) && is_numeric($plan->duree)) {
-            return max(1, (int) $plan->duree);
-        }
-
-        return 12;
     }
 
     private function handlePhotoUpload(Request $request): ?string

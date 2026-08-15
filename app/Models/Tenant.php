@@ -14,4 +14,5 @@ class Tenant extends Model
 
     public function etablissements(): HasMany { return $this->hasMany(Etablissement::class); }
     public function users(): HasMany { return $this->hasMany(User::class); }
+    public function subscriptions(): HasMany { return $this->hasMany(Subscription::class, 'tenant_id'); }
 }

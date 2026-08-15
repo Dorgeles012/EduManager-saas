@@ -37,22 +37,79 @@
 </div>
 
 <section class="mb-10">
-    @if($subscriptions->isEmpty())
-        <div class="mb-8 rounded-3xl border border-primary/20 bg-primary/5 p-6 text-primary shadow-sm">
+    @php
+        $activeSub = $currentSubscription;
+        $subStatus = $activeSub?->abonnement_status;
+    @endphp
+
+    {{-- Bannière d'état contextuelle --}}
+    @if(! $activeSub)
+        <div class="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <p class="font-semibold text-lg">Vous n'avez pas encore d'abonnement.</p>
-                    <p class="mt-1 text-sm text-primary/80">Choisissez une formule pour commencer à utiliser EduManager.</p>
+                    <p class="font-semibold text-lg text-primary">👋 Bienvenue ! Vous n'avez pas encore d'abonnement.</p>
+                    <p class="mt-1 text-sm text-primary/70">Choisissez une formule ci-dessous pour commencer à utiliser EduManager.</p>
                 </div>
-                <a href="{{ route('client.abonnement.index') }}" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-container transition">Voir les abonnements</a>
+            </div>
+        </div>
+    @elseif($subStatus === 'paye')
+        <div class="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="font-semibold text-lg text-blue-800">⏳ Paiement reçu — En attente de validation</p>
+                    <p class="mt-1 text-sm text-blue-700">Votre paiement a bien été enregistré. L'administrateur doit valider votre abonnement pour activer toutes les fonctionnalités.</p>
+                    @if($activeSub->plan)
+                        <p class="mt-1 text-xs text-blue-600 font-medium">Plan : {{ $activeSub->plan->nom }} — {{ number_format((int) $activeSub->price ?? $activeSub->amount ?? 0, 0, ',', ' ') }} FCFA</p>
+                    @endif
+                </div>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+                    <span class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>En attente
+                </span>
+            </div>
+        </div>
+    @elseif($subStatus === 'en_attente')
+        <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="font-semibold text-lg text-amber-800">💳 Abonnement en attente de paiement</p>
+                    <p class="mt-1 text-sm text-amber-700">Choisissez une formule ci-dessous et confirmez votre paiement pour activer votre accès.</p>
+                </div>
+            </div>
+        </div>
+    @elseif($subStatus === 'actif' && $activeSub->isValid())
+        <div class="mb-8 rounded-2xl border border-green-200 bg-green-50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="font-semibold text-lg text-green-800">✅ Abonnement actif</p>
+                    @if($activeSub->date_fin)
+                        <p class="mt-1 text-sm text-green-700">Votre accès est garanti jusqu'au <strong>{{ $activeSub->date_fin->format('d/m/Y') }}</strong>.</p>
+                    @endif
+                    @if($activeSub->plan)
+                        <p class="mt-1 text-xs text-green-600 font-medium">Plan : {{ $activeSub->plan->nom }} — {{ $activeSub->plan->schoolsLimitLabel() }}</p>
+                    @endif
+                </div>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+                    <span class="h-2 w-2 rounded-full bg-green-500"></span>Actif
+                </span>
+            </div>
+        </div>
+    @elseif($activeSub?->isWithinGracePeriod())
+        <div class="mb-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="font-semibold text-lg text-amber-900">⚠️ Abonnement expiré — Période de grâce</p>
+                    <p class="mt-1 text-sm text-amber-800">Votre abonnement a expiré. Il vous reste <strong>{{ $activeSub->remainingGraceDays() }} jour{{ $activeSub->remainingGraceDays() > 1 ? 's' : '' }}</strong> avant le blocage de votre compte.</p>
+                </div>
+                <a href="#plans" class="inline-flex items-center justify-center rounded-full bg-amber-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-800 transition">Renouveler maintenant</a>
             </div>
         </div>
     @endif
 
-    <h4 class="font-headline-md text-headline-md text-on-surface mb-5 flex items-center gap-2">
+    <h4 class="font-headline-md text-headline-md text-on-surface mb-5 flex items-center gap-2" id="plans">
         <span class="material-symbols-outlined text-primary">workspace_premium</span>
         Formules disponibles
     </h4>
+
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
         @forelse ($plans as $plan)
@@ -70,12 +127,25 @@
                 </div>
 
                 <div class="p-6 flex flex-col flex-1">
-                    <div class="mb-6">
-                        <span class="font-headline-md text-headline-md text-primary">{{ number_format((int) $plan->prix, 0, ',', ' ') }} FCFA</span>
-                        <span class="font-body-md text-body-md text-on-surface-variant">/ mois</span>
+                    <div class="mb-6 flex justify-between items-baseline">
+                        <div>
+                            <span class="font-headline-md text-headline-md text-primary">{{ number_format((int) $plan->prix, 0, ',', ' ') }} FCFA</span>
+                            <span class="font-body-md text-body-md text-on-surface-variant">/ {{ strtolower($plan->durationLabel()) }}</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                            {{ $plan->schoolsLimitLabel() }}
+                        </span>
                     </div>
 
                     <ul class="space-y-3 mb-8 flex-1">
+                        <li class="flex items-start gap-3 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-primary text-xl">domain</span>
+                            <span class="font-body-sm text-body-sm font-medium">Établissements : {{ $plan->schoolsLimitLabel() }}</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-primary text-xl">schedule</span>
+                            <span class="font-body-sm text-body-sm font-medium">Durée : {{ $plan->durationLabel() }} ({{ $plan->durationInMonths() }} mois)</span>
+                        </li>
                         @foreach ($features as $feature)
                             <li class="flex items-start gap-3 text-on-surface-variant">
                                 <span class="material-symbols-outlined text-success-green text-xl">check_circle</span>
@@ -224,9 +294,9 @@
 
     @if (session('success'))
         Swal.fire({
-            title: 'Paiement confirmé',
-            text: 'L\'abonnement est maintenant actif',
-            icon: 'success',
+            title: 'Paiement enregistré !',
+            text: 'Votre paiement a été soumis. Il sera activé après validation par l\'administrateur.',
+            icon: 'info',
             confirmButtonColor: '#1f108e',
         });
     @endif
