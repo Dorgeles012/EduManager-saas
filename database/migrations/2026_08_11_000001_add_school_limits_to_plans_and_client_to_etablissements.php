@@ -54,22 +54,10 @@ return new class extends Migration
             }
         }
 
-        if (Schema::hasTable('etablissements') && ! Schema::hasColumn('etablissements', 'client_id')) {
-            Schema::table('etablissements', function (Blueprint $table) {
-                $table->unsignedBigInteger('client_id')->nullable()->after('tenant_id');
-                $table->index(['client_id', 'tenant_id'], 'etablissements_client_tenant_index');
-            });
-        }
     }
 
     public function down(): void
     {
-        if (Schema::hasTable('etablissements') && Schema::hasColumn('etablissements', 'client_id')) {
-            Schema::table('etablissements', function (Blueprint $table) {
-                $table->dropIndex('etablissements_client_tenant_index');
-                $table->dropColumn('client_id');
-            });
-        }
 
         if (Schema::hasTable('plans')) {
             Schema::table('plans', function (Blueprint $table) {
