@@ -11,29 +11,21 @@ class PlanStoreRequest extends FormRequest
         return true;
     }
 
-public function rules(): array
+    public function rules(): array
     {
         return [
             'nom' => ['required', 'string', 'max:255'],
-
-            // Description générale (textarea côté admin) conservée, mais non utilisée dans la nouvelle logique features.
             'description' => ['nullable', 'string'],
-
             'features' => ['sometimes', 'array'],
             'features.*' => ['string', 'max:255'],
-
             'prix' => ['required', 'integer', 'min:0'],
-
-            // Durée du plan en mois (colonne `duree` de la table `plans`).
+            'duration_type' => ['required', 'in:monthly,annual'],
+            'duration_value' => ['nullable', 'integer', 'min:1'],
+            'max_schools' => ['nullable', 'integer', 'min:1'],
+            'is_unlimited' => ['nullable', 'boolean'],
             'duree' => ['nullable', 'integer', 'min:1'],
-
-            // Le type est rendu plus souple : on ne bloque plus la création si
-            // le type n'existe pas encore dans `subscription_types`. Le contrôleur
-            // le créera automatiquement au besoin (firstOrCreate).
             'type' => ['nullable', 'string', 'max:255'],
             'statut' => ['required', 'in:active,inactive'],
         ];
     }
-
 }
-

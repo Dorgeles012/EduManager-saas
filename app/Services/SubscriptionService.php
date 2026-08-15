@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Schema;
 class SubscriptionService
 {
     public function __construct(
-        protected ConnectionInterface $connection
+        protected ConnectionInterface $connection,
+        protected SchoolSubscriptionLimitService $schoolLimits
     ) {
     }
 
@@ -26,10 +27,12 @@ class SubscriptionService
         string $methodePaiement,
         string $referenceTransaction
     ): array {
-        $plan = Plan::query()->where('id', $planId)->first();
+        $plan = Plan::query()->where('id', $planId)->where('statut', 'active')->first();
         if (! $plan) {
             throw new ModelNotFoundException(sprintf('Plan %d not found.', $planId));
         }
+
+        $this->schoolLimits->ensurePlanCanBeSelected($user, $plan);
 
         $referenceTransaction = trim($referenceTransaction);
         $methodePaiement = trim($methodePaiement);
@@ -43,7 +46,7 @@ class SubscriptionService
         }
 
         $dateDebut = Carbon::today();
-        $dureeMois = $this->getPlanDurationInMonths($plan);
+        $dureeMois = $plan->durationInMonths();
         $dateFin = (clone $dateDebut)->addMonthsNoOverflow($dureeMois);
 
         // Architecture prête pour plus tard : on centralise la création paiement
@@ -74,6 +77,22 @@ class SubscriptionService
 
             if (\Schema::hasColumn('subscriptions', 'tenant_id')) {
                 $subscriptionPayload['tenant_id'] = ($user->tenant_id ?? 1);
+            }
+
+            if (\Schema::hasColumn('subscriptions', 'amount')) {
+                $subscriptionPayload['amount'] = (int) $plan->prix;
+            }
+
+            if (\Schema::hasColumn('subscriptions', 'price')) {
+                $subscriptionPayload['price'] = (int) $plan->prix;
+            }
+
+            if (\Schema::hasColumn('subscriptions', 'duration')) {
+                $subscriptionPayload['duration'] = $plan->durationInMonths();
+            }
+
+            if (\Schema::hasColumn('subscriptions', 'status')) {
+                $subscriptionPayload['status'] = 'active';
             }
 
 

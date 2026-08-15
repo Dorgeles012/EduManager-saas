@@ -14,6 +14,7 @@ use App\Http\Controllers\Client\NoteController;
 use App\Http\Controllers\Client\ParametreController;
 use App\Http\Controllers\Client\EmploiTempsController;
 use App\Http\Controllers\Client\EmploiTempsCreateController;
+use App\Http\Controllers\Client\EtablissementController;
 
 use App\Http\Controllers\Client\PersonnelController;
 use App\Http\Controllers\Client\SeriesController;
@@ -34,6 +35,10 @@ Route::middleware(['auth', 'status', 'client', 'subscription.active'])
         Route::get('/abonnement', [AbonnementController::class, 'index'])->name('abonnement.index');
         Route::post('/abonnement', [AbonnementController::class, 'store'])->name('abonnement.store');
         Route::resource('abonnement', AbonnementController::class)->except(['index', 'store']);
+
+        Route::get('/etablissements', [EtablissementController::class, 'index'])->name('etablissements.index');
+        Route::post('/etablissements', [EtablissementController::class, 'store'])->name('etablissements.store');
+        Route::patch('/etablissements/actif', [EtablissementController::class, 'switch'])->name('etablissements.switch');
 
         Route::resource('annee', AnneeController::class);
         Route::resource('personnel', PersonnelController::class);

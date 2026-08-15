@@ -187,27 +187,77 @@
             }
         }
         
-        /* Active link style - CORRIGÉ */
+        /* ============================================
+           STYLES DE LA SIDEBAR AVEC SURBRILLANCE
+           ============================================ */
+        
+        /* Style pour l'élément actif de la sidebar */
         .sidebar-nav a.nav-active {
-            color: #1f108e !important;
-            font-weight: bold !important;
+            background: linear-gradient(to right, rgba(31, 16, 142, 0.12), rgba(31, 16, 142, 0.04)) !important;
             border-right: 4px solid #1f108e !important;
-            background-color: #e7eeff !important;
+            color: #1f108e !important;
+            font-weight: 600 !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 8px !important;
+            transition: all 0.3s ease !important;
         }
         
+        /* Icônes dans l'élément actif */
         .sidebar-nav a.nav-active span.material-symbols-outlined {
             color: #1f108e !important;
+            font-variation-settings: 'FILL' 1, 'wght' 500 !important;
         }
         
-        /* Hover style for nav links */
+        /* Texte dans l'élément actif */
+        .sidebar-nav a.nav-active span:not(.material-symbols-outlined) {
+            color: #1f108e !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Icône lock dans l'élément actif */
+        .sidebar-nav a.nav-active span.material-symbols-outlined.ml-auto {
+            color: #1f108e !important;
+            font-variation-settings: 'FILL' 1, 'wght' 400 !important;
+        }
+        
+        /* Effet de survol amélioré pour tous les liens */
         .sidebar-nav a {
-            transition: all 0.2s ease;
-            border-right: 4px solid transparent;
+            position: relative;
+            transition: all 0.25s ease !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 4px !important;
+            border-right: 4px solid transparent !important;
         }
         
-        .sidebar-nav a:hover {
-            background-color: #f0f3ff;
+        .sidebar-nav a:hover:not(.nav-active) {
+            background-color: rgba(31, 16, 142, 0.06) !important;
+            transform: translateX(4px) !important;
         }
+        
+        /* Effet au clic */
+        .sidebar-nav a:active {
+            transform: scale(0.97) !important;
+        }
+        
+        /* Pour les éléments désactivés (verrouillés) */
+        .sidebar-nav a.pointer-events-none {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+        }
+        
+        .sidebar-nav a.pointer-events-none:hover {
+            transform: none !important;
+            background-color: transparent !important;
+        }
+        
+        /* Effet de surbrillance avec ombre portée */
+        .sidebar-nav a.nav-active {
+            box-shadow: 0 4px 12px rgba(31, 16, 142, 0.08) !important;
+        }
+        
+        /* ============================================
+           FIN DES STYLES DE LA SIDEBAR
+           ============================================ */
 
         /* SweetAlert2 - Tailles de police optimisées */
         .swal2-popup {

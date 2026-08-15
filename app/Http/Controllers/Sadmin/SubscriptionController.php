@@ -140,12 +140,12 @@ public function edit($id)
             return 12;
         }
 
-        if (isset($plan->duree) && is_numeric($plan->duree)) {
-            return max(1, (int) $plan->duree);
+        if (method_exists($plan, 'durationInMonths')) {
+            return $plan->durationInMonths();
         }
 
-        if (isset($plan->duration) && is_numeric($plan->duration)) {
-            return max(1, (int) $plan->duration);
+        if (isset($plan->duree) && is_numeric($plan->duree)) {
+            return max(1, (int) $plan->duree);
         }
 
         return 12;

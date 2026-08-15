@@ -61,6 +61,8 @@
                     <tr>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Libellé du plan</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statut</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Ecoles</th>
+                        <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Duree</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Prix (FCFA)</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date</th>
                         <th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Actions</th>
@@ -95,6 +97,8 @@
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 bg-primary-fixed text-primary rounded-full font-label-sm text-label-sm">{{ $plan->statut }}</span>
                             </td>
+                            <td class="px-6 py-4 text-body-sm text-on-surface">{{ $plan->schoolsLimitLabel() }}</td>
+                            <td class="px-6 py-4 text-body-sm text-on-surface">{{ $plan->durationLabel() }}</td>
                             <td class="px-6 py-4 text-right">
                                 <span class="font-body-md text-body-md font-semibold">{{ number_format((int) $plan->prix, 0, ',', ' ') }} FCFA</span>
                             </td>
@@ -108,6 +112,10 @@ data-id="{{ $plan->id }}"
                                         data-type="{{ $plan->subscriptionType?->type ?? $plan->type }}"
                                         data-price="{{ $plan->prix }}"
                                         data-duree="{{ $plan->duree ?? 12 }}"
+                                        data-duration-type="{{ $plan->duration_type ?? 'monthly' }}"
+                                        data-duration-value="{{ $plan->duration_value ?? 1 }}"
+                                        data-max-schools="{{ $plan->max_schools }}"
+                                        data-is-unlimited="{{ $plan->is_unlimited ? '1' : '0' }}"
                                         data-features='@json($featuresArray)'
                                         data-status="{{ $plan->statut }}"
                                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-900"
@@ -127,7 +135,7 @@ data-id="{{ $plan->id }}"
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-body-sm text-on-surface-variant">
+                            <td colspan="7" class="px-6 py-10 text-center text-body-sm text-on-surface-variant">
                                 Aucun plan d'abonnement trouvé.
                             </td>
                         </tr>
@@ -294,6 +302,28 @@ data-id="{{ $plan->id }}"
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Duree du plan</label>
+                        <select name="duration_type" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" required>
+                            <option value="monthly">Mensuel</option>
+                            <option value="annual">Annuel</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre de periodes</label>
+                        <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" type="number" name="duration_value" min="1" value="1" required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="font-label-md text-label-md text-on-surface-variant block">Nombre maximum d'ecoles</label>
+                        <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-fixed-dim outline-none" type="number" name="max_schools" min="1" value="1">
+                    </div>
+                    <label class="flex items-center gap-3 mt-8 text-body-sm text-on-surface">
+                        <input type="checkbox" name="is_unlimited" value="1" class="rounded border-outline-variant text-primary focus:ring-primary">
+                        Ecoles illimitees
+                    </label>
+                </div>
+
                 <!-- Section Features avec check_circle -->
                 <div class="space-y-3">
                     <label class="font-label-md text-label-md text-on-surface-variant block">Fonctionnalités incluses</label>
@@ -350,6 +380,10 @@ data-id="{{ $plan->id }}"
             <form class="space-y-6" method="POST" id="editForm" action="">
                 @csrf
                 @method('PUT')
+                <input type="hidden" id="edit_duration_type" name="duration_type" value="monthly">
+                <input type="hidden" id="edit_duration_value" name="duration_value" value="1">
+                <input type="hidden" id="edit_max_schools" name="max_schools" value="1">
+                <input type="hidden" id="edit_is_unlimited_hidden" name="is_unlimited" value="0">
                 
                 <div class="space-y-2">
                     <label class="font-label-md text-label-md text-on-surface-variant block">Nom du Plan</label>
@@ -688,6 +722,10 @@ function openEditModal(button) {
         const type = button.getAttribute('data-type');
         const price = button.getAttribute('data-price');
         const duree = button.getAttribute('data-duree');
+        const durationType = button.getAttribute('data-duration-type') || 'monthly';
+        const durationValue = button.getAttribute('data-duration-value') || '1';
+        const maxSchools = button.getAttribute('data-max-schools') || '1';
+        const isUnlimited = button.getAttribute('data-is-unlimited') || '0';
         const status = button.getAttribute('data-status');
 
         const features = normalizeFeaturesData(button.getAttribute('data-features'));
@@ -697,10 +735,18 @@ function openEditModal(button) {
         const dureeInput = document.getElementById('edit_duree');
         const statusSelect = document.getElementById('edit_status');
         const typeSelect = document.getElementById('edit_type');
+        const durationTypeInput = document.getElementById('edit_duration_type');
+        const durationValueInput = document.getElementById('edit_duration_value');
+        const maxSchoolsInput = document.getElementById('edit_max_schools');
+        const isUnlimitedInput = document.getElementById('edit_is_unlimited_hidden');
 
         if (nameInput) nameInput.value = name || '';
         if (priceInput) priceInput.value = price || 0;
         if (dureeInput) dureeInput.value = duree || 12;
+        if (durationTypeInput) durationTypeInput.value = durationType;
+        if (durationValueInput) durationValueInput.value = durationValue;
+        if (maxSchoolsInput) maxSchoolsInput.value = maxSchools || '1';
+        if (isUnlimitedInput) isUnlimitedInput.value = isUnlimited;
         if (statusSelect) statusSelect.value = status || 'active';
 
         if (typeSelect && type) {

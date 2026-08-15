@@ -65,18 +65,85 @@
         .ambient-shadow { box-shadow: 0 4px 12px 0 rgba(55, 48, 163, 0.04); }
         .custom-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        
+        /* Sidebar scrollbar styles */
         .sidebar-nav { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c8c4d5 #f0f3ff; flex: 1; }
         .sidebar-nav::-webkit-scrollbar { width: 5px; }
         .sidebar-nav::-webkit-scrollbar-track { background: #f0f3ff; border-radius: 10px; }
         .sidebar-nav::-webkit-scrollbar-thumb { background: #c8c4d5; border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #a09eb0; }
+        
+        /* Fixed navbar */
         .navbar-fixed { position: fixed; top: 0; right: 0; left: 260px; z-index: 40; background-color: #f9f9ff; border-bottom: 1px solid #c8c4d5; height: 64px; }
         .main-content-with-fixed-nav { margin-top: 64px; }
         @media (max-width: 768px) { .navbar-fixed { left: 0; } }
-        .sidebar-nav a.nav-active { color: #1f108e !important; font-weight: bold !important; border-right: 4px solid #1f108e !important; background-color: #e7eeff !important; }
-        .sidebar-nav a.nav-active span.material-symbols-outlined { color: #1f108e !important; }
-        .sidebar-nav a { transition: all 0.2s ease; border-right: 4px solid transparent; }
-        .sidebar-nav a:hover { background-color: #f0f3ff; }
-.swal2-popup { font-size: 0.9375rem !important; }
+        
+        /* ============================================
+           STYLES DE LA SIDEBAR AVEC SURBRILLANCE
+           ============================================ */
+        
+        /* Style pour l'élément actif de la sidebar */
+        .sidebar-nav a.nav-active {
+            background: linear-gradient(to right, rgba(31, 16, 142, 0.12), rgba(31, 16, 142, 0.04)) !important;
+            border-right: 4px solid #1f108e !important;
+            color: #1f108e !important;
+            font-weight: 600 !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 8px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(31, 16, 142, 0.08) !important;
+        }
+        
+        /* Icônes dans l'élément actif */
+        .sidebar-nav a.nav-active span.material-symbols-outlined {
+            color: #1f108e !important;
+            font-variation-settings: 'FILL' 1, 'wght' 500 !important;
+        }
+        
+        /* Texte dans l'élément actif */
+        .sidebar-nav a.nav-active span:not(.material-symbols-outlined) {
+            color: #1f108e !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Effet de survol amélioré pour tous les liens */
+        .sidebar-nav a {
+            position: relative;
+            transition: all 0.25s ease !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 4px !important;
+            border-right: 4px solid transparent !important;
+        }
+        
+        .sidebar-nav a:hover:not(.nav-active) {
+            background-color: rgba(31, 16, 142, 0.06) !important;
+            transform: translateX(4px) !important;
+        }
+        
+        /* Effet au clic */
+        .sidebar-nav a:active {
+            transform: scale(0.97) !important;
+        }
+        
+        /* Effet de pulsation pour l'élément actif */
+        .sidebar-nav a.nav-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: #1f108e;
+            border-radius: 0 4px 4px 0;
+            opacity: 0.6;
+        }
+        
+        /* ============================================
+           FIN DES STYLES DE LA SIDEBAR
+           ============================================ */
+        
+        .swal2-popup { font-size: 0.9375rem !important; }
     </style>
     @include('partials.compact-styles')
     @stack('styles')

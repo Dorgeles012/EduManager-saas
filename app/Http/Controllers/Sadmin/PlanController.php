@@ -48,7 +48,7 @@ public function index(): View
                 'nom' => $validated['nom'],
                 'description' => $description,
                 'prix' => $validated['prix'],
-                'duree' => $validated['duree'] ?? 12,
+                ...$this->durationAndSchoolPayload($validated),
                 'subscription_type_id' => $subscriptionTypeId,
                 'statut' => $validated['statut'],
             ]);
@@ -80,7 +80,7 @@ public function index(): View
                 'nom' => $validated['nom'],
                 'description' => $description,
                 'prix' => $validated['prix'],
-                'duree' => $validated['duree'] ?? 12,
+                ...$this->durationAndSchoolPayload($validated),
                 'subscription_type_id' => $subscriptionTypeId,
                 'statut' => $validated['statut'],
             ]);
@@ -122,6 +122,22 @@ public function index(): View
 
         return back()->with('success', 'Plan supprimé avec succès.');
     }
+    private function durationAndSchoolPayload(array $validated): array
+    {
+        $durationType = $validated['duration_type'] ?? 'monthly';
+        $durationValue = max(1, (int) ($validated['duration_value'] ?? 1));
+        $durationMonths = $durationType === 'annual' ? $durationValue * 12 : $durationValue;
+        $isUnlimited = (bool) ($validated['is_unlimited'] ?? false);
+
+        return [
+            'duration_type' => $durationType,
+            'duration_value' => $durationValue,
+            'duree' => $durationMonths,
+            'max_schools' => $isUnlimited ? null : max(1, (int) ($validated['max_schools'] ?? 1)),
+            'is_unlimited' => $isUnlimited,
+        ];
+    }
+
     private function checkedFeaturesFromRequest(PlanStoreRequest $request): array
     {
         $features = $request->input('features', []);

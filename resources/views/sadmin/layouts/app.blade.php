@@ -118,10 +118,59 @@
     </script>
 
     <style>
+        /* Styles de base */
         .sidebar-shadow { box-shadow: 4px 0 12px rgba(55,48,163,0.04); }
         .card-shadow { box-shadow: 0 4px 12px rgba(55,48,163,0.04); }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.chart-bar { transition: height 1s ease-in-out; }
+        .chart-bar { transition: height 1s ease-in-out; }
+
+        /* ============================================
+           STYLES DE LA SIDEBAR AVEC SURBRILLANCE
+           ============================================ */
+        
+        /* Style pour l'élément actif de la sidebar */
+        .nav-active {
+            background: linear-gradient(to right, rgba(31, 16, 142, 0.08), rgba(31, 16, 142, 0.03));
+            border-right: 4px solid #1f108e;
+            color: #1f108e !important;
+            border-radius: 0 12px 12px 0;
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+
+        /* Icônes dans l'élément actif */
+        .nav-active .material-symbols-outlined {
+            color: #1f108e;
+            font-variation-settings: 'FILL' 1, 'wght' 500;
+        }
+
+        /* Texte dans l'élément actif */
+        .nav-active span:not(.material-symbols-outlined) {
+            color: #1f108e !important;
+            font-weight: 600;
+        }
+
+        /* Effet de survol amélioré pour tous les liens */
+        .sidebar-nav a {
+            position: relative;
+            transition: all 0.25s ease;
+            border-radius: 0 12px 12px 0;
+            margin-right: 4px;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: rgba(31, 16, 142, 0.06);
+            transform: translateX(4px);
+        }
+
+        /* Effet au clic */
+        .sidebar-nav a:active {
+            transform: scale(0.97);
+        }
+
+        /* ============================================
+           FIN DES STYLES DE LA SIDEBAR
+           ============================================ */
     </style>
     @include('partials.compact-styles')
 </head>

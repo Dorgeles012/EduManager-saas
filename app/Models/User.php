@@ -21,7 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'prenom',
         'client_id',
         'eleve_id',
-'email',
+        'email',
         'telephone',
         'password',
         'must_change_password',
@@ -55,6 +55,16 @@ return [
     public function etablissement(): BelongsTo
     {
         return $this->belongsTo(Etablissement::class, 'etablissement_id');
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class, 'tenant_id');
+    }
+
+    public function etablissements(): HasMany
+    {
+        return $this->hasMany(Etablissement::class, 'tenant_id', 'tenant_id');
     }
 
     /**
