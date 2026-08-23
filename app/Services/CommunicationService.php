@@ -665,4 +665,40 @@ class CommunicationService
 
         return $totalUnread;
     }
+
+    /**
+     * Supprime un message et son fichier associé de la base de données et du disque.
+     */
+    public function deleteMessage(User $user, int $messageId): bool
+    {
+        $communication = Communication::where('tenant_id', $user->tenant_id)
+            ->findOrFail($messageId);
+
+        // Seul l'expéditeur ou un membre du personnel / admin a le droit de supprimer
+        $isAuthor = (int) $communication->sender_id === (int) $user->id;
+        $isStaff = in_array(strtolower((string) $user->role), ['personnel', 'admin', 'sadmin'], true);
+
+        abort_unless($isAuthor || $isStaff, 403, 'Vous n\'êtes pas autorisé à supprimer ce message.');
+
+        $conversationId = $communication->conversation_id;
+
+        // Supprimer le fichier physique stocké s'il existe
+        if ($communication->file_path && Storage::disk('public')->exists($communication->file_path)) {
+            Storage::disk('public')->delete($communication->file_path);
+        }
+
+        // Supprimer l'enregistrement de la base de données
+        $communication->delete();
+
+        // Mettre à jour la date du dernier message de la conversation
+        $conversation = Conversation::find($conversationId);
+        if ($conversation) {
+            $latestRemaining = Communication::where('conversation_id', $conversationId)->latest('created_at')->first();
+            $conversation->update([
+                'last_message_at' => $latestRemaining?->created_at ?? $conversation->created_at,
+            ]);
+        }
+
+        return true;
+    }
 }

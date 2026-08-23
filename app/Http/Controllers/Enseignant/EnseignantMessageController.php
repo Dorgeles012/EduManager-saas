@@ -112,4 +112,16 @@ class EnseignantMessageController extends Controller
             ],
         ]);
     }
+
+    public function deleteMessage(int $messageId): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $this->communicationService->deleteMessage($user, $messageId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message supprimé avec succès.',
+        ]);
+    }
 }

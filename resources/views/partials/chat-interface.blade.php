@@ -748,10 +748,10 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else if (isAudio && msg.file_url) {
             const dur = msg.formatted_duration || (msg.duration ? String(Math.floor(msg.duration / 60)).padStart(2, '0') + ':' + String(msg.duration % 60).padStart(2, '0') : '00:00');
-            const playerBg = isMe ? 'bg-black/15 text-white' : 'bg-surface-container-low text-on-surface';
+            const playerBg = isMe ? 'bg-black/20 text-white' : 'bg-surface-container-low text-on-surface';
             const micColor = isMe ? 'text-white' : 'text-primary';
             mediaHtml = `
-                <div class="voice-player-card flex flex-col gap-1 p-2 rounded-2xl ${playerBg} min-w-[240px] max-w-[320px] mb-1">
+                <div class="voice-player-card flex flex-col gap-1.5 p-2 rounded-2xl ${playerBg} min-w-[240px] max-w-[320px] mb-1">
                     <div class="flex items-center justify-between px-1 text-[11px] font-medium">
                         <span class="flex items-center gap-1.5 ${micColor}">
                             <span class="material-symbols-outlined text-base">mic</span>
@@ -759,11 +759,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         </span>
                         <span class="font-mono text-[10px] opacity-80">${dur}</span>
                     </div>
-                    <audio controls preload="metadata" class="w-full h-8 rounded-lg outline-none max-w-full">
+                    <audio src="${msg.file_url}" controls preload="auto" class="w-full h-8 rounded-lg outline-none max-w-full">
                         <source src="${msg.file_url}" type="${msg.mime_type || 'audio/webm'}">
                         <source src="${msg.file_url}" type="audio/webm">
                         <source src="${msg.file_url}" type="audio/ogg">
                         <source src="${msg.file_url}" type="audio/mp4">
+                        <source src="${msg.file_url}" type="audio/mpeg">
+                        Votre navigateur ne supporte pas l'élément audio.
                     </audio>
                 </div>
             `;
@@ -793,26 +795,100 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isMe) {
             if (msg.status === 'read') {
                 statusBadge = `<span class="message-status-badge inline-flex items-center text-sky-400 font-bold ml-1" title="Lu"><span class="material-symbols-outlined text-[13px]">done_all</span></span>`;
-            } else if (msg.status === 'delivered') {
+            } else if (status === 'delivered') {
                 statusBadge = `<span class="message-status-badge inline-flex items-center text-white/70 font-normal ml-1" title="Distribué"><span class="material-symbols-outlined text-[13px]">done_all</span></span>`;
             } else {
                 statusBadge = `<span class="message-status-badge inline-flex items-center text-white/70 font-normal ml-1" title="Envoyé"><span class="material-symbols-outlined text-[13px]">check</span></span>`;
             }
         }
 
+        const deleteButtonHtml = isMe ? `
+            <button type="button" onclick="event.stopPropagation(); window.deleteMessage(${msg.id});" class="text-white/60 hover:text-red-300 transition-colors p-0.5 ml-1.5 inline-flex items-center" title="Supprimer ce message">
+                <span class="material-symbols-outlined text-[13px]">delete</span>
+            </button>
+        ` : '';
+
         div.innerHTML = `
-            <div class="max-w-[85%] md:max-w-[70%] p-2.5 ${bubbleBg}">
+            <div class="max-w-[85%] md:max-w-[70%] p-2.5 ${bubbleBg} group relative">
                 ${senderHeader}
                 ${mediaHtml}
                 ${textContentHtml}
                 <div class="flex items-center justify-end gap-1 mt-0.5 text-[10px] ${isMe ? 'text-white/70' : 'text-text-muted'}">
                     <span>${window.escapeHtml(msg.created_at || '')}</span>
                     ${statusBadge}
+                    ${deleteButtonHtml}
                 </div>
             </div>
         `;
 
         container.appendChild(div);
+    };
+
+    // ─── Suppression d'un message ─────────────────────────────────────────────
+    window.deleteMessage = function(msgId) {
+        if (!msgId) return;
+
+        const executeDelete = () => {
+            fetch(`/${routePrefix}/messages/${msgId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    const el = document.querySelector(`[data-msg-id="${msgId}"]`);
+                    if (el) {
+                        el.style.transition = 'all 0.3s ease';
+                        el.style.opacity = '0';
+                        el.style.transform = 'scale(0.85)';
+                        setTimeout(() => {
+                            el.remove();
+                            const container = document.getElementById('messagesBody');
+                            if (container && container.querySelectorAll('[data-msg-id]').length === 0) {
+                                container.innerHTML = `
+                                    <div class="h-full flex flex-col items-center justify-center text-center p-6 text-text-muted select-none">
+                                        <span class="material-symbols-outlined text-3xl mb-1.5 opacity-40">waving_hand</span>
+                                        <p class="text-xs font-medium">Aucun message pour l'instant. Dites bonjour !</p>
+                                    </div>
+                                `;
+                            }
+                        }, 300);
+                    }
+                    window.refreshConversationsList();
+                } else if (res.message) {
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Erreur', text: res.message });
+                    } else {
+                        alert(res.message);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Erreur suppression message:", err);
+            });
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Supprimer ce message ?',
+                text: 'Le message et ses pièces jointes seront définitivement supprimés.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b'
+            }).then(result => {
+                if (result.isConfirmed) executeDelete();
+            });
+        } else {
+            if (confirm('Voulez-vous vraiment supprimer définitivement ce message ?')) {
+                executeDelete();
+            }
+        }
     };
 
     // ─── Envoi de message texte/fichier ──────────────────────────────────────

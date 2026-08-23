@@ -52,6 +52,7 @@ Route::middleware(['auth', 'status', 'role:enseignant', 'subscription.active'])
         Route::post('/messages/start', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'startConversation'])->name('messages.start');
         Route::get('/messages/{conversationId}/messages', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'getMessages'])->name('messages.get');
         Route::post('/messages/{conversationId}/send', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'sendMessage'])->name('messages.send');
+        Route::delete('/messages/{messageId}', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'deleteMessage'])->name('messages.delete');
 
         // Paramètres
         Route::get('/parametres', [EnseignantParametreController::class, 'index'])->name('parametres.index');

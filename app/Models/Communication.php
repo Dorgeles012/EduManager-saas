@@ -59,7 +59,7 @@ class Communication extends Model
             return $this->file_path;
         }
 
-        return Storage::disk('public')->url($this->file_path);
+        return asset('storage/' . ltrim($this->file_path, '/'));
     }
 
     public function getFormattedDurationAttribute(): ?string

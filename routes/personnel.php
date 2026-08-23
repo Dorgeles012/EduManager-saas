@@ -108,6 +108,7 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::post('/messages/start', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'startConversation'])->name('messages.start');
         Route::get('/messages/{conversationId}/messages', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'getMessages'])->name('messages.get');
         Route::post('/messages/{conversationId}/send', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'sendMessage'])->name('messages.send');
+        Route::delete('/messages/{messageId}', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'deleteMessage'])->name('messages.delete');
 
         // Paramètres
         Route::get('/parametres', [PersonnelParametreController::class, 'index'])->name('parametres.index');

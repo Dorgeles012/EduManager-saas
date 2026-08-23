@@ -60,6 +60,7 @@ Route::middleware(['auth', 'status', 'role:parent', 'must.change.password', 'sub
         Route::post('/messages/start', [ParentMessageController::class, 'startConversation'])->name('messages.start');
         Route::get('/messages/{conversationId}/messages', [ParentMessageController::class, 'getMessages'])->name('messages.get');
         Route::post('/messages/{conversationId}/send', [ParentMessageController::class, 'sendMessage'])->name('messages.send');
+        Route::delete('/messages/{messageId}', [ParentMessageController::class, 'deleteMessage'])->name('messages.delete');
 
         // Profil
         Route::get('/profil', [ParentProfilController::class, 'index'])->name('profil');

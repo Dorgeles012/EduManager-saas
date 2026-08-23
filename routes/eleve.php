@@ -72,6 +72,7 @@ Route::middleware(['auth', 'status', 'role:eleve', 'must.change.password', 'subs
         Route::post('/messages/start', [EleveMessageController::class, 'startConversation'])->name('messages.start');
         Route::get('/messages/{conversationId}/messages', [EleveMessageController::class, 'getMessages'])->name('messages.get');
         Route::post('/messages/{conversationId}/send', [EleveMessageController::class, 'sendMessage'])->name('messages.send');
+        Route::delete('/messages/{messageId}', [EleveMessageController::class, 'deleteMessage'])->name('messages.delete');
 
         // Mes paramètres
         Route::get('/parametres', [EleveParametreController::class, 'index'])->name('parametres');

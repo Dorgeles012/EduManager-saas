@@ -10,6 +10,7 @@
         "barryvdh/laravel-dompdf": "*",
         "jeroennoten/laravel-adminlte": "^3.16",
         "laravel/framework": "^12.0",
+        "laravel/reverb": "^1.11",
         "laravel/tinker": "^2.10.1",
         "phpmailer/phpmailer": "*",
         "spatie/laravel-permission": "^6.25"
