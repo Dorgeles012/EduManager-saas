@@ -191,7 +191,7 @@
                 <span class="font-label-md text-label-md">Notifications</span>
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.messages') ? 'nav-active' : '' }}" href="{{ route('parent.messages') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'parent.messages') ? 'nav-active' : '' }}" href="{{ route('parent.messages.index') }}">
                 <span class="material-symbols-outlined">chat</span>
                 <span class="font-label-md text-label-md">Messages</span>
             </a>

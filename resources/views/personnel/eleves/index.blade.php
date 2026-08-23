@@ -120,24 +120,50 @@ function closeModal(id){const m=document.getElementById(id),c=document.getElemen
 function viewStudent(s){openViewModal(s);}function editStudent(s){openEditModal(s);}
 function openViewModal(s){
     document.getElementById('viewStudentFullName').textContent=(s.firstname??'')+' '+(s.lastname??'')||'-';
-    ['matricule','birthdate','birthplace','classe','level','serie','nationalite','parent_lastname','parent_firstname','parent_phone','parent_email','created_at','updated_at'].forEach(f=>{
-        const el=document.getElementById('viewStudent'+f.charAt(0).toUpperCase()+f.slice(1));
-        if(el) el.textContent=s[f]??(f==='classe'?s.class??'N/A':'N/A');
-        if(f==='classe'&&!s.classe&&s.class) document.getElementById('viewStudentClasse').textContent=s.class;
-    });
+    // Informations scolaires
+    document.getElementById('viewStudentMatricule').textContent=s.matricule??'-';
+    document.getElementById('viewStudentBirthdate').textContent=s.birthdate??'-';
+    document.getElementById('viewStudentBirthplace').textContent=s.birthplace??'-';
+    document.getElementById('viewStudentClasse').textContent=s.classe??s.class??'-';
+    document.getElementById('viewStudentNiveau').textContent=s.level??'-';
+    document.getElementById('viewStudentSerie').textContent=s.serie??'—';
+    document.getElementById('viewStudentNationalite').textContent=s.nationalite??'-';
     document.getElementById('viewStudentInterne').textContent=s.interne?'Oui':'Non';
     document.getElementById('viewStudentAffecte').textContent=s.affecte?'Oui':'Non';
     const sexe=(s.sexe??'').toString().trim().toLowerCase();
     document.getElementById('viewStudentSexeDetail').textContent=['m','masculin','male','homme','h'].includes(sexe)?'Masculin':['f','féminin','feminin','female','femme','f'].includes(sexe)?'Féminin':'Non renseigné';
+    // Parent / Tuteur
+    document.getElementById('viewStudentParentLastname').textContent=s.parent_lastname||'-';
+    document.getElementById('viewStudentParentFirstname').textContent=s.parent_firstname||'-';
+    document.getElementById('viewStudentParentPhone').textContent=s.parent_phone||'-';
+    document.getElementById('viewStudentParentEmail').textContent=s.parent_email||'-';
+    // Identifiant espace élève
+    document.getElementById('viewStudentAccountEmail').textContent=s.eleve_email||'-';
+    if(s.has_account){
+        document.getElementById('viewStudentAccountPassword').innerHTML=s.eleve_must_change_pwd
+            ?'<span class="font-mono bg-primary-fixed/30 px-2 py-0.5 rounded text-primary">12345678</span> <span class="text-text-muted text-[12px]">(par défaut)</span>'
+            :'<span class="text-text-muted">•••••••• <span class="text-[12px]">(modifié par l\'élève)</span></span>';
+    } else {
+        document.getElementById('viewStudentAccountEmail').textContent='Aucun compte';
+        document.getElementById('viewStudentAccountPassword').textContent='-';
+    }
     openModal('modal-view');
 }
 function openEditModal(s){
     document.getElementById('editEleveId').value=s.id;
-    ['lastname','firstname','matricule','birthplace','parent_lastname','parent_firstname','parent_phone','parent_email'].forEach(f=>{
-        const el=document.getElementById('edit'+f.replace('_','').charAt(0).toUpperCase()+f.replace('_','').slice(1));
-        if(el) el.value=s[f]??'';
-    });
+    document.getElementById('editLastname').value=s.lastname??'';
+    document.getElementById('editFirstname').value=s.firstname??'';
+    document.getElementById('editMatricule').value=s.matricule??'';
     document.getElementById('editBirthdate').value=s.birthdate_raw??'';
+    document.getElementById('editBirthPlace').value=s.birthplace??'';
+    document.getElementById('editParentLastname').value=s.parent_lastname??'';
+    document.getElementById('editParentFirstname').value=s.parent_firstname??'';
+    document.getElementById('editParentPhone').value=s.parent_phone??'';
+    document.getElementById('editParentEmail').value=s.parent_email??'';
+    // Pre-select sexe radio
+    const sexeVal=(s.sexe??'').toString().trim().toLowerCase();
+    const sexeToSet=['m','masculin','male','homme','h'].includes(sexeVal)?'Masculin':(['f','féminin','feminin','female','femme'].includes(sexeVal)?'Féminin':'');
+    document.querySelectorAll('#form-edit input[name="sexe"]').forEach(r=>r.checked=(r.value===sexeToSet));
     document.getElementById('editLevel').value=s.level_id??'';
     populateClasses('editLevel','editClasse','editSerie','editSerieWrapper',s.class_id??'',s.serie_id??'');
     document.getElementById('editInterne').value=s.interne?'1':'0';
@@ -146,8 +172,10 @@ function openEditModal(s){
     openModal('modal-edit');
 }
 document.addEventListener('DOMContentLoaded',function(){
-    ['stdLevel','editLevel'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>populateClasses(id,'stdClasse','stdSerie','stdSerieWrapper')));
-    ['stdClasse','editClasse'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>populateSeries(id,'stdSerie','stdSerieWrapper')));
+    document.getElementById('stdLevel')?.addEventListener('change',()=>populateClasses('stdLevel','stdClasse','stdSerie','stdSerieWrapper'));
+    document.getElementById('stdClasse')?.addEventListener('change',()=>populateSeries('stdClasse','stdSerie','stdSerieWrapper'));
+    document.getElementById('editLevel')?.addEventListener('change',()=>populateClasses('editLevel','editClasse','editSerie','editSerieWrapper'));
+    document.getElementById('editClasse')?.addEventListener('change',()=>populateSeries('editClasse','editSerie','editSerieWrapper'));
     document.querySelectorAll('.delete-student-btn').forEach(b=>b.addEventListener('click',function(e){
         e.preventDefault();Swal.fire({title:'Êtes-vous sûr ?',text:`L'élève "${this.dataset.name}" sera définitivement supprimé.`,icon:'warning',showCancelButton:!0,confirmButtonColor:'#ba1a1a',cancelButtonColor:'#64748B',confirmButtonText:'Oui, supprimer',cancelButtonText:'Annuler'}).then(r=>{if(r.isConfirmed)this.closest('form').submit()});
     }));

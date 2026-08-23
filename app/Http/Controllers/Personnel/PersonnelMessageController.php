@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Eleve;
+namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
 use App\Services\CommunicationService;
@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class EleveMessageController extends Controller
+class PersonnelMessageController extends Controller
 {
     public function __construct(
         protected CommunicationService $communicationService
@@ -21,7 +21,7 @@ class EleveMessageController extends Controller
         $authorizedContacts = $this->communicationService->getAuthorizedContacts($user);
         $unreadTotal = $this->communicationService->getUnreadCount($user);
 
-        return view('eleve.messages.index', [
+        return view('personnel.messages.index', [
             'conversations' => $conversations,
             'groups' => $authorizedContacts['groups'],
             'contacts' => $authorizedContacts['contacts'],
@@ -74,7 +74,7 @@ class EleveMessageController extends Controller
         $request->validate([
             'content' => ['nullable', 'string', 'max:5000'],
             'type' => ['nullable', 'string', 'in:text,image,audio,video,file'],
-            'file' => ['nullable', 'file', 'max:51200'],
+            'file' => ['nullable', 'file', 'max:51200'], // max 50Mo
             'duration' => ['nullable', 'integer'],
         ]);
 

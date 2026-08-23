@@ -105,6 +105,12 @@ class EnsureSubscriptionActive
         return [
             'subscription.expired',
             'logout',
+            'parent.password.change',
+            'parent.password.change.update',
+            'parent.logout',
+            'eleve.password.change',
+            'eleve.password.update',
+            'eleve.logout',
         ];
     }
 

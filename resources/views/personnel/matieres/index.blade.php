@@ -43,7 +43,7 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
             <h3 class="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Liste des Matières</h3>
             <div class="relative w-full sm:w-56">
-                <select id="serieFilterSelect" class="w-full appearance-none px-4 py-2 pr-10 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all bg-surface-container-lowest cursor-pointer" onchange="filterBySerie(this.value)">
+                <select id="serieFilterSelect" class="custom-select w-full px-4 py-2 pr-10 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all bg-surface-container-lowest cursor-pointer" onchange="filterBySerie(this.value)">
                     <option value="all">Toutes les séries</option>
                     @foreach($series ?? [] as $serie)
                         <option value="{{ $serie->id }}">{{ $serie->nom_serie }}</option>
@@ -210,6 +210,24 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    /* Supprimer la flèche native de tous les navigateurs */
+    select.custom-select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important;
+    }
+    
+    select.custom-select::-ms-expand {
+        display: none !important;
+    }
+    
+    /* Pour Internet Explorer 10-11 */
+    select.custom-select::-ms-value {
+        background: transparent !important;
+    }
+</style>
 <script>
     let currentSerieFilter = 'all';
     let totalAllCoefficient = {{ $totalCoefficient ?? 0 }};

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 class Eleve extends Model
@@ -90,9 +91,9 @@ public function scolarites(): HasMany
     /**
      * Compte utilisateur (rôle élève) lié via users.eleve_id.
      */
-    public function user(): BelongsTo
+    public function user(): HasOne
     {
-        return $this->belongsTo(User::class, 'eleve_id', 'id');
+        return $this->hasOne(User::class, 'eleve_id')->whereRaw('LOWER(role) = ?', ['eleve']);
     }
 
     public function parent(): BelongsTo

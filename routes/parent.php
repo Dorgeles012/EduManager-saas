@@ -55,10 +55,11 @@ Route::middleware(['auth', 'status', 'role:parent', 'must.change.password', 'sub
         Route::delete('/notifications/{notificationRecipient}', [ParentNotificationController::class, 'destroy'])->name('notifications.destroy');
 
         // Messages
-        Route::get('/messages', [ParentMessageController::class, 'index'])->name('messages');
-        Route::get('/messages/compose', [ParentMessageController::class, 'create'])->name('messages.create');
-        Route::post('/messages', [ParentMessageController::class, 'store'])->name('messages.store');
-        Route::post('/messages/{message}/read', [ParentMessageController::class, 'markRead'])->name('messages.read');
+        Route::get('/messages', [ParentMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/conversations/json', [ParentMessageController::class, 'getConversations'])->name('messages.conversations');
+        Route::post('/messages/start', [ParentMessageController::class, 'startConversation'])->name('messages.start');
+        Route::get('/messages/{conversationId}/messages', [ParentMessageController::class, 'getMessages'])->name('messages.get');
+        Route::post('/messages/{conversationId}/send', [ParentMessageController::class, 'sendMessage'])->name('messages.send');
 
         // Profil
         Route::get('/profil', [ParentProfilController::class, 'index'])->name('profil');

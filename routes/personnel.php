@@ -10,6 +10,8 @@ use App\Http\Controllers\Personnel\PersonnelComptabiliteController;
 use App\Http\Controllers\Personnel\PersonnelBulletinController;
 use App\Http\Controllers\Personnel\PersonnelParametreController;
 use App\Http\Controllers\Personnel\PersonnelEmploiTempsController;
+use App\Http\Controllers\Personnel\PersonnelEnseignantController;
+use App\Http\Controllers\Personnel\PersonnelEnseignantEmploiTempsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
@@ -39,6 +41,18 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::post('/classes', [PersonnelClasseController::class, 'store'])->name('classes.store');
         Route::put('/classes/{classe}', [PersonnelClasseController::class, 'update'])->name('classes.update');
         Route::delete('/classes/{classe}', [PersonnelClasseController::class, 'destroy'])->name('classes.destroy');
+
+        // Enseignants
+        Route::resource('enseignants', PersonnelEnseignantController::class)->names('enseignants');
+        Route::get('/emploi-temps/teacher/{enseignant}/exists', [PersonnelEnseignantEmploiTempsController::class, 'exists'])->name('enseignants.emploi-temps.teacher.exists');
+        Route::get('/emploi-temps/teacher/{enseignant}/create', [PersonnelEnseignantEmploiTempsController::class, 'create'])->name('enseignants.emploi-temps.create');
+        Route::get('/emploi-temps/teacher/{enseignant}/edit', [PersonnelEnseignantEmploiTempsController::class, 'edit'])->name('enseignants.emploi-temps.edit');
+        Route::get('/emploi-temps/teacher/{enseignant}/show', [PersonnelEnseignantEmploiTempsController::class, 'show'])->name('enseignants.emploi-temps.show');
+        Route::post('/emploi-temps/teacher/{enseignant}', [PersonnelEnseignantEmploiTempsController::class, 'storeTeacherSchedule'])->name('enseignants.emploi-temps.teacher.store');
+        Route::put('/emploi-temps/teacher/{enseignant}', [PersonnelEnseignantEmploiTempsController::class, 'updateTeacherSchedule'])->name('enseignants.emploi-temps.teacher.update');
+        Route::delete('/emploi-temps/teacher/{enseignant}', [PersonnelEnseignantEmploiTempsController::class, 'destroyTeacherSchedule'])->name('enseignants.emploi-temps.teacher.destroy');
+        Route::get('/emploi-temps/teacher/{enseignant}/print', [PersonnelEnseignantEmploiTempsController::class, 'printTeacher'])->name('enseignants.emploi-temps.teacher.print');
+        Route::get('/emploi-temps/teacher/{enseignant}/pdf', [PersonnelEnseignantEmploiTempsController::class, 'pdfTeacher'])->name('enseignants.emploi-temps.teacher.pdf');
 
         // Élèves
         Route::get('/eleves', [PersonnelEleveController::class, 'index'])->name('eleves.index');
@@ -87,6 +101,13 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::get('/emploi-temps/print', [PersonnelEmploiTempsController::class, 'print'])->name('emploi-temps.print');
         Route::get('/emploi-temps/pdf', [PersonnelEmploiTempsController::class, 'pdf'])->name('emploi-temps.pdf');
         Route::delete('/emploi-temps', [PersonnelEmploiTempsController::class, 'destroy'])->name('emploi-temps.destroy');
+
+        // Messages
+        Route::get('/messages', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/conversations/json', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'getConversations'])->name('messages.conversations');
+        Route::post('/messages/start', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'startConversation'])->name('messages.start');
+        Route::get('/messages/{conversationId}/messages', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'getMessages'])->name('messages.get');
+        Route::post('/messages/{conversationId}/send', [\App\Http\Controllers\Personnel\PersonnelMessageController::class, 'sendMessage'])->name('messages.send');
 
         // Paramètres
         Route::get('/parametres', [PersonnelParametreController::class, 'index'])->name('parametres.index');

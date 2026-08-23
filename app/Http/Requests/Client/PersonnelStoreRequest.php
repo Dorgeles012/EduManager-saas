@@ -8,35 +8,38 @@ class PersonnelStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Middleware 'client' gère déjà le rôle.
         return true;
     }
 
     public function rules(): array
     {
-        $clientId = auth()->id();
-
         return [
             'nom' => ['required', 'string', 'max:255'],
             'prenom' => ['required', 'string', 'max:255'],
             'telephone' => ['required', 'string', 'max:50'],
             'email' => [
                 'required',
+                'string',
                 'email',
                 'max:255',
-                // Un email unique par client (évite la collision entre établissements).
-                'unique:users,email,NULL,id,client_id,' . $clientId,
+                'unique:users,email',
             ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            // Le formulaire ne doit pas permettre de changer client_id/etablissement_id.
-            // On force le rôle et la vue contrôleur les paramètrera.
         ];
     }
 
-    public function validationData(): array
+    public function messages(): array
     {
-        // On peut aussi nettoyer ici si besoin.
-        return $this->all();
+        return [
+            'nom.required' => 'Le nom est obligatoire.',
+            'prenom.required' => 'Le prénom est obligatoire.',
+            'telephone.required' => 'Le numéro de téléphone est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email' => 'Veuillez saisir une adresse email valide.',
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte utilisateur.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+        ];
     }
 }
-

@@ -67,10 +67,11 @@ Route::middleware(['auth', 'status', 'role:eleve', 'must.change.password', 'subs
         Route::delete('/notifications/{notificationRecipient}', [EleveNotificationController::class, 'destroy'])->name('notifications.destroy');
 
         // Mes messages
-        Route::get('/messages', [EleveMessageController::class, 'index'])->name('messages');
-        Route::get('/messages/compose', [EleveMessageController::class, 'create'])->name('messages.create');
-        Route::post('/messages', [EleveMessageController::class, 'store'])->name('messages.store');
-        Route::post('/messages/{message}/read', [EleveMessageController::class, 'markRead'])->name('messages.read');
+        Route::get('/messages', [EleveMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/conversations/json', [EleveMessageController::class, 'getConversations'])->name('messages.conversations');
+        Route::post('/messages/start', [EleveMessageController::class, 'startConversation'])->name('messages.start');
+        Route::get('/messages/{conversationId}/messages', [EleveMessageController::class, 'getMessages'])->name('messages.get');
+        Route::post('/messages/{conversationId}/send', [EleveMessageController::class, 'sendMessage'])->name('messages.send');
 
         // Mes paramètres
         Route::get('/parametres', [EleveParametreController::class, 'index'])->name('parametres');

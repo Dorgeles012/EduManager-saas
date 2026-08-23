@@ -3,107 +3,105 @@
 namespace App\Http\Controllers\Parent;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use App\Services\CommunicationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ParentMessageController extends Controller
 {
-    /**
-     * Liste des messages du parent connecté (reçus + envoyés).
-     */
+    public function __construct(
+        protected CommunicationService $communicationService
+    ) {}
+
     public function index(): View
     {
-        $parent = auth()->user();
+        $user = auth()->user();
+        $conversations = $this->communicationService->getUserConversations($user);
+        $authorizedContacts = $this->communicationService->getAuthorizedContacts($user);
+        $unreadTotal = $this->communicationService->getUnreadCount($user);
 
-        $messages = Message::query()
-            ->where('tenant_id', $parent->tenant_id)
-            ->where(function ($q) use ($parent) {
-                $q->where('receiver_id', $parent->id)
-                    ->orWhere('sender_id', $parent->id);
-            })
-            ->with('sender', 'receiver')
-            ->latest()
-            ->paginate(20);
-
-        $unreadCount = Message::query()
-            ->where('tenant_id', $parent->tenant_id)
-            ->where('receiver_id', $parent->id)
-            ->where('is_read', false)
-            ->count();
-
-        return view('parent.messages', [
-            'messages' => $messages,
-            'unreadCount' => $unreadCount,
+        return view('parent.messages.index', [
+            'conversations' => $conversations,
+            'groups' => $authorizedContacts['groups'],
+            'contacts' => $authorizedContacts['contacts'],
+            'unreadTotal' => $unreadTotal,
         ]);
     }
 
-    /**
-     * Marque un message comme lu.
-     */
-    public function markRead(Request $request, int $message): RedirectResponse
+    public function getConversations(): JsonResponse
     {
-        $parent = $request->user();
+        $user = auth()->user();
+        $conversations = $this->communicationService->getUserConversations($user);
 
-        $msg = Message::query()
-            ->where('tenant_id', $parent->tenant_id)
-            ->where('id', $message)
-            ->where('receiver_id', $parent->id)
-            ->firstOrFail();
-
-        if (! $msg->is_read) {
-            $msg->update(['is_read' => true]);
-        }
-
-        return back()->with('success', 'Message marqué comme lu.');
-    }
-
-    /**
-     * Nouveau message (affichage du formulaire).
-     */
-    public function create(): View
-    {
-        $parent = auth()->user();
-
-        $destinataires = User::query()
-            ->where('tenant_id', $parent->tenant_id)
-            ->where('id', '!=', $parent->id)
-            ->whereIn('role', ['client', 'personnel', 'enseignant'])
-            ->orderBy('nom')
-            ->get(['id', 'nom', 'prenom', 'role', 'email']);
-
-        return view('parent.messages-compose', [
-            'destinataires' => $destinataires,
+        return response()->json([
+            'conversations' => $conversations,
+            'unread_total' => $this->communicationService->getUnreadCount($user),
         ]);
     }
 
-    /**
-     * Envoie un message.
-     */
-    public function store(Request $request): RedirectResponse
+    public function getMessages(int $conversationId, Request $request): JsonResponse
     {
-        $parent = $request->user();
+        $user = auth()->user();
+        $afterId = $request->integer('after_id') ?: null;
+        $data = $this->communicationService->getConversationMessages($user, $conversationId, $afterId);
 
-        $validated = $request->validate([
-            'receiver_id' => ['required', 'integer', 'exists:users,id'],
-            'message' => ['required', 'string', 'max:5000'],
+        return response()->json($data);
+    }
+
+    public function startConversation(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        $request->validate([
+            'recipient_id' => ['required', 'integer', 'exists:users,id'],
         ]);
 
-        $receiver = User::findOrFail($validated['receiver_id']);
+        $conversation = $this->communicationService->getOrCreateDirectConversation(
+            $user,
+            $request->integer('recipient_id')
+        );
 
-        abort_unless($receiver->tenant_id === $parent->tenant_id, 403);
+        return response()->json([
+            'success' => true,
+            'conversation_id' => $conversation->id,
+        ]);
+    }
 
-        Message::create([
-            'tenant_id' => $parent->tenant_id,
-            'sender_id' => $parent->id,
-            'receiver_id' => $validated['receiver_id'],
-            'message' => $validated['message'],
-            'is_read' => false,
+    public function sendMessage(int $conversationId, Request $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'content' => ['nullable', 'string', 'max:5000'],
+            'type' => ['nullable', 'string', 'in:text,image,audio,video,file'],
+            'file' => ['nullable', 'file', 'max:51200'],
+            'duration' => ['nullable', 'integer'],
         ]);
 
-        return redirect()->route('parent.messages')->with('success', 'Message envoyé avec succès.');
+        $communication = $this->communicationService->sendMessage(
+            $user,
+            $conversationId,
+            $request->only(['content', 'type', 'duration']),
+            $request->file('file')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => [
+                'id' => $communication->id,
+                'sender_id' => $communication->sender_id,
+                'is_me' => true,
+                'sender_name' => $user->name,
+                'sender_role' => ucfirst((string) $user->role),
+                'type' => $communication->type,
+                'content' => $communication->content,
+                'file_url' => $communication->file_url,
+                'file_name' => $communication->file_name,
+                'mime_type' => $communication->mime_type,
+                'duration' => $communication->duration,
+                'formatted_duration' => $communication->formatted_duration,
+                'created_at' => $communication->created_at->format('H:i'),
+            ],
+        ]);
     }
 }
-

@@ -187,27 +187,94 @@
             }
         }
         
-        /* Active link style */
+        /* ============================================
+           STYLES DE LA SIDEBAR AVEC SURBRILLANCE
+           ============================================ */
+        
+        /* Style pour l'élément actif de la sidebar */
         .sidebar-nav a.nav-active {
-            color: #1f108e !important;
-            font-weight: bold !important;
+            background: linear-gradient(to right, rgba(31, 16, 142, 0.12), rgba(31, 16, 142, 0.04)) !important;
             border-right: 4px solid #1f108e !important;
-            background-color: #e7eeff !important;
+            color: #1f108e !important;
+            font-weight: 600 !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 8px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(31, 16, 142, 0.08) !important;
         }
         
+        /* Icônes dans l'élément actif */
         .sidebar-nav a.nav-active span.material-symbols-outlined {
             color: #1f108e !important;
+            font-variation-settings: 'FILL' 1, 'wght' 500 !important;
         }
         
-        /* Hover style for nav links */
+        /* Texte dans l'élément actif */
+        .sidebar-nav a.nav-active span:not(.material-symbols-outlined) {
+            color: #1f108e !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Effet de survol amélioré pour tous les liens */
         .sidebar-nav a {
-            transition: all 0.2s ease;
-            border-right: 4px solid transparent;
+            position: relative;
+            transition: all 0.25s ease !important;
+            border-radius: 0 12px 12px 0 !important;
+            margin-right: 4px !important;
+            border-right: 4px solid transparent !important;
         }
         
-        .sidebar-nav a:hover {
-            background-color: #f0f3ff;
+        .sidebar-nav a:hover:not(.nav-active) {
+            background-color: rgba(31, 16, 142, 0.06) !important;
+            transform: translateX(4px) !important;
         }
+        
+        /* Effet au clic */
+        .sidebar-nav a:active:not(.nav-active) {
+            transform: scale(0.97) !important;
+        }
+        
+        /* Indicateur visuel supplémentaire pour l'élément actif */
+        .sidebar-nav a.nav-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: #1f108e;
+            border-radius: 0 4px 4px 0;
+            opacity: 0.6;
+        }
+        
+        /* Animation de pulsation pour l'indicateur */
+        @keyframes pulse-indicator {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+        }
+        
+        .sidebar-nav a.nav-active::before {
+            animation: pulse-indicator 2s ease-in-out infinite;
+        }
+        
+        /* Effet de bordure lumineuse pour l'élément actif */
+        .sidebar-nav a.nav-active::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, #1f108e, transparent);
+            opacity: 0.4;
+            border-radius: 2px;
+        }
+        
+        /* ============================================
+           FIN DES STYLES DE LA SIDEBAR
+           ============================================ */
 
         /* SweetAlert2 - Tailles de police optimisées */
         .swal2-popup {
@@ -273,13 +340,18 @@
                 <span class="material-symbols-outlined">group</span>
                 <span class="font-label-md text-label-md">Elèves</span>
             </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.enseignants') ? 'nav-active' : '' }}" href="{{ route('personnel.enseignants.index') }}">
+                <span class="material-symbols-outlined">school</span>
+                <span class="font-label-md text-label-md">Enseignants</span>
+            </a>
             
-<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.matieres.index' || str_starts_with($currentRoute, 'personnel.matieres') ? 'nav-active' : '' }}" href="{{ route('personnel.matieres.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.matieres.index' || str_starts_with($currentRoute, 'personnel.matieres') ? 'nav-active' : '' }}" href="{{ route('personnel.matieres.index') }}">
                 <span class="material-symbols-outlined">menu_book</span>
                 <span class="font-label-md text-label-md">Matiere(s)</span>
             </a>
 
-            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.emploi-temps') ? 'nav-active' : '' }}" href="{{ route('personnel.emploi-temps.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.emploi-temps') && !str_starts_with($currentRoute, 'personnel.enseignants') ? 'nav-active' : '' }}" href="{{ route('personnel.emploi-temps.index') }}">
                 <span class="material-symbols-outlined">calendar_month</span>
                 <span class="font-label-md text-label-md">Emplois du temps</span>
             </a>
@@ -292,6 +364,11 @@
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.comptabilite.index' || str_starts_with($currentRoute, 'personnel.comptabilite') ? 'nav-active' : '' }}" href="{{ route('personnel.comptabilite.index') }}">
                 <span class="material-symbols-outlined">payments</span>
                 <span class="font-label-md text-label-md">Comptabilité</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.messages') ? 'nav-active' : '' }}" href="{{ route('personnel.messages.index') }}">
+                <span class="material-symbols-outlined">chat</span>
+                <span class="font-label-md text-label-md">Messages</span>
             </a>
             
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.parametres') ? 'nav-active' : '' }}" href="{{ route('personnel.parametres.index') }}">

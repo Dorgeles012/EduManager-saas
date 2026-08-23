@@ -3,26 +3,19 @@
 namespace App\Http\Requests\Client;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PersonnelUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // La sécurité sur le client_id est traitée dans le contrôleur (403 si mismatch).
         return true;
     }
 
     public function rules(): array
     {
-        $personnelId = $this->route('personnel') ?? $this->route('user') ?? null;
-
-        // La règle unique doit exclure le personnel en cours.
-        // Si le route model binding fournit un objet, on récupère son id.
-        if (is_object($personnelId) && isset($personnelId->id)) {
-            $personnelId = $personnelId->id;
-        }
-
-        $clientId = auth()->id();
+        $personnel = $this->route('personnel') ?? $this->route('user');
+        $personnelId = is_object($personnel) ? ($personnel->id ?? null) : $personnel;
 
         return [
             'nom' => ['required', 'string', 'max:255'],
@@ -30,12 +23,26 @@ class PersonnelUpdateRequest extends FormRequest
             'telephone' => ['required', 'string', 'max:50'],
             'email' => [
                 'required',
+                'string',
                 'email',
                 'max:255',
-                'unique:users,email,' . $personnelId . ',id,client_id,' . $clientId,
+                Rule::unique('users', 'email')->ignore($personnelId),
             ],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
-}
 
+    public function messages(): array
+    {
+        return [
+            'nom.required' => 'Le nom est obligatoire.',
+            'prenom.required' => 'Le prénom est obligatoire.',
+            'telephone.required' => 'Le numéro de téléphone est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email' => 'Veuillez saisir une adresse email valide.',
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte utilisateur.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+        ];
+    }
+}

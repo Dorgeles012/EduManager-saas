@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Eleve;
+namespace App\Http\Controllers\Enseignant;
 
 use App\Http\Controllers\Controller;
 use App\Services\CommunicationService;
@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class EleveMessageController extends Controller
+class EnseignantMessageController extends Controller
 {
     public function __construct(
         protected CommunicationService $communicationService
@@ -21,7 +21,7 @@ class EleveMessageController extends Controller
         $authorizedContacts = $this->communicationService->getAuthorizedContacts($user);
         $unreadTotal = $this->communicationService->getUnreadCount($user);
 
-        return view('eleve.messages.index', [
+        return view('enseignant.messages.index', [
             'conversations' => $conversations,
             'groups' => $authorizedContacts['groups'],
             'contacts' => $authorizedContacts['contacts'],

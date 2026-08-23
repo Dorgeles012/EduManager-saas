@@ -22,7 +22,7 @@ class PersonnelEleveController extends Controller
     {
         $user = auth()->user();
 
-        $query = Eleve::with(['classe.niveau', 'niveau', 'serie', 'parent'])
+        $query = Eleve::with(['classe.niveau', 'niveau', 'serie', 'parent', 'user'])
             ->where('tenant_id', $user->tenant_id)
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->when($request->filled('search'), function ($q) use ($request) {
@@ -81,6 +81,9 @@ class PersonnelEleveController extends Controller
                 'affecte' => $student->affecte,
                 'created_at' => optional($student->created_at)->toDateTimeString(),
                 'updated_at' => optional($student->updated_at)->toDateTimeString(),
+                'eleve_email' => $student->user?->email ?? null,
+                'eleve_must_change_pwd' => (bool) ($student->user?->must_change_password ?? false),
+                'has_account' => $student->user !== null,
             ]),
             'totalStudents' => Eleve::where('tenant_id', $user->tenant_id)->count(),
             'activeClasses' => $classes->count(),
@@ -99,32 +102,45 @@ class PersonnelEleveController extends Controller
         $user = auth()->user();
 
         DB::transaction(function () use ($validated, $user, $request) {
-            $parentEmail = $validated['parent_email'] ?? null;
+            $parentEmail = !empty($validated['parent_email']) ? $validated['parent_email'] : null;
+            $parentPhone = $validated['parent_telephone'];
 
-            $parent = User::query()->when(
-                $parentEmail,
-                fn ($q) => $q->where('email', $parentEmail)
-            )
+            $parent = User::query()
                 ->where('tenant_id', $user->tenant_id)
                 ->whereRaw('LOWER(role) = ?', ['parent'])
+                ->where(function ($q) use ($parentEmail, $parentPhone) {
+                    if ($parentEmail) {
+                        $q->where('email', $parentEmail);
+                    }
+                    if ($parentPhone) {
+                        $q->orWhere('telephone', $parentPhone);
+                    }
+                })
                 ->first();
+
+            $loginEmail = $parentEmail ?: (preg_replace('/[^0-9]/', '', $parentPhone) . '@parent.local');
 
             if (! $parent) {
                 $parent = User::create([
                     'tenant_id' => $user->tenant_id,
+                    'etablissement_id' => $user->etablissement_id,
                     'nom' => $validated['parent_nom'],
                     'prenom' => $validated['parent_prenom'] ?? null,
-                    'email' => $parentEmail,
-                    'telephone' => $validated['parent_telephone'],
-                    'password' => Hash::make(Str::random(12)),
+                    'email' => $loginEmail,
+                    'telephone' => $parentPhone,
+                    'password' => Hash::make('12345678'),
+                    'must_change_password' => true,
                     'role' => 'parent',
+                    'statut' => 'actif',
+                    // Évite le blocage par MustVerifyEmail (compte créé automatiquement)
+                    'email_verified_at' => now(),
                 ]);
             } else {
                 $parent->update([
                     'nom' => $validated['parent_nom'],
                     'prenom' => $validated['parent_prenom'] ?? $parent->prenom,
-                    'email' => $parentEmail ?? $parent->email,
-                    'telephone' => $validated['parent_telephone'],
+                    'email' => $parentEmail ?: $parent->email,
+                    'telephone' => $parentPhone,
                 ]);
             }
 
@@ -324,8 +340,7 @@ $user = auth()->user();
             'parent_nom' => ['required', 'string', 'max:255'],
             'id_serie' => [
                 'nullable',
-                Rule::exists('classe_serie', 'serie_id')->where(fn ($q) => $q
-                    ->where('classe_id', $request->input('classe_id'))),
+                Rule::exists('series', 'id')->where(fn ($q) => $q->where('tenant_id', $user->tenant_id)),
             ],
             'parent_prenom' => ['nullable', 'string', 'max:255'],
             'parent_email' => ['nullable', 'email', 'max:255'],

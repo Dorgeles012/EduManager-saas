@@ -124,6 +124,8 @@ $parent = User::query()->when(
                     'password' => Hash::make($defaultPassword),
                     'must_change_password' => true,
                     'role' => 'parent',
+                    // Évite le blocage par MustVerifyEmail (email généré automatiquement)
+                    'email_verified_at' => now(),
                 ]);
             } else {
                 $parent->update([

@@ -46,6 +46,13 @@ Route::middleware(['auth', 'status', 'role:enseignant', 'subscription.active'])
         Route::get('/emploi-temps/print', [EnseignantEmploiTempsController::class, 'print'])->name('emploi-temps.print');
         Route::get('/emploi-temps/pdf', [EnseignantEmploiTempsController::class, 'pdf'])->name('emploi-temps.pdf');
 
+        // Messages
+        Route::get('/messages', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/conversations/json', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'getConversations'])->name('messages.conversations');
+        Route::post('/messages/start', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'startConversation'])->name('messages.start');
+        Route::get('/messages/{conversationId}/messages', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'getMessages'])->name('messages.get');
+        Route::post('/messages/{conversationId}/send', [\App\Http\Controllers\Enseignant\EnseignantMessageController::class, 'sendMessage'])->name('messages.send');
+
         // Paramètres
         Route::get('/parametres', [EnseignantParametreController::class, 'index'])->name('parametres.index');
         Route::put('/parametres', [EnseignantParametreController::class, 'update'])->name('parametres.update');

@@ -75,8 +75,8 @@
                         <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">assignment_turned_in</span></div>
                         <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Affecté</p><p class="font-body-md text-[16px] text-on-surface" id="viewStudentAffecte">-</p></div>
                     </div>
-                    <div class="md:col-span-2">
-                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
+                    <div>
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 h-full">
                             <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">family_restroom</span></div>
                             <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Parents / Tuteurs</p>
                                 <div class="mt-1 space-y-1">
@@ -84,6 +84,17 @@
                                     <p class="font-body-md text-[16px]">Prénom : <span id="viewStudentParentFirstname">-</span></p>
                                     <p class="font-body-md text-[16px]">Téléphone : <span id="viewStudentParentPhone">-</span></p>
                                     <p class="font-body-md text-[16px]">Email : <span id="viewStudentParentEmail">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 h-full">
+                            <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">login</span></div>
+                            <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Identifiant de son espace</p>
+                                <div class="mt-1 space-y-1">
+                                    <p class="font-body-md text-[16px]">Identifiant : <span id="viewStudentAccountEmail">-</span></p>
+                                    <p class="font-body-md text-[16px]">Mot de passe : <span id="viewStudentAccountPassword">-</span></p>
                                 </div>
                             </div>
                         </div>
@@ -110,18 +121,6 @@
         <form class="p-8" id="form-standard" action="{{ route('personnel.eleves.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="type_eleve" value="nouveau">
-            <input type="hidden" name="nom" id="stdLastnameHidden">
-            <input type="hidden" name="prenom" id="stdFirstnameHidden">
-            <input type="hidden" name="matricule" id="stdMatriculeHidden">
-            <input type="hidden" name="sexe" id="stdSexeHidden">
-            <input type="hidden" name="date_naissance" id="stdBirthdateHidden">
-            <input type="hidden" name="lieu_naissance" id="stdBirthPlaceHidden">
-            <input type="hidden" name="classe_id" id="stdClasseHidden">
-            <input type="hidden" name="niveau_id" id="stdLevelHidden">
-            <input type="hidden" name="parent_nom" id="parentLastnameHidden">
-            <input type="hidden" name="parent_prenom" id="parentFirstnameHidden">
-            <input type="hidden" name="parent_telephone" id="parentPhoneHidden">
-            <input type="hidden" name="parent_email" id="parentEmailHidden">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">
@@ -132,15 +131,15 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" name="nom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" name="prenom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdMatricule" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdMatricule" name="matricule" type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
@@ -157,11 +156,11 @@
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="birthdate-std" required type="date">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="birthdate-std" name="date_naissance" required type="date">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" name="lieu_naissance" type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nationalité <span class="text-alert-red">*</span></label>
@@ -191,7 +190,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel" name="niveau_id">
                                     <option value="">Sélectionner un niveau</option>
                                     @foreach($levels ?? [] as $level)
                                         <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
@@ -200,7 +199,7 @@
                             </div>
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required disabled>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" name="classe_id" required disabled>
                                     <option value="">Sélectionner d'abord un niveau</option>
                                 </select>
                             </div>
@@ -230,19 +229,19 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentLastname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentLastname" name="parent_nom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentFirstname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentFirstname" name="parent_prenom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" required type="tel">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" name="parent_telephone" required type="tel">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" type="email">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" name="parent_email" type="email">
                         </div>
                     </div>
                 </div>
@@ -270,18 +269,6 @@
             <input type="hidden" name="_method" value="PUT" />
             <input type="hidden" name="editEleveId" id="editEleveId" value="" />
             <input type="hidden" name="type_eleve" value="nouveau" />
-            <input type="hidden" name="nom" id="editLastnameHidden">
-            <input type="hidden" name="prenom" id="editFirstnameHidden">
-            <input type="hidden" name="matricule" id="editMatriculeHidden">
-            <input type="hidden" name="sexe" id="editSexeHidden">
-            <input type="hidden" name="date_naissance" id="editBirthdateHidden">
-            <input type="hidden" name="lieu_naissance" id="editBirthPlaceHidden">
-            <input type="hidden" name="classe_id" id="editClasseHidden">
-            <input type="hidden" name="niveau_id" id="editLevelHidden">
-            <input type="hidden" name="parent_nom" id="editParentLastnameHidden">
-            <input type="hidden" name="parent_prenom" id="editParentFirstnameHidden">
-            <input type="hidden" name="parent_telephone" id="editParentPhoneHidden">
-            <input type="hidden" name="parent_email" id="editParentEmailHidden">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">
@@ -292,36 +279,36 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLastname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLastname" name="nom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editFirstname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editFirstname" name="prenom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editMatricule" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editMatricule" name="matricule" type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
                             <div class="flex gap-6 mt-1">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="edit_sexe" value="Masculin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
+                                    <input type="radio" name="sexe" value="Masculin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
                                     <span class="text-body-sm text-on-surface">Masculin</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="edit_sexe" value="Féminin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
+                                    <input type="radio" name="sexe" value="Féminin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
                                     <span class="text-body-sm text-on-surface">Féminin</span>
                                 </label>
                             </div>
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthdate" required type="date">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthdate" name="date_naissance" required type="date">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" name="lieu_naissance" type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
@@ -351,7 +338,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLevel">
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLevel" name="niveau_id">
                                     <option value="">Sélectionner un niveau</option>
                                     @foreach($levels ?? [] as $level)
                                         <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
@@ -360,7 +347,7 @@
                             </div>
                             <div>
                                 <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required disabled>
+                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" name="classe_id" required disabled>
                                     <option value="">Sélectionner d'abord un niveau</option>
                                 </select>
                             </div>
@@ -386,19 +373,19 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentLastname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentLastname" name="parent_nom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentFirstname" required type="text">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentFirstname" name="parent_prenom" required type="text">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentPhone" required type="tel">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentPhone" name="parent_telephone" required type="tel">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentEmail" type="email">
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentEmail" name="parent_email" type="email">
                         </div>
                     </div>
                 </div>

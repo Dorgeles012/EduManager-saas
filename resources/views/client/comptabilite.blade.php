@@ -491,17 +491,19 @@ function openModal(modalId) {
     }
 
     // Frais par niveau et par année (JSON généré côté serveur)
-    const fraisData = @json(
-        $fraisParNiveau->map(fn ($f) => [
+    @php
+        $fraisJsonList = ($fraisParNiveau ?? collect())->map(fn ($f) => [
             'niveau_id' => $f->niveau_id,
             'annee_academique_id' => $f->annee_academique_id,
             'inscription' => (int) $f->inscription,
             'scolarite' => (int) $f->scolarite,
             'autres_frais' => (int) $f->autres_frais,
             'montant_total' => (int) $f->montant_total,
-        ])->values()
-    );
-    const levelsData = @json(($levels ?? collect())->map(fn ($l) => ['id' => $l['id'], 'name' => $l['name']])->values());
+        ])->values();
+        $levelsJsonList = ($levels ?? collect())->map(fn ($l) => ['id' => $l['id'], 'name' => $l['name']])->values();
+    @endphp
+    const fraisData = @json($fraisJsonList);
+    const levelsData = @json($levelsJsonList);
 
     function filterFraisByAnnee(anneeId) {
         document.getElementById('fraisAnneeIdHidden').value = anneeId;

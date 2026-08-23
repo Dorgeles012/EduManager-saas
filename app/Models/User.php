@@ -111,6 +111,23 @@ return [
         return $this->hasMany(NotificationRecipient::class, 'user_id');
     }
 
+    public function enseignant(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Enseignant::class, 'user_id');
+    }
+
+    public function conversations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants', 'user_id', 'conversation_id')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    public function sentCommunications(): HasMany
+    {
+        return $this->hasMany(Communication::class, 'sender_id');
+    }
+
 
 
 

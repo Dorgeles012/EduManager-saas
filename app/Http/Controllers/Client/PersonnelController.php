@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\PersonnelStoreRequest;
 use App\Http\Requests\Client\PersonnelUpdateRequest;
 use App\Models\User;
-
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class PersonnelController extends Controller
 {
@@ -34,12 +34,21 @@ class PersonnelController extends Controller
     {
         $client = auth()->user();
 
+        // Sécurité supplémentaire : vérifier l'unicité de l'email avant insertion
+        $email = trim((string) $request->email);
+        if (User::where('email', $email)->exists()) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse email est déjà utilisée par un autre compte utilisateur.'],
+            ]);
+        }
+
         User::create([
+            'tenant_id' => $client->tenant_id ?? 1,
             'client_id' => $client->id,
             'etablissement_id' => $client->etablissement_id,
             'nom' => $request->nom,
             'prenom' => $request->prenom,
-            'email' => $request->email,
+            'email' => $email,
             'telephone' => $request->telephone,
             'role' => 'personnel',
             'statut' => 'actif',
@@ -53,7 +62,7 @@ class PersonnelController extends Controller
     protected function guardPersonnelOwnership(User $personnel): void
     {
         if ((int) $personnel->client_id !== (int) auth()->id()) {
-            abort(403, 'Unauthorized');
+            abort(403, 'Accès non autorisé.');
         }
     }
 
@@ -78,11 +87,17 @@ class PersonnelController extends Controller
     {
         $this->guardPersonnelOwnership($personnel);
 
-        // Ne jamais modifier le role ici.
+        $email = trim((string) $request->email);
+        if (User::where('email', $email)->where('id', '!=', $personnel->id)->exists()) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse email est déjà utilisée par un autre compte utilisateur.'],
+            ]);
+        }
+
         $personnel->update([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
-            'email' => $request->email,
+            'email' => $email,
             'telephone' => $request->telephone,
             'password' => $request->filled('password') ? Hash::make($request->password) : $personnel->password,
         ]);
@@ -121,7 +136,6 @@ class PersonnelController extends Controller
             ->with('success', 'Personnel débloqué avec succès.');
     }
 
-    // show non requis pour le CRUD demandé
     public function show(User $personnel)
     {
         $this->guardPersonnelOwnership($personnel);
@@ -129,4 +143,3 @@ class PersonnelController extends Controller
         return $this->index();
     }
 }
-
