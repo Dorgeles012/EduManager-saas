@@ -25,6 +25,8 @@ class Communication extends Model
         'file_size',
         'duration',
         'is_read',
+        'status',
+        'delivered_at',
     ];
 
     protected $casts = [
@@ -34,6 +36,7 @@ class Communication extends Model
         'file_size' => 'integer',
         'duration' => 'integer',
         'is_read' => 'boolean',
+        'delivered_at' => 'datetime',
     ];
 
     public function conversation(): BelongsTo

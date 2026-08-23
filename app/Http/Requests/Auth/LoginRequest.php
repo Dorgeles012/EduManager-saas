@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,23 +42,45 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $email = $this->string('email');
-        $password = $this->string('password');
+        $login = trim((string) $this->string('email'));
+        $password = (string) $this->string('password');
+
+        // Nettoyer le téléphone potentiel (sans espaces/tirets)
+        $cleanPhone = preg_replace('/[^0-9+]/', '', $login);
+
+        // Recherche par email OU téléphone
+        $user = \App\Models\User::query()
+            ->where('email', $login)
+            ->orWhere('telephone', $login)
+            ->when(!empty($cleanPhone), fn ($q) => $q->orWhere('telephone', $cleanPhone))
+            ->first();
 
         // Vérification sécurité : si l’utilisateur est "bloqué", refuser le login AVANT
         // que Laravel ne crée une session.
-        $user = \App\Models\User::query()->where('email', $email)->first();
         if ($user && in_array(strtolower((string) ($user->statut ?? '')), ['bloqué', 'bloque', 'blocked'], true)) {
             throw ValidationException::withMessages([
                 'email' => 'Votre compte est bloqué, veuillez contacter l’administrateur',
             ]);
         }
 
-        if (! Auth::attempt([
-            'email' => $email,
-            'password' => $password,
-        ], $this->boolean('remember'))) {
+        $authenticated = false;
 
+        if ($user) {
+            $authenticated = Auth::attempt([
+                'email' => $user->email,
+                'password' => $password,
+            ], $this->boolean('remember'));
+        }
+
+        if (! $authenticated) {
+            // Tentative directe avec la valeur exacte saisie
+            $authenticated = Auth::attempt([
+                'email' => $login,
+                'password' => $password,
+            ], $this->boolean('remember'));
+        }
+
+        if (! $authenticated) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

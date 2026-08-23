@@ -25,17 +25,25 @@ public function store(LoginRequest $request): RedirectResponse
 
         $user = $request->user();
 
-        // Vérification immédiate de l'abonnement du tenant après authentification.
+        // Si l'utilisateur doit changer obligatoirement son mot de passe à la première connexion
+        if ((bool) $user->must_change_password) {
+            $role = strtolower(trim((string) $user->role));
+            if ($role === 'parent') {
+                return redirect()->route('parent.password.change');
+            }
+            if ($role === 'eleve') {
+                return redirect()->route('eleve.password.change');
+            }
+        }
+
+        // Vérification de l'abonnement du tenant
         $subscriptionStatus = app(SubscriptionStatusService::class);
         $subscription = $subscriptionStatus->subscriptionForUser($user);
 
         if (! $subscriptionStatus->isExempt($user)) {
-            if (! $subscription && strtolower(trim((string) $user->role)) === 'client') {
+            $role = strtolower(trim((string) $user->role));
+            if (! $subscription && $role === 'client') {
                 return redirect()->route('client.abonnement.index');
-            }
-
-            if (! $subscriptionStatus->isActiveForUser($user)) {
-                return redirect()->route('subscription.expired');
             }
         }
 

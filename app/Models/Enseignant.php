@@ -43,6 +43,11 @@ class Enseignant extends Model
         'nombre_annees_enseignement' => 'integer',
     ];
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function matiere(): BelongsTo
     {
         return $this->belongsTo(Matiere::class, 'matiere_id');

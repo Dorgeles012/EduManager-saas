@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Parent;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\CommunicationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ParentMessageController extends Controller
@@ -16,7 +18,8 @@ class ParentMessageController extends Controller
 
     public function index(): View
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
         $conversations = $this->communicationService->getUserConversations($user);
         $authorizedContacts = $this->communicationService->getAuthorizedContacts($user);
         $unreadTotal = $this->communicationService->getUnreadCount($user);
@@ -31,7 +34,8 @@ class ParentMessageController extends Controller
 
     public function getConversations(): JsonResponse
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
         $conversations = $this->communicationService->getUserConversations($user);
 
         return response()->json([
@@ -42,7 +46,8 @@ class ParentMessageController extends Controller
 
     public function getMessages(int $conversationId, Request $request): JsonResponse
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
         $afterId = $request->integer('after_id') ?: null;
         $data = $this->communicationService->getConversationMessages($user, $conversationId, $afterId);
 
@@ -51,7 +56,8 @@ class ParentMessageController extends Controller
 
     public function startConversation(Request $request): JsonResponse
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
         $request->validate([
             'recipient_id' => ['required', 'integer', 'exists:users,id'],
         ]);
@@ -69,7 +75,8 @@ class ParentMessageController extends Controller
 
     public function sendMessage(int $conversationId, Request $request): JsonResponse
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
 
         $request->validate([
             'content' => ['nullable', 'string', 'max:5000'],
@@ -99,7 +106,8 @@ class ParentMessageController extends Controller
                 'file_name' => $communication->file_name,
                 'mime_type' => $communication->mime_type,
                 'duration' => $communication->duration,
-                'formatted_duration' => $communication->formatted_duration,
+                'formatted_duration' => $communication->formatted_duration ?: ($communication->duration ? sprintf('%02d:%02d', floor($communication->duration / 60), $communication->duration % 60) : null),
+                'status' => $communication->status ?? 'sent',
                 'created_at' => $communication->created_at->format('H:i'),
             ],
         ]);

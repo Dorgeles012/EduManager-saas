@@ -33,9 +33,7 @@ class CommunicationService
                     ->first();
 
                 if ($eleve && $eleve->classe_id) {
-                    $classe = Classe::with(['niveau', 'enseignants.user_id' => function ($q) {
-                        // Eager load
-                    }])->where('tenant_id', $tenantId)->find($eleve->classe_id);
+                    $classe = Classe::with(['niveau', 'enseignants.user'])->where('tenant_id', $tenantId)->find($eleve->classe_id);
 
                     if ($classe) {
                         // Groupe de classe de l'élève
@@ -377,6 +375,25 @@ class CommunicationService
         // Assurer que les groupes de classe auxquels l'utilisateur a droit sont synchronisés
         $this->getAuthorizedContacts($user);
 
+        // Mettre à jour les messages reçus non lus comme 'delivered' (✓✓) pour cet utilisateur
+        try {
+            $userConvIds = ConversationParticipant::where('user_id', $user->id)->pluck('conversation_id')->all();
+            if (!empty($userConvIds)) {
+                Communication::whereIn('conversation_id', $userConvIds)
+                    ->where('sender_id', '!=', $user->id)
+                    ->where('is_read', false)
+                    ->where(function ($q) {
+                        $q->whereNull('status')->orWhere('status', 'sent');
+                    })
+                    ->update([
+                        'status' => 'delivered',
+                        'delivered_at' => now(),
+                    ]);
+            }
+        } catch (\Throwable $e) {
+            // Ignorer si la colonne n'existe pas encore
+        }
+
         $conversations = Conversation::with(['participants', 'classe.niveau', 'lastCommunication.sender'])
             ->where('tenant_id', $user->tenant_id)
             ->whereHas('participants', fn ($q) => $q->where('user_id', $user->id))
@@ -446,6 +463,9 @@ class CommunicationService
         // Vérifier l'accès
         abort_unless($conversation->participants->contains('id', $user->id), 403, 'Accès non autorisé à cette conversation.');
 
+        // Marquer comme lu pour l'utilisateur actuel
+        $this->markAsRead($user, $conversationId);
+
         $query = Communication::with('sender')
             ->where('conversation_id', $conversation->id)
             ->when($afterId, fn ($q) => $q->where('id', '>', $afterId))
@@ -453,14 +473,30 @@ class CommunicationService
 
         $communications = $query->get();
 
-        // Marquer comme lu
-        $this->markAsRead($user, $conversationId);
+        $messages = $communications->map(function ($msg) use ($user, $conversation) {
+            $isMe = $msg->sender_id === $user->id;
 
-        $messages = $communications->map(function ($msg) use ($user) {
+            // Déterminer le statut du message (envoyé ✓, reçu ✓✓, lu ✓✓ bleu)
+            $status = 'sent';
+            if ($msg->is_read || $msg->status === 'read') {
+                $status = 'read';
+            } elseif ($msg->status === 'delivered' || $msg->delivered_at !== null) {
+                $status = 'delivered';
+            } else {
+                // Vérifier si un autre participant a lu après la création de ce message
+                $otherRead = $conversation->participants
+                    ->where('id', '!=', $msg->sender_id)
+                    ->contains(fn ($p) => $p->pivot && $p->pivot->last_read_at && $p->pivot->last_read_at >= $msg->created_at);
+
+                if ($otherRead) {
+                    $status = 'read';
+                }
+            }
+
             return [
                 'id' => $msg->id,
                 'sender_id' => $msg->sender_id,
-                'is_me' => $msg->sender_id === $user->id,
+                'is_me' => $isMe,
                 'sender_name' => $msg->sender?->name ?? ($msg->sender?->nom . ' ' . $msg->sender?->prenom),
                 'sender_role' => ucfirst((string) $msg->sender?->role),
                 'type' => $msg->type,
@@ -469,7 +505,8 @@ class CommunicationService
                 'file_name' => $msg->file_name,
                 'mime_type' => $msg->mime_type,
                 'duration' => $msg->duration,
-                'formatted_duration' => $msg->formatted_duration,
+                'formatted_duration' => $msg->formatted_duration ?: ($msg->duration ? sprintf('%02d:%02d', floor($msg->duration / 60), $msg->duration % 60) : null),
+                'status' => $status,
                 'created_at' => $msg->created_at->format('H:i'),
                 'created_date' => $msg->created_at->format('d/m/Y'),
             ];
@@ -512,13 +549,18 @@ class CommunicationService
             $mimeType = $file->getMimeType();
             $fileSize = $file->getSize();
 
-            // Déterminer le type selon le MIME
-            if (str_starts_with($mimeType, 'image/')) {
-                $type = 'image';
-            } elseif (str_starts_with($mimeType, 'audio/')) {
+            // Déterminer le type avec priorité stricte pour l'audio / note vocale
+            if ($type === 'audio' || str_starts_with($fileName, 'vocal_') || str_starts_with($mimeType, 'audio/')) {
                 $type = 'audio';
+            } elseif (str_starts_with($mimeType, 'image/')) {
+                $type = 'image';
             } elseif (str_starts_with($mimeType, 'video/')) {
-                $type = 'video';
+                // Si l'enregistrement provient du micro (duration fournie et nom vocal_), c'est de l'audio
+                if (str_starts_with($fileName, 'vocal_') || ($type === 'audio')) {
+                    $type = 'audio';
+                } else {
+                    $type = 'video';
+                }
             } else {
                 $type = 'file';
             }
@@ -544,6 +586,7 @@ class CommunicationService
                 'file_size' => $fileSize,
                 'duration' => $duration,
                 'is_read' => false,
+                'status' => 'sent',
             ]);
 
             $conversation->update(['last_message_at' => now()]);
@@ -566,11 +609,21 @@ class CommunicationService
             ->where('user_id', $user->id)
             ->update(['last_read_at' => now()]);
 
-        // Pour les conversations directes, marquer is_read = true
-        Communication::where('conversation_id', $conversationId)
-            ->where('sender_id', '!=', $user->id)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        // Pour les conversations, marquer is_read = true et status = 'read'
+        try {
+            Communication::where('conversation_id', $conversationId)
+                ->where('sender_id', '!=', $user->id)
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'status' => 'read',
+                ]);
+        } catch (\Throwable $e) {
+            Communication::where('conversation_id', $conversationId)
+                ->where('sender_id', '!=', $user->id)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
     }
 
     /**

@@ -13,15 +13,15 @@
         <form method="POST" action="{{ route('login') }}" class="space-y-6" id="login-form">
             @csrf
 
-            <!-- Email Field -->
+            <!-- Email / Identifiant Field -->
             <div class="space-y-2">
-                <label class="text-sm font-medium text-on-surface-variant">Adresse Email</label>
+                <label class="text-sm font-medium text-on-surface-variant">Adresse Email ou Numéro de Téléphone</label>
                 
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <span class="material-symbols-outlined text-[20px]">mail</span>
+                        <span class="material-symbols-outlined text-[20px]">person</span>
                     </div>
-                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="admin@educore.edu" class="block w-full pl-10 pr-4 py-3 border border-outline-variant rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <input id="email" type="text" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Email ou Téléphone" class="block w-full pl-10 pr-4 py-3 border border-outline-variant rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                 </div>
 
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />

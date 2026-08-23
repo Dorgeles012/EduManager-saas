@@ -101,15 +101,23 @@ class EleveController extends Controller
 
         DB::transaction(function () use ($validated, $user, $request) {
             // Créer le parent en tant qu'utilisateur (role=parent)
-            $parentEmail = $validated['parent_email'] ?? null;
+            $parentEmail = !empty($validated['parent_email']) ? $validated['parent_email'] : null;
+            $parentPhone = $validated['parent_telephone'] ?? null;
 
-$parent = User::query()->when(
-                $parentEmail,
-                fn ($q) => $q->where('email', $parentEmail)
-            )
+            $parent = User::query()
                 ->where('tenant_id', $user->tenant_id)
                 ->whereRaw('LOWER(role) = ?', ['parent'])
+                ->where(function ($q) use ($parentEmail, $parentPhone) {
+                    if ($parentEmail) {
+                        $q->where('email', $parentEmail);
+                    }
+                    if ($parentPhone) {
+                        $q->orWhere('telephone', $parentPhone);
+                    }
+                })
                 ->first();
+
+            $loginEmail = $parentEmail ?: (preg_replace('/[^0-9]/', '', (string) $parentPhone) . '@parent.local');
 
             if (! $parent) {
                 // Mot de passe par défaut pour le parent (à changer obligatoirement au 1er login).
@@ -117,13 +125,15 @@ $parent = User::query()->when(
 
                 $parent = User::create([
                     'tenant_id' => $user->tenant_id,
+                    'etablissement_id' => $user->etablissement_id,
                     'nom' => $validated['parent_nom'],
                     'prenom' => $validated['parent_prenom'] ?? null,
-                    'email' => $parentEmail,
-                    'telephone' => $validated['parent_telephone'],
+                    'email' => $loginEmail,
+                    'telephone' => $parentPhone,
                     'password' => Hash::make($defaultPassword),
                     'must_change_password' => true,
                     'role' => 'parent',
+                    'statut' => 'actif',
                     // Évite le blocage par MustVerifyEmail (email généré automatiquement)
                     'email_verified_at' => now(),
                 ]);
@@ -131,8 +141,8 @@ $parent = User::query()->when(
                 $parent->update([
                     'nom' => $validated['parent_nom'],
                     'prenom' => $validated['parent_prenom'] ?? $parent->prenom,
-                    'email' => $parentEmail ?? $parent->email,
-                    'telephone' => $validated['parent_telephone'],
+                    'email' => $parentEmail ?: ($parent->email ?: $loginEmail),
+                    'telephone' => $parentPhone,
                 ]);
             }
 

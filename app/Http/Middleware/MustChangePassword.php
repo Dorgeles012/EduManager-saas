@@ -39,7 +39,7 @@ class MustChangePassword
                 if (! in_array($current, $allowed, true)) {
                     return redirect()->route('parent.password.change');
                 }
-            } else {
+            } elseif ($role === 'eleve') {
                 $allowed = [
                     'eleve.password.change',
                     'eleve.password.update',

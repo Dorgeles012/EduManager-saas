@@ -1,5 +1,5 @@
 @props([
-    'routePrefix' => 'personnel', // 'personnel', 'enseignant', 'eleve', 'parent'
+    'routePrefix' => 'personnel',
     'conversations' => collect(),
     'groups' => [],
     'contacts' => [],
@@ -38,20 +38,20 @@
         <!-- Liste des discussions -->
         <div class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-surface-subtle/50" id="conversationsList">
             @forelse($conversations as $conv)
-                <div class="conversation-item p-3.5 flex items-start gap-3 cursor-pointer hover:bg-surface-container-low transition-colors relative {{ $loop->first ? '' : '' }}"
+                <div class="conversation-item p-3.5 flex items-start gap-3 cursor-pointer hover:bg-surface-container-low transition-colors relative"
                      data-id="{{ $conv['id'] }}"
                      data-title="{{ strtolower($conv['title']) }}"
-                     onclick="selectConversation({{ $conv['id'] }})">
+                     onclick="selectConversation(this.dataset.id)">
                     
                     <!-- Avatar / Icône groupe -->
                     <div class="relative flex-shrink-0">
-                        @if($conv['is_class_group'])
+                        @if($conv['is_class_group'] ?? false)
                             <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-sm">
                                 <span class="material-symbols-outlined text-xl">groups</span>
                             </div>
                         @else
                             <div class="w-11 h-11 rounded-full bg-primary-fixed text-primary flex items-center justify-center text-sm font-bold overflow-hidden border border-outline-variant/30">
-                                @if($conv['avatar'])
+                                @if($conv['avatar'] ?? false)
                                     <img src="{{ $conv['avatar'] }}" alt="" class="w-full h-full object-cover">
                                 @else
                                     {{ strtoupper(substr($conv['title'], 0, 2)) }}
@@ -59,7 +59,7 @@
                             </div>
                         @endif
 
-                        @if($conv['unread_count'] > 0)
+                        @if(($conv['unread_count'] ?? 0) > 0)
                             <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
                                 {{ $conv['unread_count'] }}
                             </span>
@@ -70,11 +70,11 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-1 mb-0.5">
                             <h4 class="text-xs font-semibold text-on-surface truncate">{{ $conv['title'] }}</h4>
-                            <span class="text-[10px] text-text-muted whitespace-nowrap flex-shrink-0">{{ $conv['last_message_time'] }}</span>
+                            <span class="text-[10px] text-text-muted whitespace-nowrap flex-shrink-0">{{ $conv['last_message_time'] ?? '' }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-1">
-                            <p class="text-[11px] text-text-muted truncate flex-1">{{ $conv['last_message'] ?: $conv['subtitle'] }}</p>
-                            @if($conv['is_class_group'])
+                            <p class="text-[11px] text-text-muted truncate flex-1">{{ $conv['last_message'] ?? ($conv['subtitle'] ?? '') }}</p>
+                            @if($conv['is_class_group'] ?? false)
                                 <span class="px-1.5 py-0.2 bg-secondary-container/60 text-secondary text-[9px] font-bold rounded uppercase">Groupe</span>
                             @endif
                         </div>
@@ -164,7 +164,7 @@
                 </button>
             </div>
 
-            <!-- Barre de saisie inférieure (WhatsApp style) -->
+            <!-- Barre de saisie inférieure -->
             <div class="chat-footer p-3 bg-white border-t border-outline-variant/30 flex items-end gap-2">
                 <!-- Bouton pièce jointe -->
                 <label class="inline-flex items-center justify-center w-9 h-9 rounded-full text-text-muted hover:text-primary hover:bg-surface-container cursor-pointer transition-colors flex-shrink-0" title="Ajouter une photo, vidéo ou fichier">
@@ -191,7 +191,7 @@
     </div>
 </div>
 
-<!-- Modal Nouvelle Conversation (Liste des contacts et groupes autorisés) -->
+<!-- Modal Nouvelle Conversation -->
 <div class="fixed inset-0 z-[200] hidden items-center justify-center p-4" id="newChatModal">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeNewChatModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all max-h-[85vh] flex flex-col">
@@ -213,14 +213,15 @@
         </div>
 
         <div class="p-4 overflow-y-auto custom-scrollbar flex-1 space-y-4">
-            <!-- Groupes autorisés (si applicable) -->
+            <!-- Groupes autorisés -->
             @if(!empty($groups))
             <div>
                 <h4 class="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-2">Groupes de classe</h4>
                 <div class="space-y-1">
                     @foreach($groups as $grp)
                         <div class="p-2.5 rounded-xl hover:bg-surface-container cursor-pointer flex items-center gap-3 transition-colors border border-outline-variant/30"
-                             onclick="selectConversation({{ $grp['conversation_id'] }}); closeNewChatModal();">
+                             data-conversation-id="{{ $grp['conversation_id'] }}"
+                             onclick="selectConversation(this.dataset.conversationId); closeNewChatModal();">
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container text-white flex items-center justify-center shadow-xs">
                                 <span class="material-symbols-outlined text-xl">groups</span>
                             </div>
@@ -246,9 +247,10 @@
                             <div class="contact-card p-2.5 rounded-xl hover:bg-surface-container cursor-pointer flex items-center gap-3 transition-colors border border-outline-variant/20"
                                  data-name="{{ strtolower($cnt['name']) }}"
                                  data-role="{{ strtolower($cnt['role']) }}"
-                                 onclick="startDirectChat({{ $cnt['user_id'] }})">
+                                 data-user-id="{{ $cnt['user_id'] }}"
+                                 onclick="startDirectChat(this.dataset.userId)">
                                 <div class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center text-xs font-bold overflow-hidden">
-                                    @if($cnt['avatar'])
+                                    @if($cnt['avatar'] ?? false)
                                         <img src="{{ $cnt['avatar'] }}" alt="" class="w-full h-full object-cover">
                                     @else
                                         {{ strtoupper(substr($cnt['name'], 0, 2)) }}
@@ -268,7 +270,7 @@
     </div>
 </div>
 
-<!-- Modal Visualisation Image (Lightbox) -->
+<!-- Modal Visualisation Image -->
 <div class="fixed inset-0 z-[300] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md" id="imageLightboxModal" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
     <div class="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-xl">
         <img id="lightboxImage" src="" alt="Aperçu image" class="max-w-full max-h-[85vh] object-contain rounded-lg">
@@ -277,392 +279,581 @@
 
 @push('scripts')
 <script>
-const routePrefix = @json($routePrefix);
-let currentConversationId = null;
-let lastMessageId = 0;
-let pollingInterval = null;
-let selectedFile = null;
+document.addEventListener('DOMContentLoaded', function() {
+    // Récupération des données depuis les props
+    const routePrefix = "{{ $routePrefix }}";
+    let currentConversationId = null;
+    let lastMessageId = 0;
+    let pollingInterval = null;
+    let selectedFile = null;
 
-// Audio recording variables
-let mediaRecorder = null;
-let audioChunks = [];
-let recordingInterval = null;
-let recordingSeconds = 0;
+    // Variables pour l'enregistrement audio
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingInterval = null;
+    let recordingSeconds = 0;
 
-function openNewChatModal() {
-    const m = document.getElementById('newChatModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
-}
-
-function closeNewChatModal() {
-    const m = document.getElementById('newChatModal');
-    m.classList.remove('flex');
-    m.classList.add('hidden');
-}
-
-function backToSidebar() {
-    document.getElementById('chatSidebar').classList.remove('hidden');
-    document.getElementById('chatSidebar').classList.add('w-full');
-    document.getElementById('chatMain').classList.add('hidden');
-}
-
-function autoResizeTextarea(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
-}
-
-function handleKeypress(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-}
-
-function openLightbox(url) {
-    const modal = document.getElementById('imageLightboxModal');
-    document.getElementById('lightboxImage').src = url;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function handleFileSelected(input) {
-    if (input.files && input.files[0]) {
-        selectedFile = input.files[0];
-        document.getElementById('filePreviewName').textContent = selectedFile.name;
-        
-        let icon = 'attach_file';
-        if (selectedFile.type.startsWith('image/')) icon = 'image';
-        else if (selectedFile.type.startsWith('video/')) icon = 'movie';
-        else if (selectedFile.type.startsWith('audio/')) icon = 'audiotrack';
-        else if (selectedFile.type.includes('pdf')) icon = 'picture_as_pdf';
-        
-        document.getElementById('filePreviewIcon').textContent = icon;
-        document.getElementById('filePreviewBar').classList.remove('hidden');
-    }
-}
-
-function clearSelectedFile() {
-    selectedFile = null;
-    document.getElementById('chatFileInput').value = '';
-    document.getElementById('filePreviewBar').classList.add('hidden');
-}
-
-// Enregistrement vocal
-async function startVoiceRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = event => {
-            if (event.data.size > 0) audioChunks.push(event.data);
-        };
-
-        mediaRecorder.start();
-        recordingSeconds = 0;
-        document.getElementById('recordingTimer').textContent = '00:00';
-        document.getElementById('voiceRecordingBar').classList.remove('hidden');
-
-        recordingInterval = setInterval(() => {
-            recordingSeconds++;
-            const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
-            const secs = String(recordingSeconds % 60).padStart(2, '0');
-            document.getElementById('recordingTimer').textContent = `${mins}:${secs}`;
-        }, 1000);
-    } catch (err) {
-        alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès dans votre navigateur.');
-    }
-}
-
-function cancelVoiceRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    }
-    clearInterval(recordingInterval);
-    document.getElementById('voiceRecordingBar').classList.add('hidden');
-    audioChunks = [];
-}
-
-function stopAndSendVoiceRecording() {
-    if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-
-    const duration = recordingSeconds;
-    mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], `vocal_${Date.now()}.webm`, { type: 'audio/webm' });
-        sendMediaDirectly(audioFile, 'audio', duration);
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    // Fonctions globales
+    window.openNewChatModal = function() {
+        const m = document.getElementById('newChatModal');
+        if (m) {
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
     };
 
-    mediaRecorder.stop();
-    clearInterval(recordingInterval);
-    document.getElementById('voiceRecordingBar').classList.add('hidden');
-}
-
-function sendMediaDirectly(file, type, duration = null) {
-    if (!currentConversationId) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-    if (duration) formData.append('duration', duration);
-
-    const baseUrl = `/${routePrefix}/messages/${currentConversationId}/send`;
-
-    fetch(baseUrl, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.success) {
-            appendMessage(res.message);
-            lastMessageId = Math.max(lastMessageId, res.message.id);
-            scrollToBottom();
-            refreshConversationsList();
+    window.closeNewChatModal = function() {
+        const m = document.getElementById('newChatModal');
+        if (m) {
+            m.classList.remove('flex');
+            m.classList.add('hidden');
         }
-    });
-}
+    };
 
-function startDirectChat(userId) {
-    closeNewChatModal();
-    const baseUrl = `/${routePrefix}/messages/start`;
-
-    fetch(baseUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ recipient_id: userId })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success && data.conversation_id) {
-            selectConversation(data.conversation_id);
-            refreshConversationsList();
+    window.backToSidebar = function() {
+        const sidebar = document.getElementById('chatSidebar');
+        const main = document.getElementById('chatMain');
+        if (sidebar && main) {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('w-full');
+            main.classList.add('hidden');
         }
-    });
-}
+    };
 
-function selectConversation(convId) {
-    currentConversationId = convId;
-    lastMessageId = 0;
+    window.autoResizeTextarea = function(textarea) {
+        if (!textarea) return;
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    };
 
-    // Sur mobile : basculer l'affichage
-    if (window.innerWidth < 768) {
-        document.getElementById('chatSidebar').classList.add('hidden');
-        document.getElementById('chatMain').classList.remove('hidden');
-    }
+    window.handleKeypress = function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            window.sendMessage();
+        }
+    };
 
-    document.getElementById('noChatSelected').classList.add('hidden');
-    document.getElementById('activeChat').classList.remove('hidden');
+    window.openLightbox = function(url) {
+        const modal = document.getElementById('imageLightboxModal');
+        const img = document.getElementById('lightboxImage');
+        if (modal && img) {
+            img.src = url;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    };
 
-    // Mettre en surbrillance l'item actif
-    document.querySelectorAll('.conversation-item').forEach(el => {
-        if (parseInt(el.dataset.id) === convId) {
-            el.classList.add('bg-primary-fixed/20', 'border-l-4', 'border-primary');
+    window.handleFileSelected = function(input) {
+        if (input && input.files && input.files[0]) {
+            selectedFile = input.files[0];
+            const previewName = document.getElementById('filePreviewName');
+            const previewIcon = document.getElementById('filePreviewIcon');
+            const previewBar = document.getElementById('filePreviewBar');
+
+            if (previewName) previewName.textContent = selectedFile.name;
+            
+            let icon = 'attach_file';
+            if (selectedFile.type.startsWith('image/')) icon = 'image';
+            else if (selectedFile.type.startsWith('video/')) icon = 'movie';
+            else if (selectedFile.type.startsWith('audio/')) icon = 'audiotrack';
+            else if (selectedFile.type.includes('pdf')) icon = 'picture_as_pdf';
+            
+            if (previewIcon) previewIcon.textContent = icon;
+            if (previewBar) previewBar.classList.remove('hidden');
+        }
+    };
+
+    window.clearSelectedFile = function() {
+        selectedFile = null;
+        const fileInput = document.getElementById('chatFileInput');
+        const previewBar = document.getElementById('filePreviewBar');
+        if (fileInput) fileInput.value = '';
+        if (previewBar) previewBar.classList.add('hidden');
+    };
+
+    // Enregistrement vocal
+    window.startVoiceRecording = async function() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+            recordingSeconds = 0;
+            const timer = document.getElementById('recordingTimer');
+            const bar = document.getElementById('voiceRecordingBar');
+            if (timer) timer.textContent = '00:00';
+            if (bar) bar.classList.remove('hidden');
+
+            recordingInterval = setInterval(() => {
+                recordingSeconds++;
+                const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+                const secs = String(recordingSeconds % 60).padStart(2, '0');
+                const timerEl = document.getElementById('recordingTimer');
+                if (timerEl) timerEl.textContent = `${mins}:${secs}`;
+            }, 1000);
+        } catch (err) {
+            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès dans votre navigateur.');
+        }
+    };
+
+    window.cancelVoiceRecording = function() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            if (mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+        }
+        if (recordingInterval) clearInterval(recordingInterval);
+        const bar = document.getElementById('voiceRecordingBar');
+        if (bar) bar.classList.add('hidden');
+        audioChunks = [];
+    };
+
+    window.stopAndSendVoiceRecording = function() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+
+        const duration = recordingSeconds;
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const audioFile = new File([audioBlob], `vocal_${Date.now()}.webm`, { type: 'audio/webm' });
+            window.sendMediaDirectly(audioFile, 'audio', duration);
+            if (mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+        };
+
+        mediaRecorder.stop();
+        if (recordingInterval) clearInterval(recordingInterval);
+        const bar = document.getElementById('voiceRecordingBar');
+        if (bar) bar.classList.add('hidden');
+    };
+
+    window.sendMediaDirectly = function(file, type, duration = null) {
+        if (!currentConversationId) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
+        if (duration) formData.append('duration', duration);
+
+        const baseUrl = `/${routePrefix}/messages/${currentConversationId}/send`;
+
+        fetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                window.appendMessage(res.message);
+                lastMessageId = Math.max(lastMessageId, res.message.id);
+                window.scrollToBottom();
+                window.refreshConversationsList();
+            }
+        })
+        .catch(err => console.error('Erreur lors de l\'envoi du média:', err));
+    };
+
+    window.startDirectChat = function(userId) {
+        window.closeNewChatModal();
+        const baseUrl = `/${routePrefix}/messages/start`;
+
+        fetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ recipient_id: userId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.conversation_id) {
+                window.selectConversation(data.conversation_id);
+                window.refreshConversationsList();
+            }
+        })
+        .catch(err => console.error('Erreur lors du démarrage du chat:', err));
+    };
+
+    window.selectConversation = function(convId) {
+        currentConversationId = convId;
+        lastMessageId = 0;
+
+        // Sur mobile : basculer l'affichage
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById('chatSidebar');
+            const main = document.getElementById('chatMain');
+            if (sidebar) sidebar.classList.add('hidden');
+            if (main) main.classList.remove('hidden');
+        }
+
+        const noChat = document.getElementById('noChatSelected');
+        const activeChat = document.getElementById('activeChat');
+        if (noChat) noChat.classList.add('hidden');
+        if (activeChat) activeChat.classList.remove('hidden');
+
+        // Mettre en surbrillance l'item actif
+        document.querySelectorAll('.conversation-item').forEach(el => {
+            const id = el.dataset.id;
+            if (id == convId) {
+                el.classList.add('bg-primary-fixed/20', 'border-l-4', 'border-primary');
+            } else {
+                el.classList.remove('bg-primary-fixed/20', 'border-l-4', 'border-primary');
+            }
+        });
+
+        window.loadMessages(convId);
+
+        // Démarrer le polling
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(() => {
+            if (currentConversationId) {
+                window.pollNewMessages(currentConversationId);
+            }
+        }, 3000);
+    };
+
+    window.loadMessages = function(convId) {
+        const url = `/${routePrefix}/messages/${convId}/messages`;
+
+        fetch(url, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const conv = data.conversation;
+            const titleEl = document.getElementById('activeChatTitle');
+            const subtitleEl = document.getElementById('activeChatSubtitle');
+            const avatarEl = document.getElementById('activeChatAvatar');
+
+            if (titleEl) titleEl.textContent = conv.title;
+            if (subtitleEl) subtitleEl.textContent = conv.subtitle;
+            
+            if (avatarEl) {
+                if (conv.is_class_group) {
+                    avatarEl.innerHTML = `<span class="material-symbols-outlined text-primary text-xl">groups</span>`;
+                } else {
+                    avatarEl.innerHTML = `<span class="material-symbols-outlined text-primary text-xl">person</span>`;
+                }
+            }
+
+            const container = document.getElementById('messagesBody');
+            if (!container) return;
+            
+            container.innerHTML = '';
+
+            if (data.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-6 text-text-muted">
+                        <span class="material-symbols-outlined text-3xl mb-1 opacity-50">waving_hand</span>
+                        <p class="text-xs">Aucun message pour l'instant. Dites bonjour !</p>
+                    </div>
+                `;
+            } else {
+                data.messages.forEach(msg => {
+                    window.appendMessage(msg);
+                    lastMessageId = Math.max(lastMessageId, msg.id);
+                });
+                window.scrollToBottom();
+            }
+        })
+        .catch(err => console.error('Erreur lors du chargement des messages:', err));
+    };
+
+    window.activeAudioPlayer = null;
+
+    window.toggleAudioPlay = function(trackId) {
+        const audio = document.getElementById(`audio-elem-${trackId}`);
+        const playIcon = document.getElementById(`play-icon-${trackId}`);
+        const pauseIcon = document.getElementById(`pause-icon-${trackId}`);
+        const progressBar = document.getElementById(`audio-progress-${trackId}`);
+        const timeDisplay = document.getElementById(`audio-time-${trackId}`);
+        const barContainer = document.getElementById(`audio-bar-${trackId}`);
+
+        if (!audio) return;
+
+        if (audio.paused) {
+            // Mettre en pause tout autre audio en cours de lecture
+            if (window.activeAudioPlayer && window.activeAudioPlayer !== audio) {
+                window.activeAudioPlayer.pause();
+                const otherId = window.activeAudioPlayer.dataset.trackId;
+                if (otherId) {
+                    const oPlay = document.getElementById(`play-icon-${otherId}`);
+                    const oPause = document.getElementById(`pause-icon-${otherId}`);
+                    if (oPlay) oPlay.classList.remove('hidden');
+                    if (oPause) oPause.classList.add('hidden');
+                }
+            }
+
+            window.activeAudioPlayer = audio;
+            audio.play().then(() => {
+                if (playIcon) playIcon.classList.add('hidden');
+                if (pauseIcon) pauseIcon.classList.remove('hidden');
+            }).catch(e => console.error('Audio playback error:', e));
         } else {
-            el.classList.remove('bg-primary-fixed/20', 'border-l-4', 'border-primary');
+            audio.pause();
+            if (playIcon) playIcon.classList.remove('hidden');
+            if (pauseIcon) pauseIcon.classList.add('hidden');
         }
-    });
 
-    loadMessages(convId);
+        audio.ontimeupdate = () => {
+            if (audio.duration && !isNaN(audio.duration)) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                if (progressBar) progressBar.style.width = pct + '%';
+                if (timeDisplay) {
+                    const curM = String(Math.floor(audio.currentTime / 60)).padStart(2, '0');
+                    const curS = String(Math.floor(audio.currentTime % 60)).padStart(2, '0');
+                    timeDisplay.textContent = `${curM}:${curS}`;
+                }
+            }
+        };
 
-    // Déclencher le polling
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(() => {
-        if (currentConversationId) {
-            pollNewMessages(currentConversationId);
+        audio.onended = () => {
+            if (playIcon) playIcon.classList.remove('hidden');
+            if (pauseIcon) pauseIcon.classList.add('hidden');
+            if (progressBar) progressBar.style.width = '0%';
+            if (timeDisplay && audio.duration) {
+                const totalM = String(Math.floor(audio.duration / 60)).padStart(2, '0');
+                const totalS = String(Math.floor(audio.duration % 60)).padStart(2, '0');
+                timeDisplay.textContent = `${totalM}:${totalS}`;
+            }
+        };
+
+        if (barContainer && !barContainer.dataset.bound) {
+            barContainer.dataset.bound = 'true';
+            barContainer.addEventListener('click', (e) => {
+                const rect = barContainer.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+                if (audio.duration && !isNaN(audio.duration)) {
+                    audio.currentTime = ratio * audio.duration;
+                }
+            });
         }
-    }, 3000);
-}
+    };
 
-function loadMessages(convId) {
-    const url = `/${routePrefix}/messages/${convId}/messages`;
+    window.pollNewMessages = function(convId) {
+        if (!currentConversationId) return;
+        const url = `/${routePrefix}/messages/${convId}/messages?after_id=${lastMessageId || 0}`;
 
-    fetch(url, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        const conv = data.conversation;
-        document.getElementById('activeChatTitle').textContent = conv.title;
-        document.getElementById('activeChatSubtitle').textContent = conv.subtitle;
-        
-        const avatarEl = document.getElementById('activeChatAvatar');
-        if (conv.is_class_group) {
-            avatarEl.innerHTML = `<span class="material-symbols-outlined text-primary text-xl">groups</span>`;
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    const existing = document.querySelector(`[data-msg-id="${msg.id}"]`);
+                    if (!existing) {
+                        window.appendMessage(msg);
+                        lastMessageId = Math.max(lastMessageId, msg.id);
+                    } else {
+                        // Mettre à jour le statut du message existant
+                        window.updateMessageStatus(msg.id, msg.status);
+                    }
+                });
+                window.scrollToBottom();
+                window.refreshConversationsList();
+            }
+        })
+        .catch(err => console.error('Erreur lors du polling des messages:', err));
+    };
+
+    window.updateMessageStatus = function(msgId, status) {
+        const el = document.querySelector(`[data-msg-id="${msgId}"] .message-status-badge`);
+        if (!el) return;
+
+        if (status === 'read') {
+            el.innerHTML = `<span class="material-symbols-outlined text-[14px] text-sky-400 font-bold" title="Lu">done_all</span>`;
+        } else if (status === 'delivered') {
+            el.innerHTML = `<span class="material-symbols-outlined text-[14px] text-white/70 font-normal" title="Distribué">done_all</span>`;
         } else {
-            avatarEl.innerHTML = `<span class="material-symbols-outlined text-primary text-xl">person</span>`;
+            el.innerHTML = `<span class="material-symbols-outlined text-[14px] text-white/70 font-normal" title="Envoyé">check</span>`;
         }
+    };
 
+    window.refreshMessages = function() {
+        if (currentConversationId) window.loadMessages(currentConversationId);
+    };
+
+    window.appendMessage = function(msg) {
         const container = document.getElementById('messagesBody');
-        container.innerHTML = '';
+        if (!container) return;
+        
+        const isMe = msg.is_me;
+        const isAudio = msg.type === 'audio' || (msg.file_name && msg.file_name.startsWith('vocal_')) || (msg.mime_type && msg.mime_type.startsWith('audio/'));
 
-        if (data.messages.length === 0) {
-            container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center text-center p-6 text-text-muted">
-                    <span class="material-symbols-outlined text-3xl mb-1 opacity-50">waving_hand</span>
-                    <p class="text-xs">Aucun message pour l'instant. Dites bonjour !</p>
+        const div = document.createElement('div');
+        div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1`;
+        div.setAttribute('data-msg-id', msg.id);
+
+        let mediaHtml = '';
+        if (msg.type === 'image' && msg.file_url) {
+            mediaHtml = `
+                <div class="mb-1.5 cursor-pointer rounded-xl overflow-hidden max-w-[260px] border border-black/5" onclick="openLightbox('${msg.file_url}')">
+                    <img src="${msg.file_url}" alt="Photo" class="w-full h-auto object-cover max-h-60 hover:scale-102 transition-transform">
                 </div>
             `;
-        } else {
-            data.messages.forEach(msg => {
-                appendMessage(msg);
-                lastMessageId = Math.max(lastMessageId, msg.id);
-            });
-            scrollToBottom();
+        } else if (isAudio && msg.file_url) {
+            const trackId = msg.id || ('temp-' + Math.random().toString(36).substr(2, 9));
+            const durationFormatted = msg.formatted_duration || (msg.duration ? String(Math.floor(msg.duration / 60)).padStart(2, '0') + ':' + String(msg.duration % 60).padStart(2, '0') : '00:00');
+            
+            const playerBg = isMe 
+                ? 'bg-white/10 text-white' 
+                : 'bg-surface-container-low text-on-surface';
+            const btnBg = isMe 
+                ? 'bg-white text-primary hover:bg-white/90' 
+                : 'bg-primary text-white hover:bg-primary/90';
+            const barBg = isMe ? 'bg-white/30' : 'bg-gray-200';
+            const progressBg = isMe ? 'bg-white' : 'bg-primary';
+
+            mediaHtml = `
+                <div class="voice-player-card flex items-center gap-3 p-2 rounded-2xl ${playerBg} min-w-[220px] max-w-[290px] mb-1">
+                    <audio id="audio-elem-${trackId}" data-track-id="${trackId}" class="chat-voice-audio hidden" src="${msg.file_url}" preload="metadata"></audio>
+                    
+                    <button type="button" onclick="window.toggleAudioPlay('${trackId}')" class="w-10 h-10 rounded-full ${btnBg} flex items-center justify-center flex-shrink-0 shadow-sm transition-transform active:scale-95">
+                        <span id="play-icon-${trackId}" class="material-symbols-outlined text-xl play-icon">play_arrow</span>
+                        <span id="pause-icon-${trackId}" class="material-symbols-outlined text-xl pause-icon hidden">pause</span>
+                    </button>
+
+                    <div class="flex-1 min-w-0 pr-1">
+                        <div id="audio-bar-${trackId}" class="w-full h-2 ${barBg} rounded-full cursor-pointer relative overflow-hidden my-1">
+                            <div id="audio-progress-${trackId}" class="h-full ${progressBg} rounded-full transition-all" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] opacity-80">
+                            <span id="audio-time-${trackId}" class="font-mono">${durationFormatted}</span>
+                            <span class="material-symbols-outlined text-sm opacity-60">mic</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (msg.type === 'video' && msg.file_url) {
+            mediaHtml = `
+                <div class="mb-1.5 rounded-xl overflow-hidden max-w-[280px] bg-black">
+                    <video src="${msg.file_url}" controls class="w-full max-h-60 rounded-xl"></video>
+                </div>
+            `;
+        } else if (msg.type === 'file' && msg.file_url) {
+            mediaHtml = `
+                <a href="${msg.file_url}" target="_blank" download class="mb-1.5 flex items-center gap-2.5 p-2.5 rounded-xl ${isMe ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-surface-container-low hover:bg-surface-container text-on-surface'} transition-colors text-xs font-medium truncate max-w-[240px]">
+                    <span class="material-symbols-outlined ${isMe ? 'text-white' : 'text-primary'} text-xl">description</span>
+                    <span class="truncate flex-1">${msg.file_name || 'Document'}</span>
+                    <span class="material-symbols-outlined text-sm opacity-80">download</span>
+                </a>
+            `;
         }
-    });
-}
 
-function pollNewMessages(convId) {
-    if (!lastMessageId) return;
-    const url = `/${routePrefix}/messages/${convId}/messages?after_id=${lastMessageId}`;
+        const textContentHtml = msg.content ? `<p class="text-xs leading-relaxed whitespace-pre-wrap">${window.escapeHtml(msg.content)}</p>` : '';
 
-    fetch(url, { headers: { 'Accept': 'application/json' } })
-    .then(r => r.json())
-    .then(data => {
-        if (data.messages && data.messages.length > 0) {
-            data.messages.forEach(msg => {
-                appendMessage(msg);
-                lastMessageId = Math.max(lastMessageId, msg.id);
-            });
-            scrollToBottom();
-            refreshConversationsList();
+        const bubbleBg = isMe 
+            ? 'bg-primary text-white rounded-2xl rounded-tr-xs shadow-sm' 
+            : 'bg-white text-on-surface rounded-2xl rounded-tl-xs shadow-sm border border-outline-variant/30';
+
+        const senderHeader = !isMe ? `<span class="text-[10px] font-bold text-primary block mb-0.5">${window.escapeHtml(msg.sender_name)} <span class="text-[9px] font-normal text-text-muted">(${window.escapeHtml(msg.sender_role)})</span></span>` : '';
+
+        // Statut du message type WhatsApp (✓, ✓✓, ✓✓ bleu)
+        let statusBadge = '';
+        if (isMe) {
+            if (msg.status === 'read') {
+                statusBadge = `<span class="message-status-badge inline-flex items-center text-sky-400 font-bold ml-1" title="Lu"><span class="material-symbols-outlined text-[14px]">done_all</span></span>`;
+            } else if (msg.status === 'delivered') {
+                statusBadge = `<span class="message-status-badge inline-flex items-center text-white/70 font-normal ml-1" title="Distribué"><span class="material-symbols-outlined text-[14px]">done_all</span></span>`;
+            } else {
+                statusBadge = `<span class="message-status-badge inline-flex items-center text-white/70 font-normal ml-1" title="Envoyé"><span class="material-symbols-outlined text-[14px]">check</span></span>`;
+            }
         }
-    });
-}
 
-function refreshMessages() {
-    if (currentConversationId) loadMessages(currentConversationId);
-}
-
-function appendMessage(msg) {
-    const container = document.getElementById('messagesBody');
-    const isMe = msg.is_me;
-
-    const div = document.createElement('div');
-    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1`;
-
-    let mediaHtml = '';
-    if (msg.type === 'image' && msg.file_url) {
-        mediaHtml = `
-            <div class="mb-1.5 cursor-pointer rounded-lg overflow-hidden max-w-[260px] border border-black/5" onclick="openLightbox('${msg.file_url}')">
-                <img src="${msg.file_url}" alt="Photo" class="w-full h-auto object-cover max-h-60 hover:scale-102 transition-transform">
+        div.innerHTML = `
+            <div class="max-w-[85%] md:max-w-[70%] p-2.5 ${bubbleBg}">
+                ${senderHeader}
+                ${mediaHtml}
+                ${textContentHtml}
+                <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-white/70' : 'text-text-muted'}">
+                    <span>${msg.created_at}</span>
+                    ${statusBadge}
+                </div>
             </div>
         `;
-    } else if (msg.type === 'video' && msg.file_url) {
-        mediaHtml = `
-            <div class="mb-1.5 rounded-lg overflow-hidden max-w-[280px] bg-black">
-                <video src="${msg.file_url}" controls class="w-full max-h-60 rounded-lg"></video>
-            </div>
-        `;
-    } else if (msg.type === 'audio' && msg.file_url) {
-        mediaHtml = `
-            <div class="mb-1.5 flex items-center gap-2 p-1 rounded-lg">
-                <audio src="${msg.file_url}" controls class="h-8 max-w-[220px]"></audio>
-            </div>
-        `;
-    } else if (msg.type === 'file' && msg.file_url) {
-        mediaHtml = `
-            <a href="${msg.file_url}" target="_blank" download class="mb-1.5 flex items-center gap-2 p-2 rounded-lg bg-black/5 hover:bg-black/10 transition-colors text-xs font-medium truncate max-w-[240px]">
-                <span class="material-symbols-outlined text-primary text-lg">description</span>
-                <span class="truncate flex-1">${msg.file_name || 'Document'}</span>
-                <span class="material-symbols-outlined text-sm">download</span>
-            </a>
-        `;
-    }
 
-    const textContentHtml = msg.content ? `<p class="text-xs leading-relaxed whitespace-pre-wrap">${escapeHtml(msg.content)}</p>` : '';
+        container.appendChild(div);
+    };
 
-    const bubbleBg = isMe 
-        ? 'bg-primary text-white rounded-2xl rounded-tr-xs shadow-xs' 
-        : 'bg-white text-on-surface rounded-2xl rounded-tl-xs shadow-xs border border-outline-variant/30';
+    window.sendMessage = function() {
+        if (!currentConversationId) return;
 
-    const senderHeader = !isMe ? `<span class="text-[10px] font-bold text-primary block mb-0.5">${escapeHtml(msg.sender_name)} <span class="text-[9px] font-normal text-text-muted">(${escapeHtml(msg.sender_role)})</span></span>` : '';
+        const textInput = document.getElementById('messageTextInput');
+        if (!textInput) return;
+        
+        const content = textInput.value.trim();
 
-    div.innerHTML = `
-        <div class="max-w-[80%] md:max-w-[70%] p-2.5 ${bubbleBg}">
-            ${senderHeader}
-            ${mediaHtml}
-            ${textContentHtml}
-            <span class="text-[9px] block text-right mt-1 ${isMe ? 'text-white/70' : 'text-text-muted'}">${msg.created_at}</span>
-        </div>
-    `;
+        if (!content && !selectedFile) return;
 
-    container.appendChild(div);
-}
+        const formData = new FormData();
+        if (content) formData.append('content', content);
+        if (selectedFile) formData.append('file', selectedFile);
 
-function sendMessage() {
-    if (!currentConversationId) return;
+        const baseUrl = `/${routePrefix}/messages/${currentConversationId}/send`;
 
-    const textInput = document.getElementById('messageTextInput');
-    const content = textInput.value.trim();
+        textInput.value = '';
+        textInput.style.height = 'auto';
+        window.clearSelectedFile();
 
-    if (!content && !selectedFile) return;
+        fetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                window.appendMessage(res.message);
+                lastMessageId = Math.max(lastMessageId, res.message.id);
+                window.scrollToBottom();
+                window.refreshConversationsList();
+            }
+        })
+        .catch(err => console.error('Erreur lors de l\'envoi du message:', err));
+    };
 
-    const formData = new FormData();
-    if (content) formData.append('content', content);
-    if (selectedFile) formData.append('file', selectedFile);
+    window.refreshConversationsList = function() {
+        fetch(`/${routePrefix}/messages/conversations/json`, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.unread_total !== undefined) {
+                const badge = document.getElementById('unreadTotalBadge');
+                if (badge) badge.textContent = data.unread_total;
+            }
+        })
+        .catch(err => console.error('Erreur lors du rafraîchissement:', err));
+    };
 
-    const baseUrl = `/${routePrefix}/messages/${currentConversationId}/send`;
-
-    textInput.value = '';
-    textInput.style.height = 'auto';
-    clearSelectedFile();
-
-    fetch(baseUrl, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.success) {
-            appendMessage(res.message);
-            lastMessageId = Math.max(lastMessageId, res.message.id);
-            scrollToBottom();
-            refreshConversationsList();
+    window.scrollToBottom = function() {
+        const el = document.getElementById('messagesBody');
+        if (el) {
+            el.scrollTop = el.scrollHeight;
         }
-    });
-}
+    };
 
-function refreshConversationsList() {
-    fetch(`/${routePrefix}/messages/conversations/json`, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.unread_total !== undefined) {
-            document.getElementById('unreadTotalBadge').textContent = data.unread_total;
-        }
-    });
-}
+    window.escapeHtml = function(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    };
 
-function scrollToBottom() {
-    const el = document.getElementById('messagesBody');
-    el.scrollTop = el.scrollHeight;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
-
-// Filtres de recherche
-document.addEventListener('DOMContentLoaded', function() {
+    // Filtres de recherche
     const searchInput = document.getElementById('conversationSearchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
