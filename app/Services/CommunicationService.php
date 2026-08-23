@@ -493,17 +493,25 @@ class CommunicationService
                 }
             }
 
+            $isVoice = ($msg->type === 'audio')
+                || str_starts_with((string) $msg->file_name, 'vocal_')
+                || str_starts_with((string) $msg->mime_type, 'audio/')
+                || (in_array(strtolower(pathinfo((string) $msg->file_name, PATHINFO_EXTENSION)), ['webm', 'ogg', 'wav', 'mp3', 'm4a', 'aac', 'opus'], true) && ($msg->type === 'audio' || str_starts_with((string) $msg->file_name, 'vocal_') || $msg->duration !== null));
+
+            $type = $isVoice ? 'audio' : $msg->type;
+            $mimeType = $isVoice && ($msg->mime_type === 'video/webm' || empty($msg->mime_type)) ? 'audio/webm' : $msg->mime_type;
+
             return [
                 'id' => $msg->id,
                 'sender_id' => $msg->sender_id,
                 'is_me' => $isMe,
                 'sender_name' => $msg->sender?->name ?? ($msg->sender?->nom . ' ' . $msg->sender?->prenom),
                 'sender_role' => ucfirst((string) $msg->sender?->role),
-                'type' => $msg->type,
+                'type' => $type,
                 'content' => $msg->content,
                 'file_url' => $msg->file_url,
                 'file_name' => $msg->file_name,
-                'mime_type' => $msg->mime_type,
+                'mime_type' => $mimeType,
                 'duration' => $msg->duration,
                 'formatted_duration' => $msg->formatted_duration ?: ($msg->duration ? sprintf('%02d:%02d', floor($msg->duration / 60), $msg->duration % 60) : null),
                 'status' => $status,
@@ -546,21 +554,25 @@ class CommunicationService
 
         if ($file && $file->isValid()) {
             $fileName = $file->getClientOriginalName();
-            $mimeType = $file->getMimeType();
+            $mimeType = $file->getMimeType() ?: 'application/octet-stream';
             $fileSize = $file->getSize();
+            $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
             // Déterminer le type avec priorité stricte pour l'audio / note vocale
-            if ($type === 'audio' || str_starts_with($fileName, 'vocal_') || str_starts_with($mimeType, 'audio/')) {
+            $isVoice = ($type === 'audio')
+                || str_starts_with($fileName, 'vocal_')
+                || str_starts_with($mimeType, 'audio/')
+                || (in_array($ext, ['webm', 'ogg', 'wav', 'mp3', 'm4a', 'aac', 'opus'], true) && ($type === 'audio' || str_starts_with($fileName, 'vocal_') || !empty($duration)));
+
+            if ($isVoice) {
                 $type = 'audio';
+                if ($mimeType === 'video/webm' || empty($mimeType) || $mimeType === 'application/octet-stream') {
+                    $mimeType = 'audio/webm';
+                }
             } elseif (str_starts_with($mimeType, 'image/')) {
                 $type = 'image';
             } elseif (str_starts_with($mimeType, 'video/')) {
-                // Si l'enregistrement provient du micro (duration fournie et nom vocal_), c'est de l'audio
-                if (str_starts_with($fileName, 'vocal_') || ($type === 'audio')) {
-                    $type = 'audio';
-                } else {
-                    $type = 'video';
-                }
+                $type = 'video';
             } else {
                 $type = 'file';
             }
