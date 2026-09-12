@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Personnel;
 use App\Http\Controllers\Controller;
 use App\Models\{Classe, EmploiTemps, Enseignant, Etablissement, Matiere, Series, User};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ class PersonnelEnseignantController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $query = Enseignant::with(['matieres', 'classes', 'series'])
             ->where('tenant_id', $user->tenant_id)
@@ -55,7 +56,7 @@ class PersonnelEnseignantController extends Controller
 
     public function create()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         return view('personnel.enseignants.create', [
             'matieres' => $this->matieresFor($user),
@@ -68,7 +69,7 @@ class PersonnelEnseignantController extends Controller
     {
         $this->normaliseRelationIds($request);
         $validated = $this->validateEnseignant($request);
-        $user = auth()->user();
+        $user = Auth::user();
 
         $teacher = DB::transaction(function () use ($validated, $user, $request) {
             $attrs = $this->attributes($validated, $user, $request);
@@ -103,7 +104,7 @@ class PersonnelEnseignantController extends Controller
     public function edit(Enseignant $enseignant)
     {
         $this->authorizeTenant($enseignant);
-        $user = auth()->user();
+        $user = Auth::user();
 
         $enseignant->load(['matieres', 'classes', 'series']);
 
@@ -203,7 +204,7 @@ class PersonnelEnseignantController extends Controller
 
     private function validateEnseignant(Request $request, ?Enseignant $teacher = null): array
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $ignoreId = $teacher?->id;
 
         return $request->validate([
@@ -258,7 +259,7 @@ class PersonnelEnseignantController extends Controller
 
     private function authorizeTenant(Enseignant $teacher): void
     {
-        $user = auth()->user();
+        $user = Auth::user();
         abort_unless(
             (int) $teacher->tenant_id === (int) $user->tenant_id
             && (! $user->etablissement_id || (int) $teacher->etablissement_id === (int) $user->etablissement_id),
@@ -287,7 +288,6 @@ class PersonnelEnseignantController extends Controller
     {
         return Matiere::query()
             ->where('tenant_id', $user->tenant_id)
-            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->orderBy('nom')
             ->get(['id', 'nom']);
     }
@@ -305,7 +305,6 @@ class PersonnelEnseignantController extends Controller
     {
         return Series::query()
             ->where('tenant_id', $user->tenant_id)
-            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->orderBy('nom_serie')
             ->get(['id', 'nom_serie']);
     }

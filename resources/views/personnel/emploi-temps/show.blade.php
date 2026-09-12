@@ -4,13 +4,20 @@
 
 @section('content')
 <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
-    <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Emploi du temps</h2>
-        <p class="text-sm text-on-surface-variant">
-            Classe : <strong>{{ $classe->nom }}</strong>
-            @if($year) · {{ $year->libelle }} @endif
-            · {{ $school?->nom ?? '' }}
-        </p>
+    <div class="flex items-center gap-3">
+        <a href="{{ route('personnel.emploi-temps.index') }}"
+           class="inline-flex items-center justify-center w-9 h-9 text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+           title="Retour">
+            <span class="material-symbols-outlined text-xl">arrow_back</span>
+        </a>
+        <div>
+            <h2 class="font-headline-lg text-headline-lg text-primary">Emploi du temps</h2>
+            <p class="text-sm text-on-surface-variant">
+                Classe : <strong>{{ $classe->nom }}</strong>
+                @if($year) · {{ $year->libelle }} @endif
+                · {{ $school?->nom ?? '' }}
+            </p>
+        </div>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('personnel.emploi-temps.edit', ['classe_id' => $classe->id, 'annee_academique_id' => $year?->id]) }}" class="inline-flex items-center gap-2 px-3 py-2 bg-primary text-on-primary rounded-lg text-sm hover:bg-primary/90 transition-colors">
@@ -55,7 +62,7 @@
             @foreach($slots as $slot)
                 @if(isset($slot['break']))
                     <tr>
-                        <th class="bg-surface-container border border-outline-variant p-3 text-center font-label-md text-on-surface-variant uppercase" colspan="6">{{ $slot['break'] }}</th>
+                        <th class="bg-surface-container border border-outline-variant p-3 text-center font-label-md text-on-surface-variant uppercase" colspan="{{ count($days) + 1 }}">{{ $slot['break'] }}</th>
                     </tr>
                 @else
                     <tr>

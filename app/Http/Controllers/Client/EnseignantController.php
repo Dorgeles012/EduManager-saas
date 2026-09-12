@@ -219,7 +219,27 @@ private function teacherPayload(Enseignant $t): array {
     }
     private function authorizeTenant(Enseignant $teacher): void {$user=auth()->user();abort_unless((int)$teacher->tenant_id===(int)$user->tenant_id&&(!$user->etablissement_id||(int)$teacher->etablissement_id===(int)$user->etablissement_id),403);}
     private function normaliseRelationIds(Request $request): void { $values=[]; foreach(['matiere_ids','classe_ids','serie_ids'] as $field){$items=$request->input($field,[]);$items=is_array($items)?$items:[$items];$values[$field]=collect($items)->flatMap(fn($item)=>preg_split('/\s*,\s*/',(string)$item,-1,PREG_SPLIT_NO_EMPTY))->filter(fn($id)=>ctype_digit((string)$id))->map(fn($id)=>(int)$id)->unique()->values()->all();} $request->merge($values); }
-    private function matieresFor($user) { return Matiere::query()->orderBy('nom')->get(['id','nom']); }
-    private function classesFor($user) { $query=Classe::query(); if(Schema::hasColumn('classes','tenant_id')) $query->where('tenant_id',$user->tenant_id); if($user->etablissement_id && Schema::hasColumn('classes','etablissement_id')) $query->where('etablissement_id',$user->etablissement_id); return $query->orderBy('nom')->get(['id','nom']); }
-    private function seriesFor($user) { $query=Series::query(); if(Schema::hasColumn('series','tenant_id')) $query->where('tenant_id',$user->tenant_id); if($user->etablissement_id && Schema::hasColumn('series','etablissement_id')) $query->where('etablissement_id',$user->etablissement_id); return $query->orderBy('nom_serie')->get(['id','nom_serie']); }
+    private function matieresFor($user)
+    {
+        return Matiere::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->orderBy('nom')
+            ->get(['id', 'nom']);
+    }
+    private function classesFor($user)
+    {
+        return Classe::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->orderBy('nom')
+            ->get(['id', 'nom']);
+    }
+
+    private function seriesFor($user)
+    {
+        return Series::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->orderBy('nom_serie')
+            ->get(['id', 'nom_serie']);
+    }
 }

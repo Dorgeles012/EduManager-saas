@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Personnel;
-
 use App\Http\Controllers\Controller;
 use App\Models\{AnneeAcademique, Classe, EmploiTemps, EmploiTempsSlot, Enseignant, Etablissement, Matiere, Niveau, Series};
 use App\Services\EmploiTempsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -24,7 +24,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $classes = Classe::with('niveau')
@@ -73,7 +73,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     public function edit(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $validated = $request->validate([
@@ -139,7 +139,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $data = $request->validate([
@@ -219,7 +219,7 @@ class PersonnelEmploiTempsController extends Controller
         return redirect()->route('personnel.emploi-temps.show', [
             'classe_id' => $classe->id,
             'annee_academique_id' => $anneeId,
-        ])->with('success', 'Emploi du temps '.($entries->isEmpty() ? 'réinitialisé' : 'enregistré').' avec succès.');
+        ])->with('success', 'Emploi du temps '.(empty($entries) ? 'réinitialisé' : 'enregistré').' avec succès.');
     }
 
     /**
@@ -227,7 +227,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     public function show(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $classe = Classe::with(['niveau', 'series'])
@@ -285,21 +285,30 @@ class PersonnelEmploiTempsController extends Controller
      */
     public function destroy(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $classe = Classe::where('tenant_id', $tenantId)
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->findOrFail($request->integer('classe_id'));
 
-        $anneeId = $request->integer('annee_academique_id');
+        $anneeId = $request->integer('annee_academique_id') ?: null;
 
         EmploiTemps::where('tenant_id', $tenantId)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
             ->where('classe_id', $classe->id)
             ->when($anneeId, fn ($q) => $q->where('annee_academique_id', $anneeId))
             ->delete();
 
-        return redirect()->route('personnel.emploi-temps.index')
+        $redirectParams = [];
+        if ($request->filled('selected_classe_id')) {
+            $redirectParams['classe_id'] = $request->input('selected_classe_id');
+        }
+        if ($anneeId) {
+            $redirectParams['annee_academique_id'] = $anneeId;
+        }
+
+        return redirect()->route('personnel.emploi-temps.index', $redirectParams)
             ->with('success', 'Emploi du temps supprimé avec succès.');
     }
 
@@ -308,7 +317,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     private function classScheduleData(Request $request): array
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         $classe = Classe::with(['niveau', 'series'])
@@ -347,7 +356,7 @@ class PersonnelEmploiTempsController extends Controller
      */
     private function matieresForClasse(Classe $classe, ?int $serieId): \Illuminate\Support\Collection
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         if ($serieId) {
             $serie = Series::where('tenant_id', $tenantId)->with('matieres')->find($serieId);

@@ -53,7 +53,6 @@
             <input type="text" id="searchTeacher" placeholder="Rechercher par nom, email, matricule..." class="w-full pl-9 pr-3 py-1.5 text-sm border border-outline-variant rounded-lg focus:ring-primary focus:border-primary bg-white">
         </div>
     </div>
-
     @if(($teachers ?? collect())->isEmpty())
     <div class="min-h-[160px] flex flex-col items-center justify-center text-center p-6">
         <div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-3">
@@ -74,7 +73,6 @@
                     <th class="px-3 py-2.5 font-semibold">Téléphone</th>
                     <th class="px-3 py-2.5 font-semibold min-w-[140px]">Matière(s)</th>
                     <th class="px-3 py-2.5 font-semibold min-w-[140px]">Classe(s)</th>
-                    <th class="px-3 py-2.5 font-semibold">Statut</th>
                     <th class="px-3 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
             </thead>
@@ -106,9 +104,6 @@
                     </td>
                     <td class="px-3 py-2.5 text-text-muted align-middle text-sm">
                         <span class="truncate block max-w-[160px]" title="{{ $teacher['classes'] }}">{{ $teacher['classes'] }}</span>
-                    </td>
-                    <td class="px-3 py-2.5 align-middle">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Actif</span>
                     </td>
                     <td class="px-3 py-2.5 text-right align-middle">
                         <div class="flex justify-end items-center gap-1">

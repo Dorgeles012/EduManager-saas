@@ -331,6 +331,11 @@
                 <span class="font-label-md text-label-md">Séries</span>
             </a>
 
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ request()->routeIs('personnel.niveaux.*') ? 'nav-active' : '' }}" href="{{ route('personnel.niveaux.index') }}">
+                <span class="material-symbols-outlined">leaderboard</span>
+                <span class="font-label-md text-label-md">Niveau</span>
+            </a>
+
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.classes.index' || str_starts_with($currentRoute, 'personnel.classes') ? 'nav-active' : '' }}" href="{{ route('personnel.classes.index') }}">
                 <span class="material-symbols-outlined">meeting_room</span>
                 <span class="font-label-md text-label-md">Classe</span>

@@ -14,7 +14,6 @@
             <p class="text-xs text-text-muted">Enseignant : {{ $enseignant->nom }} {{ $enseignant->prenoms }} ({{ $enseignant->matricule ?? 'Sans matricule' }})</p>
         </div>
     </div>
-    <a href="{{ route('personnel.enseignants.index') }}" class="px-4 py-2 border border-outline-variant rounded-lg text-sm hover:bg-surface-container bg-white">Retour</a>
 </div>
 
 <form id="scheduleForm" method="POST">

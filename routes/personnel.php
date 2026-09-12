@@ -12,6 +12,7 @@ use App\Http\Controllers\Personnel\PersonnelParametreController;
 use App\Http\Controllers\Personnel\PersonnelEmploiTempsController;
 use App\Http\Controllers\Personnel\PersonnelEnseignantController;
 use App\Http\Controllers\Personnel\PersonnelEnseignantEmploiTempsController;
+use App\Http\Controllers\Personnel\PersonnelNiveauController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
@@ -35,6 +36,12 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::put('/series/{series}/disciplines/{matiere}', [PersonnelSeriesController::class, 'updateDiscipline'])->name('series.disciplines.update');
         Route::delete('/series/{series}/disciplines/{matiere}', [PersonnelSeriesController::class, 'destroyDiscipline'])->name('series.disciplines.destroy');
         Route::resource('series', PersonnelSeriesController::class)->names('series');
+
+        // Niveaux
+        Route::get('/niveaux', [PersonnelNiveauController::class, 'index'])->name('niveaux.index');
+        Route::post('/niveaux', [PersonnelNiveauController::class, 'store'])->name('niveaux.store');
+        Route::put('/niveaux/{niveau}', [PersonnelNiveauController::class, 'update'])->name('niveaux.update');
+        Route::delete('/niveaux/{niveau}', [PersonnelNiveauController::class, 'destroy'])->name('niveaux.destroy');
 
         // Classes
         Route::get('/classes', [PersonnelClasseController::class, 'index'])->name('classes.index');

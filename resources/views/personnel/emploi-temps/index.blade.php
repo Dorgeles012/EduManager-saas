@@ -39,9 +39,6 @@
 <div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant overflow-hidden">
     <div class="p-6 border-b border-outline-variant flex justify-between items-center">
         <h4 class="font-headline-md text-headline-md">Emplois du temps des classes</h4>
-        <a href="{{ route('personnel.emploi-temps.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors">
-            <span class="material-symbols-outlined text-lg">add</span> Nouvel emploi du temps
-        </a>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -67,7 +64,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
+                        <div class="flex justify-end items-center gap-2">
                             @if($hasSchedule)
                             <a class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors" href="{{ route('personnel.emploi-temps.show', ['classe_id' => $classe->id, 'annee_academique_id' => $selectedYear]) }}" title="Voir">
                                 <span class="material-symbols-outlined">visibility</span>
@@ -75,6 +72,20 @@
                             <a class="p-2 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors" href="{{ route('personnel.emploi-temps.edit', ['classe_id' => $classe->id, 'annee_academique_id' => $selectedYear]) }}" title="Modifier">
                                 <span class="material-symbols-outlined">edit</span>
                             </a>
+                            <form action="{{ route('personnel.emploi-temps.destroy') }}" method="POST" class="inline delete-schedule-form">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="classe_id" value="{{ $classe->id }}">
+                                @if($selectedYear)
+                                <input type="hidden" name="annee_academique_id" value="{{ $selectedYear }}">
+                                @endif
+                                @if($selectedClass)
+                                <input type="hidden" name="selected_classe_id" value="{{ $selectedClass }}">
+                                @endif
+                                <button type="button" class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-schedule-btn" data-name="{{ $classe->nom }}" title="Supprimer">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
                             @else
                             <a class="p-2 text-secondary hover:bg-secondary-container/20 rounded-lg transition-colors" href="{{ route('personnel.emploi-temps.edit', ['classe_id' => $classe->id, 'annee_academique_id' => $selectedYear]) }}" title="Créer">
                                 <span class="material-symbols-outlined">add_circle</span>
@@ -93,3 +104,48 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.delete-schedule-btn').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                const className = this.dataset.name || 'cette classe';
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Supprimer l\'emploi du temps ?',
+                        text: `L'emploi du temps de la classe "${className}" sera définitivement supprimé.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ba1a1a',
+                        cancelButtonColor: '#64748B',
+                        confirmButtonText: 'Oui, supprimer',
+                        cancelButtonText: 'Annuler'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm(`Supprimer l'emploi du temps de la classe "${className}" ?`)) {
+                    form.submit();
+                }
+            });
+        });
+
+        @if(session('success'))
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
+            }
+        @endif
+
+        @if(session('error'))
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Erreur', text: @json(session('error')), timer: 3000, showConfirmButton: false });
+            }
+        @endif
+    });
+</script>
+@endpush

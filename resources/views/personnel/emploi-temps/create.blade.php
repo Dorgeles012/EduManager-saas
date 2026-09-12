@@ -14,7 +14,12 @@
 @endsection
 
 @section('content')
-<div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
+<div class="mb-6 flex items-center gap-3 flex-wrap">
+    <a class="inline-flex items-center justify-center w-9 h-9 text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+       href="{{ route('personnel.emploi-temps.index') }}"
+       title="Retour">
+        <span class="material-symbols-outlined text-xl">arrow_back</span>
+    </a>
     <div>
         <h2 class="font-headline-lg text-headline-lg text-primary">{{ $existing ? 'Modifier l\'emploi du temps' : 'Créer un emploi du temps' }}</h2>
         <p class="text-sm text-on-surface-variant">
@@ -23,9 +28,6 @@
             @if($anneeId) · {{ $annees->firstWhere('id', $anneeId)?->libelle ?? '' }} @endif
         </p>
     </div>
-    <a class="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-primary rounded-lg" href="{{ route('personnel.emploi-temps.index') }}">
-        <span class="material-symbols-outlined text-lg">arrow_back</span> Retour
-    </a>
 </div>
 
 @if(! $existing)
@@ -127,7 +129,9 @@
                     @endforeach
                 </tbody>
             </table>
-<div class="mt-6 flex items-center justify-between">
+        </div>
+
+        <div class="mt-6 flex items-center justify-between">
             <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 transition-colors">
                 <span class="material-symbols-outlined">save</span>
                 {{ $existing ? 'Enregistrer les modifications' : 'Créer l\'emploi du temps' }}
