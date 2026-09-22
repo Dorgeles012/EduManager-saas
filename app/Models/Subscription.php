@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Tenant;
 use App\Models\Plan;
 use App\Models\Payment;
+use App\Models\Etablissement;
 
 class Subscription extends Model
 {
@@ -236,5 +237,112 @@ class Subscription extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'subscription_id');
+    }
+
+    /**
+     * Résout l'utilisateur client associé à cet abonnement de manière robuste.
+     */
+    public function resolveClient(): ?User
+    {
+        if ($this->relationLoaded('user') && $this->user) {
+            return $this->user;
+        }
+        if ($this->relationLoaded('client') && $this->client) {
+            return $this->client;
+        }
+        if ($this->user_id) {
+            $user = $this->user ?? User::find($this->user_id);
+            if ($user) {
+                return $user;
+            }
+        }
+        if ($this->client_id) {
+            $user = $this->client ?? User::find($this->client_id);
+            if ($user) {
+                return $user;
+            }
+        }
+        if ($this->tenant_id) {
+            $user = User::where('tenant_id', $this->tenant_id)->whereRaw('LOWER(role) = ?', ['client'])->first()
+                ?? User::where('tenant_id', $this->tenant_id)->first();
+            if ($user) {
+                return $user;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Accesseur pour le nom du client avec fallbacks complets.
+     */
+    public function getClientNameAttribute(): string
+    {
+        $client = $this->resolveClient();
+        if ($client) {
+            $nomComplet = trim(($client->nom ?? '') . ' ' . ($client->prenom ?? ''));
+            if (!empty($nomComplet)) {
+                return $nomComplet;
+            }
+            if (!empty($client->name)) {
+                return $client->name;
+            }
+            if (!empty($client->email)) {
+                return $client->email;
+            }
+        }
+
+        if ($this->relationLoaded('tenant') && $this->tenant) {
+            $resp = trim(($this->tenant->nom_responsable ?? '') . ' ' . ($this->tenant->prenom_responsable ?? ''));
+            if (!empty($resp)) {
+                return $resp;
+            }
+            if (!empty($this->tenant->nom_entreprise)) {
+                return $this->tenant->nom_entreprise;
+            }
+        }
+
+        return '—';
+    }
+
+    /**
+     * Résout l'établissement associé de manière robuste.
+     */
+    public function resolveEtablissement(): ?Etablissement
+    {
+        $client = $this->resolveClient();
+        if ($client) {
+            if ($client->relationLoaded('etablissement') && $client->etablissement) {
+                return $client->etablissement;
+            }
+            if ($client->etablissement_id) {
+                $etab = $client->etablissement ?? Etablissement::find($client->etablissement_id);
+                if ($etab) {
+                    return $etab;
+                }
+            }
+            if ($client->relationLoaded('etablissements') && $client->etablissements && $client->etablissements->isNotEmpty()) {
+                return $client->etablissements->first();
+            }
+        }
+
+        if ($this->relationLoaded('tenant') && $this->tenant && $this->tenant->etablissements && $this->tenant->etablissements->isNotEmpty()) {
+            return $this->tenant->etablissements->first();
+        }
+
+        $tenantId = $this->tenant_id ?? $client?->tenant_id;
+        if ($tenantId) {
+            return Etablissement::where('tenant_id', $tenantId)->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Accesseur pour le nom de l'établissement avec fallbacks complets.
+     */
+    public function getEtablissementNameAttribute(): string
+    {
+        $etab = $this->resolveEtablissement();
+        return $etab?->nom ?? '—';
     }
 }

@@ -19,14 +19,40 @@ class PlanController extends Controller
         $subscriptionTypes = SubscriptionType::query()->orderBy('created_at', 'desc')->get();
 
         $subscriptions = Subscription::query()
-            ->with(['user', 'plan', 'payments'])
+            ->with([
+                'user.etablissement',
+                'user.etablissements',
+                'client.etablissement',
+                'client.etablissements',
+                'tenant.etablissements',
+                'plan',
+                'payments',
+            ])
             ->orderByDesc('created_at')
             ->get();
+
+        $pendingSubscriptions = $subscriptions->filter(function ($s) {
+            return $s->abonnement_status === Subscription::ABONNEMENT_PAYE
+                || $s->payments->contains(fn ($p) => in_array($p->statut ?? $p->status, ['pending', 'en_attente'], true));
+        });
+
+        $activeSubscriptions = $subscriptions->filter(function ($s) {
+            return $s->abonnement_status === Subscription::ABONNEMENT_ACTIF && ! $s->isExpired();
+        });
+
+        $expiredSubscriptions = $subscriptions->filter(function ($s) {
+            return $s->isExpired();
+        });
 
         return view('sadmin.abonnement', [
             'plans' => $plans,
             'subscriptions' => $subscriptions,
-            'activeCount' => $subscriptions->count(),
+            'pendingSubscriptions' => $pendingSubscriptions,
+            'activeSubscriptions' => $activeSubscriptions,
+            'expiredSubscriptions' => $expiredSubscriptions,
+            'pendingCount' => $pendingSubscriptions->count(),
+            'activeCount' => $activeSubscriptions->count(),
+            'plansCount' => $plans->count(),
             'lastUpdatedAt' => $subscriptions->max('updated_at'),
             'filterType' => null,
             'subscriptionTypes' => $subscriptionTypes,

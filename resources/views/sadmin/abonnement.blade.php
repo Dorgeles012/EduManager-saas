@@ -202,9 +202,9 @@
             <tbody class="divide-y divide-surface-subtle">
                 @forelse($pendingSubscriptions ?? [] as $subscription)
                     @php
-                        $client = $subscription->user;
-                        $clientName = $client ? trim(($client->nom ?? '') . ' ' . ($client->prenom ?? '')) : '—';
-                        $etablissement = $client?->etablissement?->nom ?? '—';
+                        $client = $subscription->resolveClient();
+                        $clientName = $subscription->client_name;
+                        $etablissementNom = $subscription->etablissement_name;
                         $offre = $subscription->plan?->nom ?? $subscription->name ?? '—';
                         $payment = $subscription->payments->first();
                         $montant = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
@@ -214,12 +214,17 @@
                     <tr class="hover:bg-amber-50/30 transition-colors bg-amber-50/10">
                         <td class="px-6 py-4">
                             <div class="font-label-md text-label-md text-on-surface font-semibold">{{ $clientName }}</div>
-                            <div class="text-xs text-text-muted">{{ $client?->email }}</div>
-                            @if($client?->telephone)
-                                <div class="text-xs text-text-muted">{{ $client->telephone }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
+                            @if($etablissementNom !== '—')
+                                <div class="flex items-center gap-1.5 text-on-surface font-medium">
+                                    <span class="material-symbols-outlined text-[18px] text-primary">school</span>
+                                    <span>{{ $etablissementNom }}</span>
+                                </div>
+                            @else
+                                <span class="text-text-muted">—</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $etablissement }}</td>
                         <td class="px-6 py-4">
                             <span class="font-semibold text-primary text-body-sm">{{ $offre }}</span>
                             <div class="text-xs text-text-muted">{{ $subscription->type ?? 'Mensuel' }}</div>
@@ -306,9 +311,9 @@
             <tbody class="divide-y divide-surface-subtle">
                 @forelse($activeSubscriptions ?? [] as $subscription)
                     @php
-                        $client = $subscription->user;
-                        $clientName = $client ? trim(($client->nom ?? '') . ' ' . ($client->prenom ?? '')) : '—';
-                        $etablissement = $client?->etablissement?->nom ?? '—';
+                        $client = $subscription->resolveClient();
+                        $clientName = $subscription->client_name;
+                        $etablissementNom = $subscription->etablissement_name;
                         $offre = $subscription->plan?->nom ?? $subscription->name ?? '—';
                         $payment = $subscription->payments->first();
                         $montant = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
@@ -319,10 +324,18 @@
                     @endphp
                     <tr class="hover:bg-surface-dim transition-colors">
                         <td class="px-6 py-4">
-                            <span class="font-label-md text-label-md text-on-surface font-semibold">{{ $clientName }}</span>
-                            <div class="text-xs text-text-muted">{{ $client?->email }}</div>
+                            <div class="font-label-md text-label-md text-on-surface font-semibold">{{ $clientName }}</div>
                         </td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $etablissement }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant font-medium">
+                            @if($etablissementNom !== '—')
+                                <div class="flex items-center gap-1.5 text-on-surface font-medium">
+                                    <span class="material-symbols-outlined text-[18px] text-primary">school</span>
+                                    <span>{{ $etablissementNom }}</span>
+                                </div>
+                            @else
+                                <span class="text-text-muted">—</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-body-sm text-on-surface font-medium">{{ $offre }}</td>
                         <td class="px-6 py-4 text-right font-body-md font-semibold">{{ number_format((int) $montant, 0, ',', ' ') }} FCFA</td>
                         <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ optional($subscription->date_debut ?? $subscription->created_at)->format('d/m/Y') }}</td>

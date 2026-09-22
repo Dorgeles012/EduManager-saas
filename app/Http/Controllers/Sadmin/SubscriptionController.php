@@ -19,7 +19,15 @@ class SubscriptionController extends Controller
         $statusFilter = $request->query('status', 'all');
 
         $subscriptionsQuery = Subscription::query()
-            ->with(['user.etablissement', 'plan', 'payments'])
+            ->with([
+                'user.etablissement',
+                'user.etablissements',
+                'client.etablissement',
+                'client.etablissements',
+                'tenant.etablissements',
+                'plan',
+                'payments',
+            ])
             ->when($type, function ($q) use ($type) {
                 $q->where('type', $type);
             })
