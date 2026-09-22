@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Client;
+namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
 use App\Models\AnneeAcademique;
-use App\Models\Bulletin;
 use App\Models\Classe;
 use App\Models\Eleve;
 use App\Models\Enseignant;
 use App\Models\Matiere;
 use App\Models\Note;
-use App\Models\User;
 use App\Services\BulletinService;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -19,10 +17,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
-class NoteController extends Controller
+class PersonnelNoteController extends Controller
 {
     /**
-     * Tableau de bord de validation finale et publication des notes (Client / Direction).
+     * Tableau de bord de vérification et validation des notes soumises par les enseignants.
      */
     public function index(Request $request): View
     {
@@ -31,8 +29,9 @@ class NoteController extends Controller
         $selectedClass = $request->integer('classe_id');
         $selectedSubject = $request->integer('matiere_id');
         $selectedPeriode = $request->input('periode');
-        $selectedStatus = $request->input('statut', Note::STATUT_APPROUVE_PERSONNEL);
+        $selectedStatus = $request->input('statut', Note::STATUT_SOUMIS);
 
+        // Groupements par lots de soumission
         $batchesQuery = Note::query()
             ->select(
                 'notes.classe_id',
@@ -43,7 +42,6 @@ class NoteController extends Controller
                 'notes.statut',
                 DB::raw('COUNT(notes.id) as total_notes'),
                 DB::raw('AVG(notes.note) as moyenne_classe'),
-                DB::raw('MAX(notes.approuve_personnel_le) as derniere_approbation'),
                 DB::raw('MAX(notes.soumis_le) as derniere_soumission'),
                 DB::raw('MAX(notes.rejet_motif) as dernier_motif')
             )
@@ -73,20 +71,21 @@ class NoteController extends Controller
             $batchesQuery->where('notes.statut', $selectedStatus);
         }
 
-        $batches = $batchesQuery->orderByDesc('derniere_approbation')->paginate(15)->withQueryString();
+        $batches = $batchesQuery->orderByDesc('derniere_soumission')->paginate(15)->withQueryString();
 
+        // Charger les relations associées
         $classes = Classe::where('tenant_id', $tenantId)->orderBy('nom')->get();
         $subjects = Matiere::where('tenant_id', $tenantId)->orderBy('nom')->get();
         $enseignants = Enseignant::where('tenant_id', $tenantId)->orderBy('nom')->get();
 
         // Statistiques
         $totalNotes = Note::where('tenant_id', $tenantId)->count();
-        $pendingClientCount = Note::where('tenant_id', $tenantId)->where('statut', Note::STATUT_APPROUVE_PERSONNEL)->count();
         $pendingPersonnelCount = Note::where('tenant_id', $tenantId)->where('statut', Note::STATUT_SOUMIS)->count();
+        $approvedPersonnelCount = Note::where('tenant_id', $tenantId)->where('statut', Note::STATUT_APPROUVE_PERSONNEL)->count();
+        $rejectedPersonnelCount = Note::where('tenant_id', $tenantId)->where('statut', Note::STATUT_REJETE_PERSONNEL)->count();
         $publishedCount = Note::where('tenant_id', $tenantId)->where('statut', Note::STATUT_PUBLIE)->count();
-        $rejectedCount = Note::where('tenant_id', $tenantId)->whereIn('statut', [Note::STATUT_REJETE_CLIENT, Note::STATUT_REJETE_PERSONNEL])->count();
 
-        return view('client.note', [
+        return view('personnel.notes.index', [
             'batches' => $batches,
             'classes' => $classes,
             'subjects' => $subjects,
@@ -96,15 +95,15 @@ class NoteController extends Controller
             'selectedPeriode' => $selectedPeriode,
             'selectedStatus' => $selectedStatus,
             'totalNotes' => $totalNotes,
-            'pendingClientCount' => $pendingClientCount,
             'pendingPersonnelCount' => $pendingPersonnelCount,
+            'approvedPersonnelCount' => $approvedPersonnelCount,
+            'rejectedPersonnelCount' => $rejectedPersonnelCount,
             'publishedCount' => $publishedCount,
-            'rejectedCount' => $rejectedCount,
         ]);
     }
 
     /**
-     * Revue détaillée pour validation finale
+     * Revue détaillée d'un lot de notes pour vérification.
      */
     public function review(Request $request, BulletinService $bulletinService): View
     {
@@ -127,6 +126,7 @@ class NoteController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Grouper par élève et calculer la moyenne
         $eleves = Eleve::where('tenant_id', $tenantId)->where('classe_id', $classeId)->orderBy('nom')->get();
         $notesGrouped = $notes->groupBy('eleve_id');
 
@@ -153,7 +153,7 @@ class NoteController extends Controller
 
         $moyenneGeneraleClasse = $totalClasseNotesCount > 0 ? round($totalClassePoints / $totalClasseNotesCount, 2) : null;
 
-        return view('client.notes-review', [
+        return view('personnel.notes.review', [
             'classe' => $classe,
             'matiere' => $matiere,
             'periode' => $periode,
@@ -165,79 +165,41 @@ class NoteController extends Controller
     }
 
     /**
-     * Valide et publie les notes, calcule les moyennes et synchronise les bulletins scolaires.
+     * Approuve un lot de notes vérifiées (passe à l'étape client).
      */
-    public function publier(Request $request, BulletinService $bulletinService, NotificationService $notifications)
+    public function approuver(Request $request)
     {
         $tenantId = auth()->user()->tenant_id;
 
         $validated = $request->validate([
             'classe_id' => ['required', 'integer'],
-            'matiere_id' => ['nullable', 'integer'],
+            'matiere_id' => ['required', 'integer'],
             'periode' => ['required', 'string'],
-            'annee_academique_id' => ['nullable', 'integer'],
             'note_ids' => ['nullable', 'array'],
         ]);
 
         $query = Note::where('tenant_id', $tenantId)
             ->where('classe_id', $validated['classe_id'])
+            ->where('matiere_id', $validated['matiere_id'])
             ->where('periode', $validated['periode'])
-            ->whereIn('statut', [Note::STATUT_APPROUVE_PERSONNEL, Note::STATUT_SOUMIS]);
-
-        if (!empty($validated['matiere_id'])) {
-            $query->where('matiere_id', $validated['matiere_id']);
-        }
+            ->where('statut', Note::STATUT_SOUMIS);
 
         if (!empty($validated['note_ids'])) {
             $query->whereIn('id', $validated['note_ids']);
         }
 
         $count = $query->update([
-            'statut' => Note::STATUT_PUBLIE,
-            'publie_le' => Carbon::now(),
-            'publie_par_id' => auth()->id(),
+            'statut' => Note::STATUT_APPROUVE_PERSONNEL,
+            'approuve_personnel_le' => Carbon::now(),
+            'approuve_personnel_id' => auth()->id(),
             'updated_at' => Carbon::now(),
         ]);
 
-        // Déterminer l'année académique
-        $anneeId = $validated['annee_academique_id']
-            ?? Note::where('tenant_id', $tenantId)->where('classe_id', $validated['classe_id'])->latest('id')->value('annee_academique_id')
-            ?? AnneeAcademique::where('tenant_id', $tenantId)->latest('id')->value('id');
-
-        // Synchroniser et publier automatiquement les bulletins avec les moyennes calculées
-        $bulletinsCount = 0;
-        if ($anneeId) {
-            $bulletinsCount = $bulletinService->synchroniserEtPublierBulletins(
-                $tenantId,
-                $validated['classe_id'],
-                $validated['periode'],
-                $anneeId,
-                auth()->id()
-            );
-        }
-
-        // Notifier les élèves et les parents
-        $eleves = Eleve::where('tenant_id', $tenantId)->where('classe_id', $validated['classe_id'])->get();
-        $parentUserIds = $eleves->pluck('parent_id')->filter();
-        $parentUsers = User::where('tenant_id', $tenantId)->whereIn('id', $parentUserIds)->get();
-        $eleveUsers = User::where('tenant_id', $tenantId)->whereIn('eleve_id', $eleves->pluck('id'))->get();
-
-        $allRecipients = $parentUsers->concat($eleveUsers)->unique('id');
-        if ($allRecipients->isNotEmpty()) {
-            $notifications->sendToUsers(
-                auth()->user(),
-                $allRecipients,
-                'Notes & Bulletins publiés',
-                "Les notes et moyennes pour la période {$validated['periode']} ont été validées et sont désormais consultables.",
-                'bulletin'
-            );
-        }
-
-        return redirect()->route('client.notes.index')->with('success', "{$count} note(s) validée(s) et publiée(s) avec succès ! {$bulletinsCount} bulletin(s) scolaire(s) mis à jour et publiés.");
+        return redirect()->route('personnel.notes.index')->with('success', "{$count} note(s) approuvée(s) par le Personnel avec succès. Le lot est transmis à la Direction / Client pour validation finale.");
     }
 
     /**
-     * Rejette les notes avec motif obligatoire.
+     * Rejette un lot de notes avec un motif obligatoire.
      */
     public function rejeter(Request $request, NotificationService $notifications)
     {
@@ -255,7 +217,7 @@ class NoteController extends Controller
             ->where('classe_id', $validated['classe_id'])
             ->where('matiere_id', $validated['matiere_id'])
             ->where('periode', $validated['periode'])
-            ->whereIn('statut', [Note::STATUT_APPROUVE_PERSONNEL, Note::STATUT_SOUMIS]);
+            ->whereIn('statut', [Note::STATUT_SOUMIS, Note::STATUT_APPROUVE_PERSONNEL]);
 
         if (!empty($validated['note_ids'])) {
             $query->whereIn('id', $validated['note_ids']);
@@ -263,12 +225,13 @@ class NoteController extends Controller
 
         $notesToReject = $query->get();
         $count = $query->update([
-            'statut' => Note::STATUT_REJETE_CLIENT,
+            'statut' => Note::STATUT_REJETE_PERSONNEL,
             'rejet_motif' => $validated['rejet_motif'],
-            'rejet_par' => 'client',
+            'rejet_par' => 'personnel',
             'updated_at' => Carbon::now(),
         ]);
 
+        // Notifier l'enseignant si rattaché
         $enseignantIds = $notesToReject->pluck('enseignant_id')->unique()->filter();
         $enseignants = Enseignant::with('user')->whereIn('id', $enseignantIds)->get();
         $usersToNotify = $enseignants->pluck('user')->filter();
@@ -277,28 +240,28 @@ class NoteController extends Controller
             $notifications->sendToUsers(
                 auth()->user(),
                 $usersToNotify,
-                'Notes rejetées par la Direction',
-                "Vos notes pour la période {$validated['periode']} ont été rejetées par la Direction. Motif : {$validated['rejet_motif']}",
+                'Notes rejetées pour correction',
+                "Vos notes pour la période {$validated['periode']} ont été rejetées par le personnel. Motif : {$validated['rejet_motif']}",
                 'notes'
             );
         }
 
-        return redirect()->route('client.notes.index')->with('warning', "{$count} note(s) rejetée(s). L'enseignant a été notifié pour correction.");
+        return redirect()->route('personnel.notes.index')->with('warning', "{$count} note(s) rejetée(s). L'enseignant a été notifié pour correction.");
     }
 
     /**
-     * Valide et publie en une seule action toutes les notes actuellement en attente de validation (statuts approuve_personnel ou soumis).
+     * Valide (approuve) en une seule action toutes les notes actuellement en attente de validation (statut = soumis).
      */
-    public function validerTout(Request $request, BulletinService $bulletinService, NotificationService $notifications)
+    public function validerTout(Request $request, BulletinService $bulletinService)
     {
         $user = Auth::user();
         $tenantId = (int) $user->tenant_id;
         $etablissementId = $user->etablissement_id ? (int) $user->etablissement_id : null;
 
-        DB::transaction(function () use ($tenantId, $etablissementId, $user, $bulletinService, $notifications) {
+        DB::transaction(function () use ($tenantId, $etablissementId, $user, $bulletinService) {
             $query = Note::query()
                 ->where('tenant_id', $tenantId)
-                ->whereIn('statut', [Note::STATUT_APPROUVE_PERSONNEL, Note::STATUT_SOUMIS]);
+                ->where('statut', Note::STATUT_SOUMIS);
 
             if ($etablissementId) {
                 $query->where(function ($q) use ($etablissementId) {
@@ -318,13 +281,13 @@ class NoteController extends Controller
 
             // Mettre à jour automatiquement le statut des notes validées
             Note::whereIn('id', $noteIds)->update([
-                'statut' => Note::STATUT_PUBLIE,
-                'publie_le' => $now,
-                'publie_par_id' => $user->id,
+                'statut' => Note::STATUT_APPROUVE_PERSONNEL,
+                'approuve_personnel_le' => $now,
+                'approuve_personnel_id' => $user->id,
                 'updated_at' => $now,
             ]);
 
-            // Après validation, recalculer les moyennes concernées et synchroniser les bulletins
+            // Après validation, recalculer les moyennes concernées
             $groups = $notes->map(function (Note $n) use ($tenantId) {
                 $anneeId = $n->annee_academique_id
                     ?? AnneeAcademique::where('tenant_id', $tenantId)->latest('id')->value('id');
@@ -335,43 +298,47 @@ class NoteController extends Controller
                 ];
             })->unique(fn ($item) => $item['classe_id'].'-'.$item['periode'].'-'.$item['annee_academique_id']);
 
-            $affectedClasseIds = [];
-
             foreach ($groups as $group) {
-                if (!empty($group['classe_id']) && !empty($group['periode']) && !empty($group['annee_academique_id'])) {
-                    $affectedClasseIds[] = $group['classe_id'];
-                    $bulletinService->synchroniserEtPublierBulletins(
-                        $tenantId,
-                        $group['classe_id'],
-                        $group['periode'],
-                        $group['annee_academique_id'],
-                        $user->id
-                    );
-                }
-            }
+                if (!empty($group['classe_id']) && !empty($group['periode'])) {
+                    $bulletins = Bulletin::where('tenant_id', $tenantId)
+                        ->where('classe_id', $group['classe_id'])
+                        ->where('trimestre', $group['periode'])
+                        ->get();
 
-            // Notification des élèves et parents
-            $affectedClasseIds = array_unique($affectedClasseIds);
-            if (!empty($affectedClasseIds)) {
-                $eleves = Eleve::where('tenant_id', $tenantId)->whereIn('classe_id', $affectedClasseIds)->get();
-                $parentUserIds = $eleves->pluck('parent_id')->filter();
-                $parentUsers = User::where('tenant_id', $tenantId)->whereIn('id', $parentUserIds)->get();
-                $eleveUsers = User::where('tenant_id', $tenantId)->whereIn('eleve_id', $eleves->pluck('id'))->get();
+                    if ($bulletins->isNotEmpty()) {
+                        $rangs = $bulletinService->calculerRangsClasse(
+                            $group['classe_id'],
+                            $group['periode'],
+                            $group['annee_academique_id'],
+                            null
+                        );
 
-                $allRecipients = $parentUsers->concat($eleveUsers)->unique('id');
-                if ($allRecipients->isNotEmpty()) {
-                    $notifications->sendToUsers(
-                        $user,
-                        $allRecipients,
-                        'Notes & Bulletins validés',
-                        'Toutes les notes en attente ont été validées et publiées avec succès.',
-                        'bulletin'
-                    );
+                        foreach ($bulletins as $bulletin) {
+                            $bilan = $bulletinService->calculerBilanEleve(
+                                $bulletin->eleve_id,
+                                $group['periode'],
+                                $group['annee_academique_id'],
+                                null
+                            );
+
+                            if ($bilan['moyenne_generale'] !== null) {
+                                $bulletin->update([
+                                    'moyenne_generale' => $bilan['moyenne_generale'],
+                                    'total_coefficients' => $bilan['total_coefficients'],
+                                    'total_points' => $bilan['total_points'],
+                                    'rang' => $rangs[$bulletin->eleve_id] ?? $bulletin->rang,
+                                    'mention' => $bilan['mention'],
+                                    'decision' => $bilan['decision'],
+                                    'observation_conseil' => $bilan['observation_conseil'],
+                                ]);
+                            }
+                        }
+                    }
                 }
             }
         });
 
-        return redirect()->route('client.notes.index')
+        return redirect()->route('personnel.notes.index')
             ->with('success', 'Toutes les notes en attente ont été validées avec succès.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Bulletin extends Model
 {
     use HasFactory;
+
+    public const STATUT_BROUILLON = 'brouillon';
+    public const STATUT_EN_ATTENTE = 'en_attente';
+    public const STATUT_PUBLIE = 'publie';
+
+    public const STATUTS = [
+        self::STATUT_BROUILLON => 'Brouillon',
+        self::STATUT_EN_ATTENTE => 'En attente de publication',
+        self::STATUT_PUBLIE => 'Publié',
+    ];
 
     protected $table = 'bulletins';
 
@@ -31,6 +42,9 @@ class Bulletin extends Model
         'resultat_classe',
         'decision',
         'observation_conseil',
+        'statut',
+        'publie_le',
+        'publie_par_id',
         'date',
 
         'signature_professeur_principal',
@@ -51,9 +65,9 @@ class Bulletin extends Model
         'total_coefficients' => 'float',
         'total_points' => 'float',
         'date' => 'date',
+        'publie_le' => 'datetime',
+        'publie_par_id' => 'integer',
 
-        // Certains champs peuvent être stockés en JSON/array côté BD.
-        // On les caste pour éviter "Array to string conversion" lors de la génération PDF.
         'distinctions' => 'array',
         'decision' => 'string',
         'observation_conseil' => 'string',
@@ -70,8 +84,28 @@ class Bulletin extends Model
         return $this->belongsTo(Eleve::class, 'eleve_id');
     }
 
-    public function classe(): BelongsTo { return $this->belongsTo(Classe::class); }
-    public function anneeAcademique(): BelongsTo { return $this->belongsTo(AnneeAcademique::class); }
-    public function etablissement(): BelongsTo { return $this->belongsTo(Etablissement::class); }
-}
+    public function classe(): BelongsTo
+    {
+        return $this->belongsTo(Classe::class, 'classe_id');
+    }
 
+    public function anneeAcademique(): BelongsTo
+    {
+        return $this->belongsTo(AnneeAcademique::class, 'annee_academique_id');
+    }
+
+    public function etablissement(): BelongsTo
+    {
+        return $this->belongsTo(Etablissement::class, 'etablissement_id');
+    }
+
+    public function scopePublie(Builder $query): Builder
+    {
+        return $query->where('statut', self::STATUT_PUBLIE);
+    }
+
+    public function isPublie(): bool
+    {
+        return $this->statut === self::STATUT_PUBLIE;
+    }
+}

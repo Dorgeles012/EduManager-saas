@@ -16,11 +16,13 @@ class EleveBulletinsController extends EleveController
 
         $yearId = $request->integer('annee_academique_id');
 
-        $bulletins = Bulletin::with(['classe', 'anneeAcademique', 'etablissement'])
+        // Uniquement les bulletins publiés
+        $bulletins = Bulletin::with(['classe', 'anneeAcademique', 'etablissement', 'disciplines'])
             ->where('tenant_id', $user->tenant_id)
             ->where('eleve_id', $eleve->id)
+            ->where('statut', Bulletin::STATUT_PUBLIE)
             ->when($yearId, fn ($q) => $q->where('annee_academique_id', $yearId))
-            ->latest()
+            ->latest('id')
             ->get();
 
         $years = AnneeAcademique::where('tenant_id', $user->tenant_id)
@@ -42,9 +44,10 @@ class EleveBulletinsController extends EleveController
 
         abort_unless(
             (int) $bulletin->tenant_id === (int) $user->tenant_id
-            && (int) $bulletin->eleve_id === (int) $eleve->id,
+            && (int) $bulletin->eleve_id === (int) $eleve->id
+            && $bulletin->statut === Bulletin::STATUT_PUBLIE,
             403,
-            'Bulletin introuvable.'
+            'Bulletin non disponible ou non publié.'
         );
 
         $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'etablissement', 'disciplines']);
@@ -67,9 +70,10 @@ class EleveBulletinsController extends EleveController
 
         abort_unless(
             (int) $bulletin->tenant_id === (int) $user->tenant_id
-            && (int) $bulletin->eleve_id === (int) $eleve->id,
+            && (int) $bulletin->eleve_id === (int) $eleve->id
+            && $bulletin->statut === Bulletin::STATUT_PUBLIE,
             403,
-            'Bulletin introuvable.'
+            'Bulletin non disponible ou non publié.'
         );
 
         $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'etablissement', 'disciplines']);
@@ -90,9 +94,10 @@ class EleveBulletinsController extends EleveController
 
         abort_unless(
             (int) $bulletin->tenant_id === (int) $user->tenant_id
-            && (int) $bulletin->eleve_id === (int) $eleve->id,
+            && (int) $bulletin->eleve_id === (int) $eleve->id
+            && $bulletin->statut === Bulletin::STATUT_PUBLIE,
             403,
-            'Bulletin introuvable.'
+            'Bulletin non disponible ou non publié.'
         );
 
         $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'etablissement', 'disciplines']);

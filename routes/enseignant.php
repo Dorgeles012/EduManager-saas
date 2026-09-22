@@ -22,12 +22,14 @@ Route::middleware(['auth', 'status', 'role:enseignant', 'subscription.active'])
         // Année académique (lecture seule)
         Route::get('/annee-academique', [EnseignantAnneeAcademiqueController::class, 'index'])->name('annee-academique.index');
 
-// Notes
+        // Notes
         Route::prefix('notes')->name('notes.')->group(function () {
             Route::get('/', [EnseignantNoteController::class, 'index'])->name('index');
             Route::get('/data', [EnseignantNoteController::class, 'data'])->name('data');
             Route::get('/{note}/edit', [EnseignantNoteController::class, 'edit'])->name('edit');
             Route::post('/', [EnseignantNoteController::class, 'store'])->name('store');
+            Route::post('/bulk', [EnseignantNoteController::class, 'bulkStore'])->name('bulk-store');
+            Route::post('/soumettre', [EnseignantNoteController::class, 'soumettre'])->name('soumettre');
             Route::put('/{note}', [EnseignantNoteController::class, 'update'])->name('update');
             Route::delete('/{note}', [EnseignantNoteController::class, 'destroy'])->name('destroy');
         });
@@ -60,4 +62,3 @@ Route::middleware(['auth', 'status', 'role:enseignant', 'subscription.active'])
         Route::put('/parametres/password', [EnseignantParametreController::class, 'updatePassword'])->name('parametres.password');
         Route::put('/parametres/photo', [EnseignantParametreController::class, 'updatePhoto'])->name('parametres.photo');
     });
-

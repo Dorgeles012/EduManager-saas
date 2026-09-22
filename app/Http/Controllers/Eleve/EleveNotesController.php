@@ -3,25 +3,20 @@
 namespace App\Http\Controllers\Eleve;
 
 use App\Models\AnneeAcademique;
+use App\Models\Note;
 use App\Services\BulletinService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EleveNotesController extends EleveController
 {
-    /**
-     * Périodes standard de l'établissement.
-     */
     public const PERIODES = [
-        'Trimestre 1',
-        'Trimestre 2',
-        'Trimestre 3',
-        'Semestre 1',
-        'Semestre 2',
-        'Annuel',
+        't1' => '1er Trimestre',
+        't2' => '2ème Trimestre',
+        't3' => '3ème Trimestre',
     ];
 
-    public function index(Request $request): View
+    public function index(Request $request, BulletinService $bulletinService): View
     {
         $eleve = $this->currentEleve();
         $user = auth()->user();
@@ -30,67 +25,70 @@ class EleveNotesController extends EleveController
         $periode = $request->input('periode');
         $matiereId = $request->integer('matiere_id');
 
-        $notesQuery = $eleve->notes()->with(['matiere', 'classe', 'anneeAcademique']);
+        // Uniquement les notes publiées !
+        $notesQuery = $eleve->notes()
+            ->with(['matiere', 'classe', 'anneeAcademique', 'enseignant'])
+            ->where('statut', Note::STATUT_PUBLIE);
 
-        // Filtre par année académique
         if ($anneeId) {
             $notesQuery->where('annee_academique_id', $anneeId);
         }
 
-        // Filtre par période
         if ($periode) {
             $notesQuery->where('periode', $periode);
         }
 
-        // Filtre par matière
         if ($matiereId) {
             $notesQuery->where('matiere_id', $matiereId);
         }
 
-        $notes = $notesQuery->latest()->get();
+        $notes = $notesQuery->latest('id')->get();
 
-        // Appréciation recalculée (source unique de vérité)
-        $notes->each(function ($note) {
+        // Calcul des appréciations
+        $notes->each(function (Note $note) {
             $note->appreciation = BulletinService::noteAppreciation((float) $note->note);
-        });
-
-        // Enseignant via la matière (première affiliation)
-        $notes->each(function ($note) {
-            $note->enseignant_label = $note->matiere?->enseignants()->first()
-                ? trim(($note->matiere->enseignants()->first()->prenoms ?? '').' '.$note->matiere->enseignants()->first()->nom)
-                : null;
+            $note->enseignant_label = $note->enseignant
+                ? trim(($note->enseignant->prenoms ?? '').' '.$note->enseignant->nom)
+                : ($note->matiere?->enseignants()->first() ? trim(($note->matiere->enseignants()->first()->prenoms ?? '').' '.$note->matiere->enseignants()->first()->nom) : null);
         });
 
         $years = AnneeAcademique::where('tenant_id', $user->tenant_id)
             ->orderByDesc('date_debut')
             ->get(['id', 'libelle', 'date_debut', 'date_fin']);
 
-        // Périodes disponibles dans les notes de l'élève (pour l'historique réel)
+        // Périodes disponibles dans les notes publiées de l'élève
         $availablePeriodes = $eleve->notes()
+            ->where('statut', Note::STATUT_PUBLIE)
             ->whereNotNull('periode')
             ->distinct('periode')
             ->pluck('periode')
             ->filter()
             ->values();
 
-        // Périodes pour le filtre : standard + celles présentes en base
-        $periodes = collect(self::PERIODES)
-            ->merge($availablePeriodes)
-            ->unique()
+        $matieres = $eleve->notes()
+            ->where('statut', Note::STATUT_PUBLIE)
+            ->with('matiere')
+            ->get()
+            ->pluck('matiere')
+            ->unique('id')
             ->values();
 
-        // Matières disponibles pour cet élève
-        $matieres = $eleve->notes()->with('matiere')->get()->pluck('matiere')->unique('id')->values();
+        // Calcul du bilan de l'élève pour la période sélectionnée
+        $bilanPeriode = null;
+        if ($periode) {
+            $bilanPeriode = $bulletinService->calculerBilanEleve($eleve, $periode, $anneeId, Note::STATUT_PUBLIE);
+        }
 
         return view('eleve.notes', [
             'eleve' => $eleve,
             'notes' => $notes,
             'years' => $years,
-            'periodes' => $periodes,
+            'periodes' => $availablePeriodes->isNotEmpty() ? $availablePeriodes : collect(['t1', 't2', 't3']),
             'matieres' => $matieres,
             'selectedAnnee' => $anneeId,
             'selectedPeriode' => $periode,
-'selectedMatiere' => $matiereId,
+            'selectedMatiere' => $matiereId,
+            'bilanPeriode' => $bilanPeriode,
         ]);
     }
 }

@@ -365,7 +365,13 @@
                 @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
             </a>
             
-<a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.note' || str_starts_with($currentRoute, 'client.notes') ? 'nav-active' : '' }}" href="{{ route('client.notes.index') }}">
+                <span class="material-symbols-outlined">rule</span>
+                <span class="font-label-md text-label-md">Validation Notes</span>
+                @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif
+            </a>
+            
+            <a class="flex items-center gap-3 px-6 py-3 {{ $isLocked ? 'text-outline opacity-50 cursor-not-allowed pointer-events-none' : 'text-on-surface-variant hover:bg-surface-container' }} transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
                 <span class="material-symbols-outlined">description</span>
                 <span class="font-label-md text-label-md">Bulletin</span>
                 @if($isLocked)<span class="material-symbols-outlined ml-auto text-[16px]">lock</span>@endif

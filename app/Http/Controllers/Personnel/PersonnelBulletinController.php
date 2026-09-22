@@ -312,108 +312,12 @@ class PersonnelBulletinController extends Controller
 
         $generatedFromNotes = false;
         if (!$bulletin && empty($disciplinesFromBulletin->all()) && !empty($data['trimestre'])) {
-            $classeId = $eleve->classe_id;
-
-            $matieres = $eleve->serie
-                ? $eleve->serie->matieres()->where('matieres.tenant_id', $tenantId)->orderBy('matieres.nom')->get()
-                : collect();
-
-            $notes = DB::table('notes')
-                ->where('tenant_id', $tenantId)
-                ->where('eleve_id', $eleve->id)
-                ->where('classe_id', $classeId)
-                ->where('periode', $data['trimestre'])
-                ->get();
-
-            $notesByMatiere = $notes->keyBy('matiere_id');
-
-            $disciplinesRows = [];
-            $totalCoef = 0.0;
-            $totalPoints = 0.0;
-
-            foreach ($matieres as $matiere) {
-                $noteRow = $notesByMatiere->get($matiere->id);
-                $noteValue = $noteRow?->note;
-
-                $coef = (float) $matiere->pivot->coefficient;
-                $moyenne = $noteValue !== null ? (float) $noteValue : null;
-
-                $mc = null;
-                if ($moyenne !== null && $coef > 0) {
-                    $mc = $moyenne * $coef;
-                    $totalCoef += $coef;
-                    $totalPoints += $mc;
-                }
-
-                $disciplinesRows[] = [
-                    'matiere_id' => $matiere->id,
-                    'discipline' => $matiere->nom,
-                    'moyenne' => $moyenne,
-                    'coefficient' => $coef,
-                    'moyenne_coefficient' => $mc !== null ? round($mc, 2) : null,
-                    'rang' => 0,
-                    'mention' => $bulletinService->evaluation($moyenne)['mention'],
-                    'professeur' => null,
-                    'signature' => null,
-                ];
-            }
-
-            $disciplinesFromBulletin = collect($disciplinesRows);
+            $bilan = $bulletinService->calculerBilanEleve($eleve, $data['trimestre'], $data['annee_academique_id'] ?? null, null);
+            $disciplinesFromBulletin = collect($bilan['disciplines']);
+            $moyenneGeneraleFromGenerated = $bilan['moyenne_generale'];
+            $rangs = $bulletinService->calculerRangsClasse($eleve->classe_id, $data['trimestre'], $data['annee_academique_id'] ?? null, null);
+            $rang = $rangs[$eleve->id] ?? null;
             $generatedFromNotes = true;
-        }
-
-        $moyenneGeneraleFromGenerated = null;
-        if (!$bulletin && $generatedFromNotes) {
-            $totalCoef = 0.0;
-            $totalPoints = 0.0;
-            foreach ($disciplinesFromBulletin as $d) {
-                $coef = isset($d['coefficient']) ? (float) $d['coefficient'] : 0.0;
-                $moyenne = isset($d['moyenne']) && $d['moyenne'] !== null ? (float) $d['moyenne'] : null;
-                if ($moyenne !== null && $coef > 0) {
-                    $totalCoef += $coef;
-                    $totalPoints += $moyenne * $coef;
-                }
-            }
-            $moyenneGeneraleFromGenerated = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
-
-            $rang = null;
-            if ($moyenneGeneraleFromGenerated !== null) {
-                $classeId = $eleve->classe_id;
-                $notesAll = DB::table('notes')
-                    ->where('tenant_id', $tenantId)
-                    ->where('classe_id', $classeId)
-                    ->whereIn('eleve_id', Eleve::query()
-                        ->where('tenant_id', $tenantId)
-                        ->where('classe_id', $classeId)
-                        ->where('id_serie', $eleve->id_serie)
-                        ->select('id'))
-                    ->where('periode', $data['trimestre'])
-                    ->get()
-                    ->groupBy('eleve_id');
-
-                $coefByMatiere = $matieres->mapWithKeys(fn ($m) => [(int) $m->id => (float) $m->pivot->coefficient]);
-
-                $moyennes = [];
-                foreach ($notesAll as $eleveId => $rows) {
-                    $tCoef = 0.0;
-                    $tPoints = 0.0;
-                    foreach ($rows as $r) {
-                        $coef = $coefByMatiere->get((int)$r->matiere_id, 1.0);
-                        $note = $r->note !== null ? (float)$r->note : null;
-                        if ($note !== null && $coef > 0) {
-                            $tCoef += $coef;
-                            $tPoints += $note * $coef;
-                        }
-                    }
-                    $moyennes[(int)$eleveId] = $tCoef > 0 ? ($tPoints / $tCoef) : null;
-                }
-
-                $sorted = collect($moyennes)->filter(fn ($v) => $v !== null)->sortDesc()->values();
-                $rankIndex = $sorted->search(function ($v) use ($moyenneGeneraleFromGenerated) {
-                    return ((float)$v) === ((float)$moyenneGeneraleFromGenerated);
-                });
-                $rang = $rankIndex === false ? null : ($rankIndex + 1);
-            }
         }
 
         $payload = [

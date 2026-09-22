@@ -361,6 +361,11 @@
                 <span class="font-label-md text-label-md">Emplois du temps</span>
             </a>
             
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ str_starts_with($currentRoute, 'personnel.notes') ? 'nav-active' : '' }}" href="{{ route('personnel.notes.index') }}">
+                <span class="material-symbols-outlined">rule</span>
+                <span class="font-label-md text-label-md">Validation des Notes</span>
+            </a>
+            
             <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-container transition-colors {{ $currentRoute === 'personnel.bulletin.index' || str_starts_with($currentRoute, 'personnel.bulletin') ? 'nav-active' : '' }}" href="{{ route('personnel.bulletin.index') }}">
                 <span class="material-symbols-outlined">description</span>
                 <span class="font-label-md text-label-md">Bulletin</span>

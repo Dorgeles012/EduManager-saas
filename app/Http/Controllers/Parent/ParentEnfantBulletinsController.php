@@ -9,7 +9,7 @@ use Illuminate\View\View;
 class ParentEnfantBulletinsController extends ParentController
 {
     /**
-     * Liste des bulletins d'un enfant (lecture seule).
+     * Liste des bulletins d'un enfant (lecture seule, uniquement les bulletins publiés).
      */
     public function index(Eleve $eleve): View
     {
@@ -18,7 +18,8 @@ class ParentEnfantBulletinsController extends ParentController
         $bulletins = Bulletin::with(['classe', 'anneeAcademique', 'etablissement', 'eleve'])
             ->where('tenant_id', auth()->user()->tenant_id)
             ->where('eleve_id', $eleve->id)
-            ->latest()
+            ->where('statut', Bulletin::STATUT_PUBLIE)
+            ->latest('id')
             ->get();
 
         return view('parent.bulletins', [
@@ -28,7 +29,7 @@ class ParentEnfantBulletinsController extends ParentController
     }
 
     /**
-     * Affiche un bulletin (vérifie que l'enfant appartient au parent).
+     * Affiche un bulletin (vérifie que l'enfant appartient au parent et que le bulletin est publié).
      */
     public function show(Eleve $eleve, Bulletin $bulletin): View
     {
@@ -41,6 +42,7 @@ class ParentEnfantBulletinsController extends ParentController
             ->where('tenant_id', $bulletin->tenant_id)
             ->where('eleve_id', $bulletin->eleve_id)
             ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->where('statut', Bulletin::STATUT_PUBLIE)
             ->whereIn('trimestre', ['t1', 't2', 't3'])
             ->with('disciplines')
             ->get()
@@ -72,6 +74,7 @@ class ParentEnfantBulletinsController extends ParentController
             ->where('tenant_id', $bulletin->tenant_id)
             ->where('eleve_id', $bulletin->eleve_id)
             ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->where('statut', Bulletin::STATUT_PUBLIE)
             ->whereIn('trimestre', ['t1', 't2', 't3'])
             ->with('disciplines')
             ->get()
@@ -90,7 +93,7 @@ class ParentEnfantBulletinsController extends ParentController
     }
 
     /**
-     * Téléchargement PDF d'un bulletin (réutilise la vue de show).
+     * Téléchargement PDF d'un bulletin.
      */
     public function downloadPdf(Eleve $eleve, Bulletin $bulletin)
     {
@@ -103,6 +106,7 @@ class ParentEnfantBulletinsController extends ParentController
             ->where('tenant_id', $bulletin->tenant_id)
             ->where('eleve_id', $bulletin->eleve_id)
             ->where('annee_academique_id', $bulletin->annee_academique_id)
+            ->where('statut', Bulletin::STATUT_PUBLIE)
             ->whereIn('trimestre', ['t1', 't2', 't3'])
             ->with('disciplines')
             ->get()
@@ -126,15 +130,16 @@ class ParentEnfantBulletinsController extends ParentController
     }
 
     /**
-     * Vérifie que le bulletin appartient bien à l'enfant du parent.
+     * Vérifie que le bulletin appartient bien à l'enfant du parent et est publié.
      */
     private function ensureChildBulletin(Eleve $eleve, Bulletin $bulletin): void
     {
         abort_unless(
             (int) $bulletin->eleve_id === (int) $eleve->id
-            && (int) $bulletin->tenant_id === (int) auth()->user()->tenant_id,
+            && (int) $bulletin->tenant_id === (int) auth()->user()->tenant_id
+            && $bulletin->statut === Bulletin::STATUT_PUBLIE,
             403,
-            'Accès interdit.'
+            'Bulletin non disponible ou non publié.'
         );
     }
 }

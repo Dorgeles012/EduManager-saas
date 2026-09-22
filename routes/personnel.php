@@ -8,6 +8,7 @@ use App\Http\Controllers\Personnel\PersonnelEleveController;
 use App\Http\Controllers\Personnel\PersonnelMatiereController;
 use App\Http\Controllers\Personnel\PersonnelComptabiliteController;
 use App\Http\Controllers\Personnel\PersonnelBulletinController;
+use App\Http\Controllers\Personnel\PersonnelNoteController;
 use App\Http\Controllers\Personnel\PersonnelParametreController;
 use App\Http\Controllers\Personnel\PersonnelEmploiTempsController;
 use App\Http\Controllers\Personnel\PersonnelEnseignantController;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
     ->prefix('personnel')
     ->name('personnel.')
-->group(function () {
+    ->group(function () {
 
         // Déconnexion (POST requis par le layout)
         Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -76,7 +77,17 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::put('/matieres/{matiere}', [PersonnelMatiereController::class, 'update'])->name('matieres.update');
         Route::delete('/matieres/{matiere}', [PersonnelMatiereController::class, 'destroy'])->name('matieres.destroy');
 
-// Comptabilité
+        // Notes & Validation par le personnel
+        Route::prefix('notes')->name('notes.')->group(function () {
+            Route::get('/', [PersonnelNoteController::class, 'index'])->name('index');
+            Route::get('/review', [PersonnelNoteController::class, 'review'])->name('review');
+            Route::post('/approuver', [PersonnelNoteController::class, 'approuver'])->name('approuver');
+            Route::post('/rejeter', [PersonnelNoteController::class, 'rejeter'])->name('rejeter');
+            Route::post('/valider-tout', [PersonnelNoteController::class, 'validerTout'])->name('valider-tout');
+            Route::post('/tout-valider', [PersonnelNoteController::class, 'validerTout'])->name('tout-valider');
+        });
+
+        // Comptabilité
         Route::get('/comptabilite', [PersonnelComptabiliteController::class, 'index'])->name('comptabilite.index');
         Route::get('/comptabilite/eleve/recherche', [PersonnelComptabiliteController::class, 'searchByMatricule'])->name('comptabilite.search');
         Route::post('/comptabilite/scolarite', [PersonnelComptabiliteController::class, 'storeScolarite'])->name('comptabilite.scolarite.store');
@@ -99,7 +110,7 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
             Route::get('/{bulletin}/download', [PersonnelBulletinController::class, 'download'])->name('download');
         });
 
-// Emplois du temps (classes)
+        // Emplois du temps (classes)
         Route::get('/emploi-temps', [PersonnelEmploiTempsController::class, 'index'])->name('emploi-temps.index');
         Route::get('/emploi-temps/create', [PersonnelEmploiTempsController::class, 'edit'])->name('emploi-temps.create');
         Route::get('/emploi-temps/edit', [PersonnelEmploiTempsController::class, 'edit'])->name('emploi-temps.edit');
@@ -123,4 +134,3 @@ Route::middleware(['auth', 'status', 'role:personnel', 'subscription.active'])
         Route::put('/parametres/password', [PersonnelParametreController::class, 'updatePassword'])->name('parametres.password');
         Route::put('/parametres/photo', [PersonnelParametreController::class, 'updatePhoto'])->name('parametres.photo');
     });
-

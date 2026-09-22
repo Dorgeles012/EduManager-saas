@@ -69,4 +69,31 @@ class Enseignant extends Model
     }
 
     public function emploisDuTemps(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(EmploiTemps::class, 'enseignant_id'); }
+
+    /**
+     * Vérifie si l'enseignant est responsable d'une matière donnée.
+     */
+    public function isResponsableDeMatiere(int|Matiere $matiere): bool
+    {
+        $matiereId = is_int($matiere) ? $matiere : $matiere->id;
+
+        if ((int) $this->matiere_id === (int) $matiereId) {
+            return true;
+        }
+
+        return $this->matieres()->where('matieres.id', $matiereId)->exists();
+    }
+
+    /**
+     * Retourne la liste des IDs des matières assignées à l'enseignant.
+     */
+    public function getAssignedSubjectIds(): array
+    {
+        $ids = $this->matieres->pluck('id');
+        if ($this->matiere_id) {
+            $ids->push($this->matiere_id);
+        }
+
+        return $ids->filter()->unique()->map(fn ($id) => (int) $id)->values()->toArray();
+    }
 }

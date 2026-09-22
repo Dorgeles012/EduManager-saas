@@ -19,6 +19,7 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
@@ -27,7 +28,7 @@ class BulletinController extends Controller
 {
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
         $query = Bulletin::where('tenant_id', $tenantId)->with(['eleve', 'classe', 'anneeAcademique']);
         $query->when($request->filled('classe_id'), fn ($q) => $q->where('classe_id', $request->integer('classe_id')))
             ->when($request->filled('trimestre'), fn ($q) => $q->where('trimestre', $request->string('trimestre')))
@@ -55,7 +56,6 @@ class BulletinController extends Controller
 
     public function show(Bulletin $bulletin)
     {
-        // Non utilisé actuellement par les routes existantes
         return $this->renderBulletin($bulletin);
     }
 
@@ -65,10 +65,10 @@ class BulletinController extends Controller
         return $this->createForm($bulletin);
     }
 
-    public function update(StoreBulletinRequest $request, Bulletin $bulletin, BulletinService $bulletinService)
+    public function update(StoreBulletinRequest $request, Bulletin $bulletin, BulletinService $bulletinService, NotificationService $notifications)
     {
         $this->ensureTenantOwns($bulletin);
-        return $this->store($request, $bulletinService)
+        return $this->store($request, $bulletinService, $notifications)
             ->with('warning', 'Mise à jour non disponible pour le moment.');
     }
 
@@ -86,11 +86,8 @@ class BulletinController extends Controller
         $this->ensureTenantOwns($bulletin);
         $bulletin->load(['eleve', 'classe', 'anneeAcademique', 'disciplines']);
 
-        // Sécuriser : certaines données peuvent être stockées en JSON/array côté BD.
-        // Le PDF doit toujours recevoir des scalaires.
         $bulletin->distinctions = $bulletin->distinctions ?? null;
 
-        // Normaliser toute valeur potentiellement array en string pour éviter "Array to string conversion".
         $toPrintableString = function ($value, string $fallback = '-') {
             if ($value === null) return $fallback;
             if (is_string($value)) return $value !== '' ? $value : $fallback;
@@ -150,7 +147,6 @@ class BulletinController extends Controller
         ]);
     }
 
-
     public function print(Bulletin $bulletin)
     {
         return $this->renderBulletin($bulletin, true);
@@ -193,7 +189,7 @@ class BulletinController extends Controller
 
     private function createForm(?Bulletin $bulletin = null)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $etablissement = Etablissement::query()
             ->where('tenant_id', $tenantId)
@@ -225,10 +221,8 @@ class BulletinController extends Controller
             ->orderBy('nom')
             ->get();
 
-        // Valeur initiale utile si tu veux filtrer par classe plus tard
         $classeInitial = null;
 
-        // Données additionnelles (pour extensibilité)
         $matieres = Matiere::query()->where('tenant_id', $tenantId)->get();
         $enseignants = Enseignant::query()->where('tenant_id', $tenantId)->get();
         $series = Series::query()->where('tenant_id', $tenantId)
@@ -250,12 +244,7 @@ class BulletinController extends Controller
         ]);
     }
 
-    /**
-     * Retourne les données nécessaires au remplissage automatique du header.
-     * Exemple attendu côté JS : { nom, prenoms, matricule, classe, ... }
-     */
     public function studentData(Request $request, BulletinService $bulletinService)
-
     {
         $data = $request->validate([
             'eleve_id' => ['required', 'integer'],
@@ -263,7 +252,7 @@ class BulletinController extends Controller
             'trimestre' => ['nullable', 'string'],
         ]);
 
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $eleve = Eleve::query()
             ->where('tenant_id', $tenantId)
@@ -280,7 +269,6 @@ class BulletinController extends Controller
 
         $logoUrl = null;
         if ($etablissement?->logo) {
-            // Petit fallback: si getLogoUrlAttribute n'existe pas, on renvoie un chemin Storage.
             if (method_exists($etablissement, 'getLogoUrlAttribute')) {
                 $logoUrl = $etablissement->getLogoUrlAttribute();
             } else {
@@ -291,12 +279,13 @@ class BulletinController extends Controller
             }
         }
 
-        // effectif : capacité de la classe associée à l'élève
         $effectif = $eleve->classe?->capacite ?? null;
 
-        // 1) Si un bulletin existe déjà pour (élève + année académique + période), on charge depuis DB.
         $bulletin = null;
         $disciplinesFromBulletin = collect();
+        $generatedFromNotes = false;
+        $moyenneGeneraleFromGenerated = null;
+        $rang = null;
 
         if (!empty($data['annee_academique_id']) && !empty($data['trimestre'])) {
             $bulletin = Bulletin::query()
@@ -326,121 +315,13 @@ class BulletinController extends Controller
             }
         }
 
-        // 2) Si aucun bulletin n'existe : on génère les disciplines depuis la table `notes`.
-        //    NB: La table notes actuelle ne contient pas de `classe_id` proprement liée au nom de la période,
-        //    on utilise donc `periode = trimestre` et on filtre sur eleve_id + classe_id.
-        //    Rang : calculé approximativement à partir de la moyenne générale.
-        $generatedFromNotes = false;
         if (!$bulletin && empty($disciplinesFromBulletin->all()) && !empty($data['trimestre'])) {
-            $classeId = $eleve->classe_id;
-
-            // matières + coefficients (via table matieres)
-            $matieres = $eleve->serie
-                ? $eleve->serie->matieres()->where('matieres.tenant_id', $tenantId)->orderBy('matieres.nom')->get()
-                : collect();
-
-            $notes = DB::table('notes')
-                ->where('tenant_id', $tenantId)
-                ->where('eleve_id', $eleve->id)
-                ->where('classe_id', $classeId)
-                ->where('periode', $data['trimestre'])
-                ->get();
-
-            // Map note par matiere_id
-            $notesByMatiere = $notes->keyBy('matiere_id');
-
-            $disciplinesRows = [];
-            $totalCoef = 0.0;
-            $totalPoints = 0.0;
-
-            foreach ($matieres as $matiere) {
-                $noteRow = $notesByMatiere->get($matiere->id);
-                $noteValue = $noteRow?->note;
-
-                $coef = (float) $matiere->pivot->coefficient;
-                $moyenne = $noteValue !== null ? (float) $noteValue : null;
-
-                $mc = null;
-                if ($moyenne !== null && $coef > 0) {
-                    $mc = $moyenne * $coef;
-                    $totalCoef += $coef;
-                    $totalPoints += $mc;
-                }
-
-                $disciplinesRows[] = [
-                    'matiere_id' => $matiere->id,
-                    'discipline' => $matiere->nom,
-                    'moyenne' => $moyenne,
-                    'coefficient' => $coef,
-                    'moyenne_coefficient' => $mc !== null ? round($mc, 2) : null,
-                    'rang' => 0,
-                    'mention' => $bulletinService->evaluation($moyenne)['mention'],
-                    'professeur' => null,
-                    'signature' => null,
-                ];
-            }
-
-            $disciplinesFromBulletin = collect($disciplinesRows);
+            $bilan = $bulletinService->calculerBilanEleve($eleve, $data['trimestre'], $data['annee_academique_id'] ?? null, null);
+            $disciplinesFromBulletin = collect($bilan['disciplines']);
+            $moyenneGeneraleFromGenerated = $bilan['moyenne_generale'];
+            $rangs = $bulletinService->calculerRangsClasse($eleve->classe_id, $data['trimestre'], $data['annee_academique_id'] ?? null, null);
+            $rang = $rangs[$eleve->id] ?? null;
             $generatedFromNotes = true;
-        }
-
-        $moyenneGeneraleFromGenerated = null;
-        if (!$bulletin && $generatedFromNotes) {
-            $totalCoef = 0.0;
-            $totalPoints = 0.0;
-            foreach ($disciplinesFromBulletin as $d) {
-                $coef = isset($d['coefficient']) ? (float) $d['coefficient'] : 0.0;
-                $moyenne = isset($d['moyenne']) && $d['moyenne'] !== null ? (float) $d['moyenne'] : null;
-                if ($moyenne !== null && $coef > 0) {
-                    $totalCoef += $coef;
-                    $totalPoints += $moyenne * $coef;
-                }
-            }
-            $moyenneGeneraleFromGenerated = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
-
-            // Rang: approximation sur tous les élèves de la même classe et période.
-            // (On calcule leur moyenne à partir de notes, puis on classe.)
-            $rang = null;
-            if ($moyenneGeneraleFromGenerated !== null) {
-                $classeId = $eleve->classe_id;
-                $notesAll = DB::table('notes')
-                    ->where('tenant_id', $tenantId)
-                    ->where('classe_id', $classeId)
-                    ->whereIn('eleve_id', Eleve::query()
-                        ->where('tenant_id', $tenantId)
-                        ->where('classe_id', $classeId)
-                        ->where('id_serie', $eleve->id_serie)
-                        ->select('id'))
-                    ->where('periode', $data['trimestre'])
-                    ->get()
-                    ->groupBy('eleve_id');
-
-                // coefficients par matiere
-                $coefByMatiere = $matieres->mapWithKeys(fn ($m) => [(int) $m->id => (float) $m->pivot->coefficient]);
-
-                $moyennes = [];
-                foreach ($notesAll as $eleveId => $rows) {
-                    $tCoef = 0.0;
-                    $tPoints = 0.0;
-                    foreach ($rows as $r) {
-                        $coef = $coefByMatiere->get((int)$r->matiere_id, 1.0);
-                        $note = $r->note !== null ? (float)$r->note : null;
-                        if ($note !== null && $coef > 0) {
-                            $tCoef += $coef;
-                            $tPoints += $note * $coef;
-                        }
-                    }
-                    $moyennes[(int)$eleveId] = $tCoef > 0 ? ($tPoints / $tCoef) : null;
-                }
-
-                // Trier décroissant, gérer null
-                $sorted = collect($moyennes)->filter(fn ($v) => $v !== null)->sortDesc()->values();
-                $rankIndex = $sorted->search(function ($v) use ($moyenneGeneraleFromGenerated) {
-                    return ((float)$v) === ((float)$moyenneGeneraleFromGenerated);
-                });
-                $rang = $rankIndex === false ? null : ($rankIndex + 1);
-            }
-
         }
 
         $payload = [
@@ -470,7 +351,6 @@ class BulletinController extends Controller
             'lieu_naissance' => $eleve->lieu_naissance,
             'photo_url' => $eleve->getPhotoUrlAttribute(),
 
-            // bulletin
             'bulletin_existant' => (bool) $bulletin,
             'moyenne_generale' => $bulletin?->moyenne_generale ?? $moyenneGeneraleFromGenerated,
             'total_coefficients' => $bulletin?->total_coefficients,
@@ -484,7 +364,6 @@ class BulletinController extends Controller
             'disciplines' => $disciplinesFromBulletin->values()->all(),
         ];
 
-        // Pour conserver la compatibilité JS actuelle (noms attendus)
         $payload['niveau_id'] = $eleve->niveau_id ?? null;
         $payload['serie_id'] = $eleve->id_serie;
         if (! $bulletin && isset($rang)) {
@@ -499,7 +378,7 @@ class BulletinController extends Controller
     {
         $payload = $request->validated();
 
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         return DB::transaction(function () use ($payload, $tenantId, $bulletinService, $notifications) {
 
@@ -513,8 +392,6 @@ class BulletinController extends Controller
 
             $disciplines = Arr::get($payload, 'disciplines', []);
 
-            // La configuration de la série est la source de vérité : toutes ses
-            // matières sont conservées et leurs coefficients ne viennent jamais du navigateur.
             $configuredMatieres = $eleve->serie
                 ? $eleve->serie->matieres()
                     ->where('matieres.tenant_id', $tenantId)
@@ -555,7 +432,6 @@ class BulletinController extends Controller
                     $disciplines[$i]['moyenne_coefficient'] = null;
                 }
 
-                // rang par discipline optionnel
                 if (isset($disc['rang'])) {
                     $disciplines[$i]['rang'] = (int) $disc['rang'];
                 }
@@ -564,7 +440,6 @@ class BulletinController extends Controller
             $moyenneGenerale = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : null;
             $evaluation = $bulletinService->evaluation($moyenneGenerale);
 
-            // Résultat de classe / décision : si déjà fournis par l'utilisateur, on les garde.
             $bulletin = Bulletin::updateOrCreate([
                 'tenant_id' => $tenantId,
                 'eleve_id' => (int) $payload['eleve_id'],
@@ -616,9 +491,8 @@ class BulletinController extends Controller
             $this->refreshRanks($bulletin);
 
             $recipients = \App\Models\User::query()->where('tenant_id', $tenantId)->where('id', $eleve->parent_id)->get();
-            $notifications->sendToUsers(auth()->user(), $recipients, 'Bulletin disponible', 'Le bulletin de '.trim($eleve->nom.' '.$eleve->prenom).' pour le '.$bulletin->trimestre.' est disponible.', 'bulletin');
+            $notifications->sendToUsers(Auth::user(), $recipients, 'Bulletin disponible', 'Le bulletin de '.trim($eleve->nom.' '.$eleve->prenom).' pour le '.$bulletin->trimestre.' est disponible.', 'bulletin');
 
-            // Optionnel: redirection vers la liste
             return redirect()->route('client.bulletin.index')
                 ->with('success', 'Bulletin enregistré avec succès.');
         });
@@ -645,10 +519,6 @@ class BulletinController extends Controller
         return view('client.Bulletin.show', compact('bulletin', 'printMode', 'annualBulletins'));
     }
 
-    /**
-     * DomPDF cannot reliably resolve Laravel storage URLs. Embed local images
-     * so the browser and downloaded document display the same logo/photo.
-     */
     private function pdfImageData(?string $path, ?string $fallback = null): ?string
     {
         $normalized = ltrim((string) $path, '/');
@@ -672,7 +542,6 @@ class BulletinController extends Controller
         return null;
     }
 
-    /** Dense ranking: students with the same average share the same rank. */
     private function refreshRanks(Bulletin $bulletin): void
     {
         $rank = 0;
@@ -698,20 +567,17 @@ class BulletinController extends Controller
 
     private function ensureTenantOwns(Bulletin $bulletin): void
     {
-        abort_unless((int) $bulletin->tenant_id === (int) auth()->user()->tenant_id, 404);
+        abort_unless((int) $bulletin->tenant_id === (int) Auth::user()->tenant_id, 404);
     }
 
     private function directeurName(): string
     {
-        $client = auth()->user();
+        $client = Auth::user();
 
         return trim(collect([$client?->nom, $client?->prenom])->filter()->implode(' '))
             ?: (string) ($client?->name ?? '');
     }
 
-    /**
-     * Génère un PDF texte autonome afin que l'export reste disponible sans dépendance externe.
-     */
     private function makePdf(array $lines): string
     {
         $content = "BT\n/F1 10 Tf\n50 800 Td\n14 TL\n";

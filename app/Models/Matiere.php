@@ -32,6 +32,33 @@ class Matiere extends Model
         return $this->hasMany(Enseignant::class, 'matiere_id');
     }
 
+    public function enseignantsPivot(): BelongsToMany
+    {
+        return $this->belongsToMany(Enseignant::class, 'enseignant_matiere', 'matiere_id', 'enseignant_id')->withTimestamps();
+    }
+
+    /**
+     * Vérifie si un enseignant donné est responsable de cette matière.
+     */
+    public function isEnseignantResponsable(int|Enseignant $enseignant): bool
+    {
+        $enseignantId = is_int($enseignant) ? $enseignant : $enseignant->id;
+
+        if ($this->enseignantsPivot()->where('enseignants.id', $enseignantId)->exists()) {
+            return true;
+        }
+
+        return $this->enseignants()->where('id', $enseignantId)->exists();
+    }
+
+    /**
+     * Retourne l'enseignant responsable de la matière.
+     */
+    public function getEnseignantResponsableAttribute(): ?Enseignant
+    {
+        return $this->enseignantsPivot()->first() ?? $this->enseignants()->first();
+    }
+
     public function series(): BelongsToMany
     {
         return $this->belongsToMany(Series::class, 'serie_matieres', 'matiere_id', 'serie_id')

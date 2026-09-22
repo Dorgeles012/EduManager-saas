@@ -117,6 +117,13 @@ Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('com
         Route::put('/niveaux/{niveau}', [NiveauxController::class, 'update'])->name('niveaux.update');
         Route::delete('/niveaux/{niveau}', [NiveauxController::class, 'destroy'])->name('niveaux.destroy');
         Route::get('/note', [NoteController::class, 'index'])->name('note');
+        Route::prefix('notes')->name('notes.')->group(function () {
+            Route::get('/', [NoteController::class, 'index'])->name('index');
+            Route::get('/review', [NoteController::class, 'review'])->name('review');
+            Route::post('/publier', [NoteController::class, 'publier'])->name('publier');
+            Route::post('/rejeter', [NoteController::class, 'rejeter'])->name('rejeter');
+            Route::post('/valider-tout', [NoteController::class, 'validerTout'])->name('valider-tout');
+        });
         Route::get('/emploi-temps', [EmploiTempsController::class, 'index'])->name('emploi-temps.index');
         Route::get('/emploi-temps/create/{enseignant}', [EmploiTempsController::class, 'create'])->name('emploi-temps.create');
         Route::get('/emploi-temps/edit/{enseignant}', [EmploiTempsController::class, 'edit'])->name('emploi-temps.edit');

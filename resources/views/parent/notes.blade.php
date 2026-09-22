@@ -5,87 +5,133 @@
 @section('content')
 <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Notes</h2>
-        <p class="text-sm text-on-surface-variant">Notes de {{ $eleve->nom }} {{ $eleve->prenom }} ({{ $eleve->classe?->nom ?? '—' }})</p>
+        <h2 class="font-headline-lg text-headline-lg text-primary">Notes & Évaluations</h2>
+        <p class="text-sm text-on-surface-variant">Notes officielles de <strong>{{ $eleve->nom }} {{ $eleve->prenom }}</strong> (Classe : {{ $eleve->classe?->nom ?? '—' }})</p>
     </div>
-    <a class="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-primary rounded-lg" href="{{ route('parent.enfants') }}">
-        <span class="material-symbols-outlined text-lg">arrow_back</span> Retour
+    <a class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-primary bg-surface-container rounded-lg hover:bg-primary-fixed transition-all" href="{{ route('parent.enfants') }}">
+        <span class="material-symbols-outlined text-base">arrow_back</span> Mes enfants
     </a>
 </div>
 
 <!-- Filtres -->
 <div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant p-4 mb-6">
-    <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4" action="{{ route('parent.enfant.notes', $eleve) }}">
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4" action="{{ route('parent.enfant.notes', $eleve) }}">
         <div class="space-y-1">
             <label class="font-label-md text-label-md text-on-surface-variant">Période</label>
-            <select name="periode" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+            <select name="periode" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none" onchange="this.form.submit()">
                 <option value="">Toutes les périodes</option>
-                @foreach($periodes as $periode)
-                <option value="{{ $periode }}" {{ $selectedPeriode == $periode ? 'selected' : '' }}>{{ $periode }}</option>
-                @endforeach
+                <option value="t1" {{ $selectedPeriode == 't1' ? 'selected' : '' }}>1er Trimestre</option>
+                <option value="t2" {{ $selectedPeriode == 't2' ? 'selected' : '' }}>2ème Trimestre</option>
+                <option value="t3" {{ $selectedPeriode == 't3' ? 'selected' : '' }}>3ème Trimestre</option>
             </select>
         </div>
         <div class="space-y-1">
             <label class="font-label-md text-label-md text-on-surface-variant">Matière</label>
-            <select name="matiere_id" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+            <select name="matiere_id" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none" onchange="this.form.submit()">
                 <option value="">Toutes les matières</option>
                 @foreach($matieres as $matiere)
                 <option value="{{ $matiere->id }}" {{ $selectedMatiere == $matiere->id ? 'selected' : '' }}>{{ $matiere->nom }}</option>
                 @endforeach
             </select>
         </div>
+        <div class="space-y-1">
+            <label class="font-label-md text-label-md text-on-surface-variant">Année</label>
+            <select name="annee_academique_id" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none" onchange="this.form.submit()">
+                <option value="">Toutes les années</option>
+                @foreach($years as $y)
+                <option value="{{ $y->id }}" {{ ($selectedAnnee ?? 0) == $y->id ? 'selected' : '' }}>{{ $y->libelle }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="space-y-1 flex items-end">
-            <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2.5 rounded-lg font-label-md hover:bg-primary/90 transition-colors">Filtrer</button>
+            <a href="{{ route('parent.enfant.notes', $eleve) }}" class="w-full bg-surface-variant text-on-surface px-4 py-2 rounded-lg font-label-md hover:bg-outline-variant/30 text-center transition-colors">Réinitialiser</a>
         </div>
     </form>
 </div>
 
+<!-- Synthèse des Moyennes de la Période -->
+@if($bilanPeriode && $bilanPeriode['moyenne_generale'] !== null)
+<div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant p-5 mb-6">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
+        <div>
+            <h3 class="font-headline-md text-base text-primary font-bold">Moyenne Générale officielle — {{ strtoupper($selectedPeriode) }}</h3>
+            <p class="text-xs text-text-muted">Calculée à partir des notes publiées et des coefficients officiels.</p>
+        </div>
+        <div class="text-right">
+            <span class="text-2xl font-bold {{ $bilanPeriode['moyenne_generale'] >= 10 ? 'text-success-green' : 'text-alert-red' }}">
+                {{ number_format($bilanPeriode['moyenne_generale'], 2, ',', ' ') }}/20
+            </span>
+            <span class="block text-xs font-semibold text-text-muted">{{ $bilanPeriode['mention'] }}</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+        @foreach($bilanPeriode['disciplines'] as $d)
+        @if($d['moyenne'] !== null)
+        <div class="p-3 rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-primary">{{ $d['discipline'] }}</p>
+                <p class="text-[10px] text-text-muted">Coef. {{ $d['coefficient'] }} • {{ count($d['notes_list'] ?? []) }} note(s)</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full {{ $d['moyenne'] >= 10 ? 'bg-success-green/10 text-success-green' : 'bg-alert-red/10 text-alert-red' }}">
+                    {{ number_format($d['moyenne'], 2, ',', ' ') }}
+                </span>
+            </div>
+        </div>
+        @endif
+        @endforeach
+    </div>
+</div>
+@endif
+
 <!-- Tableau des notes -->
 <div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant overflow-hidden">
+    <div class="p-4 border-b border-outline-variant bg-surface-container-low/30">
+        <h3 class="font-headline-sm text-sm text-primary font-semibold">Toutes les notes publiées</h3>
+    </div>
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-surface-container-low border-b border-outline-variant">
                 <tr>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Matière</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Enseignant</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Note /20</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Coefficient</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Appréciation</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Période</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Matière</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Évaluation</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Enseignant</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Note /20</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Appréciation</th>
+                    <th class="px-5 py-3 font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Période</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($notes as $note)
                 <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-[18px]">menu_book</span>
-                            </div>
-                            <span class="font-body-md font-medium">{{ $note->matiere?->nom ?? '—' }}</span>
-                        </div>
+                    <td class="px-5 py-3 font-semibold text-primary">
+                        {{ $note->matiere?->nom ?? '—' }}
                     </td>
-<td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $note->matiere && $note->matiere->enseignants->isNotEmpty() ? trim($note->matiere->enseignants->first()->prenoms.' '.$note->matiere->enseignants->first()->nom) : '—' }}</td>
-                    <td class="px-6 py-4">
+                    <td class="px-5 py-3">
+                        <span class="font-medium">{{ $note->titre_evaluation ?? 'Évaluation' }}</span>
+                        <span class="block text-[10px] text-text-muted uppercase">{{ $note->type_evaluation ?? 'devoir' }}</span>
+                    </td>
+                    <td class="px-5 py-3 text-on-surface-variant">{{ $note->enseignant_label ?? '—' }}</td>
+                    <td class="px-5 py-3">
                         @php
                             $noteValue = (float) $note->note;
                             $badge = $noteValue >= 10 ? 'bg-success-green/10 text-success-green' : 'bg-alert-red/10 text-alert-red';
                         @endphp
-                        <span class="px-3 py-1 rounded-full text-label-sm font-bold {{ $badge }}">{{ number_format($noteValue, 2, ',', ' ') }}</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $badge }}">{{ number_format($noteValue, 2, ',', ' ') }}</span>
                     </td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $note->matiere?->coefficient ?? '—' }}</td>
-                    <td class="px-6 py-4 text-body-sm">{{ $note->appreciation }}</td>
-                    <td class="px-6 py-4 text-body-sm">{{ $note->periode ?? '—' }}</td>
+                    <td class="px-5 py-3 text-on-surface-variant">{{ $note->appreciation }}</td>
+                    <td class="px-5 py-3 font-semibold uppercase text-primary">{{ $note->periode ?? '—' }}</td>
                 </tr>
                 @empty
                 <tr>
                     <td colspan="6" class="py-10 px-6 text-center">
                         <div class="flex flex-col items-center max-w-xs mx-auto">
-                            <div class="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-6">
-                                <span class="material-symbols-outlined text-5xl text-outline-variant">fact_check</span>
+                            <div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-3">
+                                <span class="material-symbols-outlined text-3xl text-outline-variant">fact_check</span>
                             </div>
-                            <h5 class="font-headline-md text-headline-md text-on-surface mb-2">Aucune note disponible</h5>
-                            <p class="text-sm text-text-muted text-center">Les notes de votre enfant apparaîtront ici dès leur saisie.</p>
+                            <h5 class="font-headline-md text-sm text-on-surface mb-1">Aucune note publiée disponible</h5>
+                            <p class="text-xs text-text-muted text-center">Les notes officielles de votre enfant apparaîtront ici dès leur validation et publication.</p>
                         </div>
                     </td>
                 </tr>
