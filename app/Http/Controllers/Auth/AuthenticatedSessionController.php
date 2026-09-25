@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\RoleDashboardService;
+use App\Services\SingleSessionService;
 use App\Services\SubscriptionStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ public function store(LoginRequest $request): RedirectResponse
         $request->session()->regenerate();
 
         $user = $request->user();
+        app(SingleSessionService::class)->claim($request, $user);
 
         // Si l'utilisateur doit changer obligatoirement son mot de passe à la première connexion
         if ((bool) $user->must_change_password) {

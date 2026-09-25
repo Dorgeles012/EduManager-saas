@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\RoleDashboardService;
+use App\Services\SingleSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +72,8 @@ class ResetPasswordController extends Controller
         \DB::table('password_reset_tokens')->where('email', $email)->delete();
 
         Auth::login($user);
+        $request->session()->regenerate();
+        app(SingleSessionService::class)->claim($request, $user);
 
         $routeName = app(RoleDashboardService::class)->routeNameFor($user);
         if (! $routeName) {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Eleve;
 use App\Models\User;
 use App\Services\RoleDashboardService;
+use App\Services\SingleSessionService;
 use App\Services\SubscriptionStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,8 +71,9 @@ class EleveAuthController extends Controller
             ]);
         }
 
-Auth::login($user, $request->boolean('remember'));
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        app(SingleSessionService::class)->claim($request, $user, 'matricule');
 
         // Vérification immédiate de l'abonnement du tenant après authentification.
         $subscriptionStatus = app(SubscriptionStatusService::class);

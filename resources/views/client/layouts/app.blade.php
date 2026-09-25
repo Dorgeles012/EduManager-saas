@@ -402,6 +402,11 @@
     </div>
 </main>
 
+{{-- Formulaire de déconnexion caché --}}
+<form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">
+    @csrf
+</form>
+
 <script>
 (() => {
     const button = document.getElementById('notification-button');

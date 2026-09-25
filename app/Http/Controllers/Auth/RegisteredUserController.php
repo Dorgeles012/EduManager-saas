@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\RoleDashboardService;
+use App\Services\SingleSessionService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,6 +49,8 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+        $request->session()->regenerate();
+        app(SingleSessionService::class)->claim($request, $user);
 
         return redirect()->route(app(RoleDashboardService::class)->routeNameFor($user));
     }

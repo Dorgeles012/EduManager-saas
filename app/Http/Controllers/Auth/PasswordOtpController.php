@@ -248,6 +248,7 @@ class PasswordOtpController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        app(\App\Services\SingleSessionService::class)->claim($request, $user);
 
         return redirect()->route($routeName)->with('status', 'Mot de passe réinitialisé avec succès.');
     }
