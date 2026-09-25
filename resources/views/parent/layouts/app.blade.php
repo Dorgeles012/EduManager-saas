@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/edumanager-logo.svg') }}">
     <title>@yield('title', 'EduManager - Espace Parent')</title>
 
     <!-- Fonts & Icons -->
@@ -163,9 +164,7 @@
     <!-- SideNavBar -->
     <aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest flex flex-col border-r border-outline-variant z-50">
 <div class="p-6 flex-shrink-0 flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">family_restroom</span>
-            </div>
+            <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-10 h-10 object-contain">
             <div>
                 <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
             </div>

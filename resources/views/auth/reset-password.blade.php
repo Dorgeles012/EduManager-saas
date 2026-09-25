@@ -4,7 +4,7 @@
 <div class="w-full max-w-[400px] flex flex-col items-center">
     <!-- Branding -->
     <div class="mb-6 text-center">
-        <h1 class="text-3xl font-bold text-primary">EduManager </h1>
+        <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="mx-auto h-24 w-48 object-contain">
         <p class="text-sm text-on-surface-variant mt-1">Système de Gestion Centralisé</p>
     </div>
 
