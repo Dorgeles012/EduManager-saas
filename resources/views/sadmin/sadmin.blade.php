@@ -23,7 +23,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-label-sm text-text-muted uppercase tracking-wider text-xs">Total SAdmins</p>
-                    <h2 class="font-headline-xl text-2xl mt-1">{{ $stats['total'] ?? ($sadmins ?? collect())->total() ?? ($sadmins ?? collect())->count() }}</h2>
+                    <h2 class="font-headline-xl text-2xl mt-1">{{ $stats['total'] ?? ($sadmins ?? collect())->count() }}</h2>
                 </div>
                 <div class="p-2 bg-primary/10 rounded-lg">
                     <span class="material-symbols-outlined text-primary text-base">shield_person</span>

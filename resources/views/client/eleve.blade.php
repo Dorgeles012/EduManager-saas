@@ -1,173 +1,236 @@
 @extends('client.layouts.app')
 @section('title', 'EduManager - Eleves')
 @section('content')
-<div class="flex justify-between items-start mb-10">
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Gestion des Élèves</h2>
-        <p class="text-body-md text-text-muted">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Élèves</h2>
+        <p class="text-sm text-gray-500 mt-1">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
     </div>
-    <div class="flex gap-4">
-        <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')" type="button">
-            <span class="material-symbols-outlined text-[18px]">person_add</span>
-            Nouvel élève
-        </button>
+    <button onclick="openModal('modal-standard')" type="button" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <span class="material-symbols-outlined text-sm">person_add</span>
+        Nouvel élève
+    </button>
+</div>
+
+<div class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-lg">school</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Inscrits</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalStudents ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Élèves au total</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <span class="material-symbols-outlined text-lg">meeting_room</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Classes</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $activeClasses ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Classes actives</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-    <div class="glass-card p-6 rounded-xl flex items-center gap-5 shadow-[4px_4px_12px_rgba(55,48,163,0.04)]">
-        <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-3xl">school</span>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-base">list_alt</span>
         </div>
         <div>
-            <h3 class="text-label-md text-text-muted">Élèves inscrits</h3>
-            <p class="text-headline-xl font-headline-xl text-on-surface">{{ $totalStudents ?? 0 }}</p>
+            <h3 class="text-sm font-semibold text-gray-900">Liste des élèves</h3>
+            <p class="text-[11px] text-gray-500">{{ $students->total() ?? 0 }} élève(s) enregistré(s)</p>
         </div>
-    </div>
-    <div class="glass-card p-6 rounded-xl flex items-center gap-5 shadow-[4px_4px_12px_rgba(55,48,163,0.04)]">
-        <div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
-            <span class="material-symbols-outlined text-3xl">meeting_room</span>
-        </div>
-        <div>
-            <h3 class="text-label-md text-text-muted">Classes actives</h3>
-            <p class="text-headline-xl font-headline-xl text-on-surface">{{ $activeClasses ?? 0 }}</p>
-        </div>
-    </div>
-</div>
-
-<div class="glass-card rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(55,48,163,0.04)]">
-    <div class="px-6 py-4 border-b border-surface-subtle bg-surface-container-low flex justify-between items-center">
-        <h4 class="font-headline-md text-headline-md text-primary">Liste des élèves</h4>
     </div>
 
-    <form method="GET" action="{{ route('client.eleve') }}" class="px-6 py-4 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-5 gap-3 bg-white">
-        <input type="text" name="search" value="{{ request('search') }}" class="rounded-lg border-outline-variant text-sm" placeholder="Rechercher nom ou matricule">
-        <select name="niveau_id" class="rounded-lg border-outline-variant text-sm">
-            <option value="">Tous les niveaux</option>
-            @foreach($levels ?? [] as $level)
+    <form method="GET" action="{{ route('client.eleve') }}" class="px-5 py-4 border-b border-gray-100 bg-gray-50/30">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Nom ou matricule"
+                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+            <select name="niveau_id" class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                <option value="">Tous les niveaux</option>
+                @foreach($levels ?? [] as $level)
                 <option value="{{ $level['id'] }}" @selected((string) request('niveau_id') === (string) $level['id'])>{{ $level['name'] }}</option>
-            @endforeach
-        </select>
-        <select name="id_serie" class="rounded-lg border-outline-variant text-sm">
-            <option value="">Toutes les séries</option>
-            @foreach($series ?? [] as $serie)
+                @endforeach
+            </select>
+            <select name="id_serie" class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                <option value="">Toutes les séries</option>
+                @foreach($series ?? [] as $serie)
                 <option value="{{ $serie->id }}" @selected((string) request('id_serie') === (string) $serie->id)>{{ $serie->nom_serie }}</option>
-            @endforeach
-        </select>
-        <select name="classe_id" class="rounded-lg border-outline-variant text-sm">
-            <option value="">Toutes les classes</option>
-            @foreach($classes ?? [] as $classe)
+                @endforeach
+            </select>
+            <select name="classe_id" class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                <option value="">Toutes les classes</option>
+                @foreach($classes ?? [] as $classe)
                 <option value="{{ $classe['id'] }}" @selected((string) request('classe_id') === (string) $classe['id'])>{{ $classe['name'] }}</option>
-            @endforeach
-        </select>
-        <button class="bg-primary text-white rounded-lg px-4 py-2 font-label-md text-sm" type="submit">Filtrer</button>
+                @endforeach
+            </select>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition shadow-sm inline-flex items-center justify-center gap-1.5 py-2.5">
+                <span class="material-symbols-outlined text-sm">filter_alt</span>
+                Filtrer
+            </button>
+        </div>
     </form>
 
     @if(($students ?? collect())->isEmpty())
-    <div class="min-h-[200px] flex flex-col items-center justify-center text-center p-9">
-        <div class="w-24 h-24 bg-surface-container rounded-full flex items-center justify-center mb-5">
-            <span class="material-symbols-outlined text-primary text-5xl">school</span>
+        <div class="py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-2xl text-gray-300">school</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">Aucun élève enregistré</p>
+            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre premier élève.</p>
         </div>
-        <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Aucun élève enregistré pour le moment</h3>
-    </div>
     @else
-    <div class="overflow-x-auto custom-scrollbar">
-        <table class="w-full text-left text-[14px] border-separate border-spacing-y-2">
-            <thead class="bg-surface-container-low text-[13px] uppercase tracking-wider text-text-muted">
-                <tr>
-                    <th class="px-3 py-4 font-semibold">#</th>
-                    <th class="px-4 py-4 font-semibold min-w-[200px]">Nom &amp; Prénoms</th>
-                    <th class="px-3 py-4 font-semibold">Matricule</th>
-                    <th class="px-3 py-4 font-semibold">Sexe</th>
-                    <th class="px-3 py-4 font-semibold">Classe</th>
-                    <th class="px-3 py-4 font-semibold">Niveau</th>
-                    <th class="px-3 py-4 font-semibold min-w-[100px]">Série</th>
-                    <th class="px-3 py-4 font-semibold min-w-[110px]">Date de naissance</th>
-                    <th class="px-3 py-4 font-semibold text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-surface-subtle">
-                @foreach($students as $student)
-                <tr class="hover:bg-surface-container-low transition-colors rounded-lg shadow-sm bg-white">
-                    <td class="px-3 py-4 text-[14px] align-middle">{{ $loop->iteration }}</td>
-                    <td class="px-4 py-4 min-w-[200px] align-middle">
-                        <div class="flex items-center gap-2">
-                            <span class="font-medium text-[14px] whitespace-nowrap">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
-                        </div>
-                    </td>
-                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['matricule'] ?? 'N/A' }}</td>
-                    <td class="px-3 py-4 align-middle">
-                        @php
-                            $sexe = strtolower(trim($student['sexe'] ?? ''));
-                            $badgeClass = '';
-                            $displaySexe = 'N/A';
-                            if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) {
-                                $badgeClass = 'bg-blue-100 text-blue-700';
-                                $displaySexe = 'Masculin';
-                            } elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme', 'f'])) {
-                                $badgeClass = 'bg-pink-100 text-pink-700';
-                                $displaySexe = 'Féminin';
-                            } else {
-                                $badgeClass = 'bg-gray-100 text-gray-700';
-                                $displaySexe = 'N/A';
-                            }
-                        @endphp
-                        <span class="px-3 py-1.5 rounded-full text-[12px] font-medium {{ $badgeClass }}">
-                            {{ $displaySexe }}
-                        </span>
-                    </td>
-                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
-                    <td class="px-3 py-4 align-middle">
-                        <span class="px-3 py-1.5 rounded-full text-[12px] font-medium bg-secondary-container/20 text-on-secondary-container">
-                            {{ $student['level'] }}
-                        </span>
-                    </td>
-                    <td class="px-3 py-4 text-on-surface-variant align-middle min-w-[100px]">{{ $student['serie'] ?? '—' }}</td>
-                    <td class="px-3 py-4 text-[14px] text-on-surface-variant align-middle min-w-[110px]">{{ $student['birthdate'] }}</td>
-                    <td class="px-3 py-4 text-right align-middle">
-                        <div class="flex justify-end items-center gap-1">
-                            <button class="inline-flex items-center justify-center p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors leading-none" onclick="viewStudent({{ json_encode($student) }})" title="Voir" type="button">
-                                <span class="material-symbols-outlined text-[20px]">visibility</span>
-                            </button>
-                            <button class="inline-flex items-center justify-center p-1.5 text-warning-amber hover:bg-warning-amber/10 rounded-lg transition-colors leading-none" onclick="editStudent({{ json_encode($student) }})" title="Modifier" type="button">
-                                <span class="material-symbols-outlined text-[20px]">edit</span>
-                            </button>
-                            <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline-flex items-center leading-none m-0 p-0 delete-student-form">
-                                @csrf
-                                @method('DELETE')
-                                <button class="inline-flex items-center justify-center p-1.5 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-student-btn leading-none" data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}" title="Supprimer" type="button">
-                                    <span class="material-symbols-outlined text-[20px]">delete</span>
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-gray-100 bg-gray-50/50">
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">N°</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom & Prénoms</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Matricule</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Sexe</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Classe</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Niveau</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Série</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Naissance</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach($students as $student)
+                    @php
+                        $sexe = strtolower(trim($student['sexe'] ?? ''));
+                        if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) { $badge = 'bg-blue-50 text-blue-700'; $label = 'Masculin'; }
+                        elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'Féminin'; }
+                        else { $badge = 'bg-gray-100 text-gray-600'; $label = 'N/A'; }
+                    @endphp
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-4 py-3 text-xs text-gray-500 font-semibold">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-900 whitespace-nowrap">{{ $student['lastname'] }} {{ $student['firstname'] }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-600">{{ $student['matricule'] ?? 'N/A' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $badge }}">
+                                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                {{ $label }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-700">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase">{{ $student['level'] }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-600">{{ $student['serie'] ?? '—' }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-600">{{ $student['birthdate'] }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button onclick='viewStudent(@json($student))'
+                                        class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition"
+                                        title="Voir">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
                                 </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-
-    <div class="px-6 py-4 border-t border-surface-subtle bg-surface-container-low/30 flex items-center justify-between">
-        <span class="text-[13px] text-text-muted">
-            Affichage de {{ $students->firstItem() ?? 0 }} à {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }} élèves
-        </span>
-        <div class="flex gap-2 text-sm">
-            {{ $students->links() ?? '' }}
+                                <button onclick='editStudent(@json($student))'
+                                        class="w-8 h-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition"
+                                        title="Modifier">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                </button>
+                                <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="inline delete-student-form">
+                                    @csrf @method('DELETE')
+                                    <button type="button"
+                                            data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}"
+                                            class="delete-student-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                            title="Supprimer">
+                                        <span class="material-symbols-outlined text-base">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </div>
+
+        <div class="md:hidden divide-y divide-gray-100">
+            @foreach($students as $student)
+            @php
+                $sexe = strtolower(trim($student['sexe'] ?? ''));
+                if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) { $badge = 'bg-blue-50 text-blue-700'; $label = 'M'; }
+                elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'F'; }
+                else { $badge = 'bg-gray-100 text-gray-600'; $label = '?'; }
+            @endphp
+            <div class="p-4 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm font-bold flex-shrink-0">
+                            {{ strtoupper(substr($student['lastname'] ?? 'E', 0, 1)) }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 truncate">{{ $student['lastname'] }} {{ $student['firstname'] }}</p>
+                            <p class="text-[11px] text-gray-500 truncate">{{ $student['matricule'] ?? 'N/A' }} — {{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $badge }} flex-shrink-0">{{ $label }}</span>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick='viewStudent(@json($student))'
+                            class="flex-1 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <span class="material-symbols-outlined text-sm">visibility</span>Voir
+                    </button>
+                    <button onclick='editStudent(@json($student))'
+                            class="flex-1 h-9 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <span class="material-symbols-outlined text-sm">edit</span>Modifier
+                    </button>
+                    <form action="{{ route('client.eleve.destroy', $student['id']) }}" method="POST" class="delete-student-form">
+                        @csrf @method('DELETE')
+                        <button type="button"
+                                data-name="{{ $student['firstname'] }} {{ $student['lastname'] }}"
+                                class="delete-student-btn w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition">
+                            <span class="material-symbols-outlined text-base">delete</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <span class="text-[11px] text-gray-500">
+                {{ $students->firstItem() ?? 0 }} - {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }}
+            </span>
+            <div class="text-xs">{{ $students->links() ?? '' }}</div>
+        </div>
     @endif
 </div>
 
+{{-- MODAL AJOUTER --}}
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-standard">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-standard')"></div>
-    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-standard-content">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-primary text-white sticky top-0 shadow-lg z-20">
-            <h3 class="font-headline-md text-headline-md">AJOUT D'UN ÉLÈVE</h3>
-            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-standard')" type="button">
-                <span class="material-symbols-outlined text-[20px]">close</span>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('modal-standard')"></div>
+    <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="modal-standard-content">
+
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">person_add</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter un élève</h3>
+                    <p class="text-[11px] text-gray-500">Enregistrez un nouvel élève et son parent</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-standard')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-8" id="form-standard" action="{{ route('client.eleve.store') }}" method="POST" enctype="multipart/form-data">
+
+        <form class="flex-1 overflow-y-auto p-5" id="form-standard" action="{{ route('client.eleve.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="type_eleve" value="nouveau">
             <input type="hidden" name="nom" id="stdLastnameHidden">
@@ -182,164 +245,206 @@
             <input type="hidden" name="parent_prenom" id="parentFirstnameHidden">
             <input type="hidden" name="parent_telephone" id="parentPhoneHidden">
             <input type="hidden" name="parent_email" id="parentEmailHidden">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
-                        <span class="material-symbols-outlined text-[20px]">person</span>
-                        INFORMATIONS DE L'ÉLÈVE
-                    </h4>
-                    <div class="space-y-4">
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                <div class="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 space-y-3.5">
+                    <div class="flex items-center gap-2 pb-2 border-b border-gray-100">
+                        <div class="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+                            <span class="material-symbols-outlined text-sm">person</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations élève</h4>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLastname" required type="text">
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom <span class="text-rose-500">*</span></label>
+                            <input id="stdLastname" type="text" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdFirstname" required type="text">
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom <span class="text-rose-500">*</span></label>
+                            <input id="stdFirstname" type="text" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdMatricule" required type="text">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Matricule <span class="text-rose-500">*</span></label>
+                        <input id="stdMatricule" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Sexe <span class="text-rose-500">*</span></label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="sexe" value="Masculin" class="peer sr-only" checked>
+                                <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">
+                                    <span class="material-symbols-outlined text-sm">male</span>
+                                    Masculin
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="sexe" value="Féminin" class="peer sr-only">
+                                <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
+                                    <span class="material-symbols-outlined text-sm">female</span>
+                                    Féminin
+                                </div>
+                            </label>
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
-                            <div class="flex gap-6 mt-1">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="sexe" value="Masculin" class="w-4 h-4 text-primary focus:ring-primary focus:ring-2 border-outline-variant" checked>
-                                    <span class="text-body-sm text-on-surface">Masculin</span>
-                                    <span class="material-symbols-outlined text-[20px] text-primary/60">male</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="sexe" value="Féminin" class="w-4 h-4 text-primary focus:ring-primary focus:ring-2 border-outline-variant">
-                                    <span class="text-body-sm text-on-surface">Féminin</span>
-                                    <span class="material-symbols-outlined text-[20px] text-primary/60">female</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="birthdate-std" required type="date">
-                            <p class="hidden text-[11px] text-alert-red mt-1 flex items-center gap-1" id="age-warning-std">
-                                <span class="material-symbols-outlined text-[14px]">warning</span>
-                                L'âge minimum requis est de 5 ans.
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Date de naissance <span class="text-rose-500">*</span></label>
+                            <input id="birthdate-std" type="date" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                            <p class="hidden text-[10px] text-rose-600 mt-1 flex items-center gap-1" id="age-warning-std">
+                                <span class="material-symbols-outlined text-[12px]">warning</span>
+                                Âge minimum : 5 ans.
                             </p>
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdBirthPlace" type="text">
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Lieu de naissance</label>
+                            <input id="stdBirthPlace" type="text"
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nationalité <span class="text-rose-500">*</span></label>
+                        <select id="nationalite" name="nationalite" placeholder="Sélectionner une nationalité"
+                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition ts-wrapper-custom">
+                            <option value="">Sélectionner une nationalité</option>
+                            @foreach(config('nationalities') as $nationalite)
+                            <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Interne <span class="text-rose-500">*</span></label>
+                            <select id="stdInterne" name="interne" required
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                <option value="1" @selected(old('interne') === '1')>Oui</option>
+                                <option value="0" @selected(old('interne', '0') === '0')>Non</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité <span class="text-alert-red">*</span></label>
-                            <div class="relative w-full ts-wrapper-custom">
-                                <select class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 pr-10 text-sm text-on-surface shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary [&>option]:text-on-surface" id="nationalite" name="nationalite" placeholder="Sélectionner une nationalité">
-                                    <option value="">Sélectionner une nationalité</option>
-                                    @foreach(config('nationalities') as $nationalite)
-                                        <option value="{{ $nationalite }}">{{ $nationalite }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 z-10">
-                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                                    </svg>
-                                </div>
-                            </div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Affecté <span class="text-rose-500">*</span></label>
+                            <select id="stdAffecte" name="affecte" required
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                <option value="1" @selected(old('affecte') === '1')>Oui</option>
+                                <option value="0" @selected(old('affecte', '0') === '0')>Non</option>
+                            </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Interne <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdInterne" name="interne" required>
-                                    <option value="1" @selected(old('interne') === '1')>Oui</option>
-                                    <option value="0" @selected(old('interne', '0') === '0')>Non</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Affecté <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdAffecte" name="affecte" required>
-                                    <option value="1" @selected(old('affecte') === '1')>Oui</option>
-                                    <option value="0" @selected(old('affecte', '0') === '0')>Non</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdLevel">
-                                    <option value="">Sélectionner un niveau</option>
-                                    @foreach($levels ?? [] as $level)
-                                    <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdClasse" required disabled>
-                                    <option value="">Sélectionner d'abord un niveau</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="stdSerieWrapper">
-                            <label class="block text-label-sm text-on-surface mb-1.5">Série</label>
-                            <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdSerie" name="id_serie"><option value="">Aucune série</option></select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
+                            <select id="stdLevel"
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                <option value="">Sélectionner un niveau</option>
+                                @foreach($levels ?? [] as $level)
+                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>
-                            <div class="flex items-center gap-4">
-                                <div class="w-20 h-20 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-std">
-                                    <span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>
-                                </div>
-                                <div class="flex-1">
-                                    <input class="w-full text-body-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-label-md file:bg-primary-fixed file:text-primary hover:file:bg-primary-fixed/80" id="stdPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-std')">
-                                    <p class="text-[11px] text-text-muted mt-1">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
-                                </div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Classe <span class="text-rose-500">*</span></label>
+                            <select id="stdClasse" required disabled
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition disabled:bg-gray-100 disabled:text-gray-400">
+                                <option value="">Choisir un niveau d'abord</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="stdSerieWrapper">
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série</label>
+                        <select id="stdSerie" name="id_serie"
+                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                            <option value="">Aucune série</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'élève</label>
+                        <div class="flex items-center gap-3">
+                            <div id="photo-preview-std" class="w-16 h-16 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <span class="material-symbols-outlined text-2xl text-gray-400">photo_camera</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input id="stdPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-std')"
+                                       class="w-full text-[11px] text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 file:cursor-pointer">
+                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF — max 2 MB</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-primary flex items-center gap-2 border-b border-primary-fixed pb-2">
-                        <span class="material-symbols-outlined text-[20px]">family_restroom</span>
-                        INFORMATIONS DU PARENT
-                    </h4>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentLastname" required type="text">
+
+                <div class="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 space-y-3.5">
+                    <div class="flex items-center gap-2 pb-2 border-b border-gray-100">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                            <span class="material-symbols-outlined text-sm">family_restroom</span>
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentFirstname" required type="text">
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations parent</h4>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom du parent <span class="text-rose-500">*</span></label>
+                        <input id="parentLastname" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom du parent <span class="text-rose-500">*</span></label>
+                        <input id="parentFirstname" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Type de parent</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="parent_type" value="pere" class="peer sr-only">
+                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">Père</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="parent_type" value="mere" class="peer sr-only">
+                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">Mère</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="parent_type" value="tuteur" class="peer sr-only" checked>
+                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">Tuteur</div>
+                            </label>
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Type de Parent</label>
-                            <div class="flex gap-4">
-                                <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input class="text-primary focus:ring-primary" name="parent_type" type="radio" value="pere"> Père
-                                </label>
-                                <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input class="text-primary focus:ring-primary" name="parent_type" type="radio" value="mere"> Mère
-                                </label>
-                                <label class="flex items-center gap-2 text-label-sm cursor-pointer">
-                                    <input checked class="text-primary focus:ring-primary" name="parent_type" type="radio" value="tuteur"> Tuteur
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentPhone" required type="tel">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="parentEmail" type="email">
-                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone <span class="text-rose-500">*</span></label>
+                        <input id="parentPhone" type="tel" required placeholder="00 00 00 00"
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Email</label>
+                        <input id="parentEmail" type="email" placeholder="exemple@mail.com"
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
                 </div>
             </div>
-            <div class="mt-10 flex justify-end gap-4 pt-6 border-t border-outline-variant">
-                <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-standard')" type="button">
+
+            <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('modal-standard')"
+                        class="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
                     Annuler
                 </button>
-                <button class="px-8 py-2 bg-primary text-white rounded-lg font-label-md hover:bg-primary/90 transition-all active:scale-95 shadow-md" type="submit">
+                <button type="submit"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition shadow-sm">
+                    <span class="material-symbols-outlined text-sm">save</span>
                     Enregistrer l'élève
                 </button>
             </div>
@@ -347,169 +452,198 @@
     </div>
 </div>
 
+{{-- MODAL VOIR --}}
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-view">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-view')"></div>
-    <div class="relative glass-card w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 flex flex-col" id="modal-view-content">
-        <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none">
-            <span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">school</span>
-        </div>
-        <div class="absolute -left-4 -bottom-4 opacity-5 pointer-events-none rotate-12">
-            <span class="material-symbols-outlined text-[180px]" style="font-variation-settings: 'FILL' 1;">badge</span>
-        </div>
-        <div class="px-5 py-2.5 bg-gradient-to-r from-primary/5 to-primary-container/5 border-b border-outline-variant/30 flex justify-between items-center flex-shrink-0 bg-white/95 backdrop-blur-sm z-10 rounded-t-2xl">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-[16px]">info</span>
-                <span class="text-label-sm text-[11px] text-text-muted">Informations générales</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="absolute inline-flex h-full w-full rounded-full bg-success-green opacity-75 animate-ping"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-green"></span>
-                </span>
-                <span class="text-label-sm text-[11px] font-semibold text-success-green">Actif</span>
-            </div>
-        </div>
-        <div class="flex-1 overflow-y-auto p-5 md:p-6" id="modal-view-scroll">
-            <div class="flex flex-col md:flex-row md:items-start gap-6 pb-5 border-b border-outline-variant/30">
-                <div class="relative">
-                    <div class="w-28 h-28 rounded-full bg-gradient-to-br from-primary/10 to-primary-container/10 flex items-center justify-center shadow-md relative z-10 overflow-hidden" id="viewStudentPhotoContainer">
-                        <span class="material-symbols-outlined text-5xl text-primary/40">account_circle</span>
-                    </div>
-                    <div class="absolute -right-2 -bottom-2 opacity-20">
-                        <span class="material-symbols-outlined text-2xl">person</span>
-                    </div>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('modal-view')"></div>
+    <div class="bg-white w-full max-w-3xl max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="modal-view-content">
+
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">badge</span>
                 </div>
-                <div class="flex-1 relative">
-                    <h3 class="font-headline-xl text-[28px] text-on-surface mb-2 flex items-center gap-2" id="viewStudentFullName">
-                        -
-                        <span class="material-symbols-outlined text-primary text-2xl opacity-60" style="font-variation-settings: 'FILL' 1;">verified</span>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Fiche élève</h3>
+                    <p class="text-[11px] text-gray-500">Détails et informations personnelles</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Actif
+                </span>
+                <button type="button" onclick="closeModal('modal-view')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                    <span class="material-symbols-outlined text-gray-500">close</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-5">
+
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-5 mb-5 border-b border-gray-100">
+                <div id="viewStudentPhotoContainer" class="w-20 h-20 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-2xl font-bold flex-shrink-0 overflow-hidden">
+                    <span class="material-symbols-outlined text-4xl text-indigo-300">account_circle</span>
+                </div>
+                <div class="flex-1 text-center sm:text-left">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-1.5" id="viewStudentFullName">
+                        —
+                        <span class="material-symbols-outlined text-indigo-500 text-base">verified</span>
                     </h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary-fixed/30 text-primary rounded-full text-[12px]">
-                            <span class="material-symbols-outlined text-[14px]">badge</span>
-                            Matricule: <span id="viewStudentMatricule">-</span>
+                    <div class="flex flex-wrap gap-2 justify-center sm:justify-start mt-2">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-semibold">
+                            <span class="material-symbols-outlined text-[12px]">badge</span>
+                            <span id="viewStudentMatricule">-</span>
                         </span>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-[12px]">
-                            <span class="material-symbols-outlined text-[14px]">calendar_today</span>
-                            Né(e) le <span id="viewStudentBirthdate">-</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-[10px] font-semibold">
+                            <span class="material-symbols-outlined text-[12px]">calendar_today</span>
+                            <span id="viewStudentBirthdate">-</span>
                         </span>
                     </div>
                 </div>
             </div>
-            <div class="pt-5">
-                <h4 class="font-headline-md text-[20px] text-on-surface mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-[22px]">contact_mail</span>
-                    Informations scolaires
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-[22px]">class</span>
+
+            <div class="mb-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+                        <span class="material-symbols-outlined text-sm">school</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations scolaires</h4>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">class</span>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Classe</p>
-                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentClasse">-</p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Classe</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentClasse">-</p>
                         </div>
                     </div>
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-[22px]">account_tree</span>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">account_tree</span>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Niveau</p>
-                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentNiveau">-</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">category</span></div>
-                        <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Série</p><p class="font-body-md text-[16px]" id="viewStudentSerie">—</p></div>
-                    </div>
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-[22px]">wc</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Sexe</p>
-                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentSexeDetail">-</p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Niveau</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentNiveau">-</p>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                                <span class="material-symbols-outlined text-primary text-[22px]">location_on</span>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Lieu de naissance</p>
-                                <p class="font-body-md text-[16px] text-on-surface" id="viewStudentBirthplace">-</p>
-                            </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">category</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Série</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentSerie">—</p>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                                <span class="material-symbols-outlined text-primary text-[22px]">flag</span>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Nationalité</p>
-                                <p class="font-body-md text-[16px] text-on-surface" id="viewStudentNationalite">-</p>
-                            </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">wc</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Sexe</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentSexeDetail">-</p>
                         </div>
                     </div>
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-[22px]">bed</span>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">location_on</span>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Interne</p>
-                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentInterne">-</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                        <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-[22px]">assignment_turned_in</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Affecté</p>
-                            <p class="font-body-md text-[16px] text-on-surface" id="viewStudentAffecte">-</p>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Lieu de naissance</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentBirthplace">-</p>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30 hover:bg-surface-container-low transition-all duration-200">
-                            <div class="p-2 bg-primary-fixed/20 rounded-lg">
-                                <span class="material-symbols-outlined text-primary text-[22px]">family_restroom</span>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-label-sm text-[12px] text-text-muted uppercase tracking-wider">Parents / Tuteurs</p>
-                                <div class="mt-1 space-y-1">
-                                    <p class="font-body-md text-[16px] text-on-surface">Nom : <span id="viewStudentParentLastname">-</span></p>
-                                    <p class="font-body-md text-[16px] text-on-surface">Prénom : <span id="viewStudentParentFirstname">-</span></p>
-                                    <p class="font-body-md text-[16px] text-on-surface">Téléphone : <span id="viewStudentParentPhone">-</span></p>
-                                    <p class="font-body-md text-[16px] text-on-surface">Email : <span id="viewStudentParentEmail">-</span></p>
-                                </div>
-                            </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">flag</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Nationalité</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentNationalite">-</p>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">bed</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Interne</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentInterne">-</p>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">assignment_turned_in</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Affecté</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentAffecte">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <span class="material-symbols-outlined text-sm">family_restroom</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Parents / Tuteurs</h4>
+                </div>
+
+                <div class="p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Nom</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentLastname">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Prénom</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentFirstname">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Téléphone</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentPhone">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Email</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentParentEmail">-</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="mt-auto pt-4 pb-4 px-5 md:px-6 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 bg-white/95 rounded-b-2xl">
-            <div class="flex items-center gap-4 text-text-muted">
-                <span class="text-label-sm text-[12px] flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[16px]">event_note</span>
-                    Créé: <span id="viewStudentCreatedAt" class="text-on-surface font-medium">-</span>
+
+        <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-2 flex-shrink-0">
+            <div class="flex items-center gap-3 text-[10px] text-gray-500">
+                <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">event_note</span>
+                    Créé : <span id="viewStudentCreatedAt" class="text-gray-700 font-medium">-</span>
                 </span>
-                <span class="text-label-sm text-[12px] flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[16px]">update</span>
-                    Modifié: <span id="viewStudentUpdatedAt" class="text-on-surface font-medium">-</span>
+                <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">update</span>
+                    Modifié : <span id="viewStudentUpdatedAt" class="text-gray-700 font-medium">-</span>
                 </span>
             </div>
-            <div class="flex gap-2">
-                <button class="px-4 py-2 bg-warning-amber text-white rounded-lg font-label-md text-[14px] hover:bg-warning-amber/90 transition-all flex items-center gap-2" onclick="window.print()" type="button">
-                    <span class="material-symbols-outlined text-[18px]">print</span>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button type="button" onclick="window.print()"
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-xs font-semibold transition">
+                    <span class="material-symbols-outlined text-sm">print</span>
                     Imprimer
                 </button>
-                <button class="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-[14px] hover:bg-primary/90 transition-all flex items-center gap-2" onclick="closeModal('modal-view')" type="button">
-                    <span class="material-symbols-outlined text-[18px]">close</span>
+                <button type="button" onclick="closeModal('modal-view')"
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    <span class="material-symbols-outlined text-sm">check</span>
                     Fermer
                 </button>
             </div>
@@ -517,20 +651,31 @@
     </div>
 </div>
 
+{{-- MODAL MODIFIER --}}
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-edit">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-edit')"></div>
-    <div class="relative glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
-        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-warning-amber text-white sticky top-0 shadow-lg z-20">
-            <h3 class="font-headline-md text-headline-md">MODIFIER L'ÉLÈVE</h3>
-            <button class="hover:bg-white/20 rounded-full p-1 transition-colors" onclick="closeModal('modal-edit')" type="button">
-                <span class="material-symbols-outlined text-[20px]">close</span>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('modal-edit')"></div>
+    <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="modal-edit-content">
+
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Modifier l'élève</h3>
+                    <p class="text-[11px] text-gray-500">Mettre à jour les informations</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-8" id="form-edit" action="" method="POST" enctype="multipart/form-data">
+
+        <form class="flex-1 overflow-y-auto p-5" id="form-edit" action="" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="_method" value="PUT" />
-            <input type="hidden" name="editEleveId" id="editEleveId" value="" />
-            <input type="hidden" name="type_eleve" value="nouveau" />
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" name="editEleveId" id="editEleveId" value="">
+            <input type="hidden" name="type_eleve" value="nouveau">
             <input type="hidden" name="nom" id="editLastnameHidden">
             <input type="hidden" name="prenom" id="editFirstnameHidden">
             <input type="hidden" name="matricule" id="editMatriculeHidden">
@@ -544,286 +689,202 @@
             <input type="hidden" name="parent_telephone" id="editParentPhoneHidden">
             <input type="hidden" name="parent_email" id="editParentEmailHidden">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
-                        <span class="material-symbols-outlined text-[20px]">person</span>
-                        INFORMATIONS DE L'ÉLÈVE
-                    </h4>
-                    <div class="space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                <div class="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 space-y-3.5">
+                    <div class="flex items-center gap-2 pb-2 border-b border-gray-100">
+                        <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                            <span class="material-symbols-outlined text-sm">person</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations élève</h4>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLastname" required type="text">
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom <span class="text-rose-500">*</span></label>
+                            <input id="editLastname" type="text" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editFirstname" required type="text">
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom <span class="text-rose-500">*</span></label>
+                            <input id="editFirstname" type="text" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Matricule <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editMatricule" required type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Sexe <span class="text-alert-red">*</span></label>
-                            <div class="flex gap-6 mt-1">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="edit_sexe" value="Masculin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
-                                    <span class="text-body-sm text-on-surface">Masculin</span>
-                                    <span class="material-symbols-outlined text-[20px] text-warning-amber/60">male</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="edit_sexe" value="Féminin" class="w-4 h-4 text-warning-amber focus:ring-warning-amber focus:ring-2 border-outline-variant">
-                                    <span class="text-body-sm text-on-surface">Féminin</span>
-                                    <span class="material-symbols-outlined text-[20px] text-warning-amber/60">female</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Date de naissance <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthdate" required type="date">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Lieu de naissance</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editBirthPlace" type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nationalité</label>
-                            <div class="relative w-full ts-wrapper-custom">
-                                <select class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 pr-10 text-sm text-on-surface shadow-sm focus:border-warning-amber focus:outline-none focus:ring-1 focus:ring-warning-amber [&>option]:text-on-surface" id="editNationalite" name="nationalite" placeholder="Sélectionner une nationalité">
-                                    <option value="">Sélectionner une nationalité</option>
-                                    @foreach(config('nationalities') as $nationalite)
-                                        <option value="{{ $nationalite }}">{{ $nationalite }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 z-10">
-                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                                    </svg>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Matricule <span class="text-rose-500">*</span></label>
+                        <input id="editMatricule" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Sexe <span class="text-rose-500">*</span></label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="edit_sexe" value="Masculin" class="peer sr-only">
+                                <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 transition">
+                                    <span class="material-symbols-outlined text-sm">male</span>
+                                    Masculin
                                 </div>
-                            </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="edit_sexe" value="Féminin" class="peer sr-only">
+                                <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
+                                    <span class="material-symbols-outlined text-sm">female</span>
+                                    Féminin
+                                </div>
+                            </label>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Interne <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editInterne" name="interne" required>
-                                    <option value="1">Oui</option>
-                                    <option value="0">Non</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Affecté <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editAffecte" name="affecte" required>
-                                    <option value="1">Oui</option>
-                                    <option value="0">Non</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Niveau</label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editLevel">
-                                    <option value="">Sélectionner un niveau</option>
-                                    @foreach($levels ?? [] as $level)
-                                        <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-label-sm text-on-surface mb-1.5">Classe <span class="text-alert-red">*</span></label>
-                                <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editClasse" required disabled>
-                                    <option value="">Sélectionner d'abord un niveau</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="editSerieWrapper">
-                            <label class="block text-label-sm text-on-surface mb-1.5">Série</label>
-                            <select class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editSerie" name="id_serie"><option value="">Aucune série</option></select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Date de naissance <span class="text-rose-500">*</span></label>
+                            <input id="editBirthdate" type="date" required
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                         </div>
                         <div>
-                            <label class="block text-label-sm text-on-surface mb-3 text-center">Photo de l'élève</label>
-                            <div class="flex flex-col items-center justify-center gap-3 text-center">
-                                <div class="w-24 h-24 mx-auto shrink-0 rounded-full bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center overflow-hidden" id="photo-preview-edit">
-                                    <span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>
-                                </div>
-                                <div class="w-full max-w-sm mx-auto">
-                                    <input class="w-full text-body-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-label-md file:bg-warning-amber/20 file:text-warning-amber hover:file:bg-warning-amber/30" id="editPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-edit')">
-                                    <p class="text-[11px] text-text-muted mt-1">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
-                                </div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Lieu de naissance</label>
+                            <input id="editBirthPlace" type="text"
+                                   class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nationalité</label>
+                        <select id="editNationalite" name="nationalite" placeholder="Sélectionner une nationalité"
+                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition ts-wrapper-custom">
+                            <option value="">Sélectionner une nationalité</option>
+                            @foreach(config('nationalities') as $nationalite)
+                            <option value="{{ $nationalite }}">{{ $nationalite }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Interne <span class="text-rose-500">*</span></label>
+                            <select id="editInterne" name="interne" required
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Affecté <span class="text-rose-500">*</span></label>
+                            <select id="editAffecte" name="affecte" required
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
+                            <select id="editLevel"
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                                <option value="">Sélectionner un niveau</option>
+                                @foreach($levels ?? [] as $level)
+                                <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Classe <span class="text-rose-500">*</span></label>
+                            <select id="editClasse" required disabled
+                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition disabled:bg-gray-100 disabled:text-gray-400">
+                                <option value="">Choisir un niveau d'abord</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="editSerieWrapper">
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série</label>
+                        <select id="editSerie" name="id_serie"
+                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                            <option value="">Aucune série</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'élève</label>
+                        <div class="flex items-center gap-3">
+                            <div id="photo-preview-edit" class="w-16 h-16 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0 text-xs font-bold text-gray-500">
+                                <span class="material-symbols-outlined text-2xl text-gray-400">photo_camera</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input id="editPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-edit')"
+                                       class="w-full text-[11px] text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-amber-50 file:text-amber-600 hover:file:bg-amber-100 file:cursor-pointer">
+                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF — max 2 MB</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-6">
-                    <h4 class="font-label-md text-warning-amber flex items-center gap-2 border-b border-warning-amber/30 pb-2">
-                        <span class="material-symbols-outlined text-[20px]">family_restroom</span>
-                        INFORMATIONS DU PARENT
-                    </h4>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Nom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentLastname" required type="text">
+
+                <div class="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 space-y-3.5">
+                    <div class="flex items-center gap-2 pb-2 border-b border-gray-100">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                            <span class="material-symbols-outlined text-sm">family_restroom</span>
                         </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Prénom du Parent <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentFirstname" required type="text">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Téléphone <span class="text-alert-red">*</span></label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentPhone" required type="tel">
-                        </div>
-                        <div>
-                            <label class="block text-label-sm text-on-surface mb-1.5">Email</label>
-                            <input class="w-full rounded-lg border-outline-variant focus:ring-warning-amber focus:border-warning-amber" id="editParentEmail" type="email">
-                        </div>
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations parent</h4>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom du parent <span class="text-rose-500">*</span></label>
+                        <input id="editParentLastname" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom du parent <span class="text-rose-500">*</span></label>
+                        <input id="editParentFirstname" type="text" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone <span class="text-rose-500">*</span></label>
+                        <input id="editParentPhone" type="tel" required
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Email</label>
+                        <input id="editParentEmail" type="email"
+                               class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
                 </div>
             </div>
-            <div class="mt-10 flex justify-end gap-4 pt-6 border-t border-outline-variant">
-                <button class="px-6 py-2 text-on-surface-variant hover:bg-surface-subtle rounded-lg font-label-md transition-all" onclick="closeModal('modal-edit')" type="button">Annuler</button>
-                <button class="px-8 py-2 bg-warning-amber text-white rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 shadow-md" type="submit">Mettre à jour</button>
+
+            <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('modal-edit')"
+                        class="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition shadow-sm">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    Mettre à jour
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
-    .glass-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(226, 232, 240, 1);
-    }
-    .modal-overlay {
-        transition: backdrop-filter 0.3s ease;
-    }
-    #modal-standard, #modal-view, #modal-edit {
-        transition: opacity 0.3s ease;
-    }
-    @keyframes ping {
-        75%, 100% {
-            transform: scale(2);
-            opacity: 0;
-        }
-    }
-    .animate-ping {
-        animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
-    #modal-view-scroll::-webkit-scrollbar {
-        width: 6px;
-    }
-    #modal-view-scroll::-webkit-scrollbar-track {
-        background: transparent;
-        border-radius: 10px;
-    }
-    #modal-view-scroll::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-        transition: background 0.2s ease;
-    }
-    #modal-view-scroll::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    #modal-view-scroll {
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
-    }
-    .custom-scrollbar {
-        overflow-x: auto;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
-        padding-bottom: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 10px;
-        margin: 0 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-        transition: background 0.2s ease;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    tbody tr td {
-        vertical-align: middle !important;
-    }
-    tbody tr {
-        height: 60px;
-    }
-    tbody tr td .flex,
-    tbody tr td .inline-flex {
-        align-items: center;
-    }
-    .border-separate {
-        border-collapse: separate;
-    }
-    .border-spacing-y-2 {
-        border-spacing: 0 8px;
-    }
-    tbody tr {
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    tbody tr:first-child td:first-child {
-        border-top-left-radius: 8px;
-    }
-    tbody tr:first-child td:last-child {
-        border-top-right-radius: 8px;
-    }
-    tbody tr:last-child td:first-child {
-        border-bottom-left-radius: 8px;
-    }
-    tbody tr:last-child td:last-child {
-        border-bottom-right-radius: 8px;
-    }
-    .ts-wrapper-custom .ts-control {
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        background: transparent !important;
-        min-height: auto !important;
-        height: auto !important;
-        color: #64748B !important; 
-        display: block !important;
-        width: 100% !important;
-    }
-    .ts-wrapper-custom .ts-control > * {
-        padding: 8px 12px !important;
-        font-size: 0.875rem !important;
-        line-height: normal !important;
-    }
-    .ts-wrapper-custom .ts-control.has-items > * {
-        color: #1e293b !important;
-    }
-    .ts-wrapper-custom .ts-control .item {
-        margin: 0 !important;
-    }
-    .ts-wrapper-custom .ts-dropdown {
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 8px !important;
-        margin-top: 4px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        z-index: 50 !important;
-    }
-    .ts-wrapper-custom .ts-dropdown .option.active {
-        background-color: #f1f5f9 !important;
-        color: #1e293b !important;
-    }
-    .ts-wrapper-custom .ts-dropdown .option {
-        padding: 10px 12px !important;
-    }
-    .ts-wrapper-custom .ts-control::after {
-        display: none !important;
-    }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .ts-wrapper-custom .ts-control { border: none !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; min-height: auto !important; height: auto !important; color: #64748B !important; display: block !important; width: 100% !important; }
+    .ts-wrapper-custom .ts-control > * { padding: 8px 12px !important; font-size: 0.75rem !important; line-height: normal !important; }
+    .ts-wrapper-custom .ts-control.has-items > * { color: #1e293b !important; }
+    .ts-wrapper-custom .ts-control .item { margin: 0 !important; }
+    .ts-wrapper-custom .ts-dropdown { border: 1px solid #cbd5e1 !important; border-radius: 8px !important; margin-top: 4px !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important; z-index: 50 !important; }
+    .ts-wrapper-custom .ts-dropdown .option.active { background-color: #f1f5f9 !important; color: #1e293b !important; }
+    .ts-wrapper-custom .ts-dropdown .option { padding: 10px 12px !important; }
+    .ts-wrapper-custom .ts-control::after { display: none !important; }
 </style>
+
 @endsection
 
 @push('scripts')
@@ -881,7 +942,7 @@
             };
             reader.readAsDataURL(input.files[0]);
         } else {
-            preview.innerHTML = `<span class="material-symbols-outlined text-3xl text-text-muted">photo_camera</span>`;
+            preview.innerHTML = `<span class="material-symbols-outlined text-2xl text-gray-400">photo_camera</span>`;
         }
     }
 
@@ -898,18 +959,14 @@
             placeholder: 'Sélectionner une nationalité',
             render: {
                 option: function(data, escape) {
-                    return '<div class="flex items-center justify-between gap-3">' +
-                        '<span>' + escape(data.text) + '</span>' +
-                        '</div>';
+                    return '<div class="flex items-center justify-between gap-3"><span>' + escape(data.text) + '</span></div>';
                 },
                 item: function(data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
                 }
             }
         });
-        if (!window.tomSelectInstances) {
-            window.tomSelectInstances = {};
-        }
+        if (!window.tomSelectInstances) window.tomSelectInstances = {};
         window.tomSelectInstances[selectId] = instance;
     }
 
@@ -921,12 +978,14 @@
         document.getElementById('editLevel')?.addEventListener('change', () => populateClasses('editLevel', 'editClasse', 'editSerie', 'editSerieWrapper'));
         document.getElementById('stdClasse')?.addEventListener('change', () => populateSeries('stdClasse', 'stdSerie', 'stdSerieWrapper'));
         document.getElementById('editClasse')?.addEventListener('change', () => populateSeries('editClasse', 'editSerie', 'editSerieWrapper'));
+
         const oldLevelId = @json(old('niveau_id'));
         const oldClassId = @json(old('classe_id'));
         if (oldLevelId) {
             document.getElementById('stdLevel').value = oldLevelId;
             populateClasses('stdLevel', 'stdClasse', 'stdSerie', 'stdSerieWrapper', oldClassId, @json(old('id_serie')));
         }
+
         const standardForm = document.getElementById('form-standard');
         if (standardForm) {
             standardForm.addEventListener('submit', function(e) {
@@ -979,83 +1038,62 @@
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                const form = this.closest('form');
                 Swal.fire({
-                    title: 'Êtes-vous sûr ?',
-                    text: `L'élève "${this.dataset.name}" sera définitivement supprimé.`,
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+                        cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+                        title: 'text-base font-semibold',
+                        htmlContainer: 'text-xs text-gray-500'
+                    },
+                    buttonsStyling: false,
+                    reverseButtons: true,
+                    title: 'Supprimer cet élève ?',
+                    html: `L'élève <strong class="text-rose-600">"${this.dataset.name}"</strong> sera définitivement supprimé.`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#ba1a1a',
-                    cancelButtonColor: '#64748B',
                     confirmButtonText: 'Oui, supprimer',
                     cancelButtonText: 'Annuler',
-                    borderRadius: '12px'
+                    iconColor: '#e11d48'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.closest('form').submit();
-                    }
+                    if (result.isConfirmed) form.submit();
                 });
             }, true);
         });
 
         @if(session('success'))
             Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: @json(session('success')),
-                toast: false,
-                position: 'center',
-                showConfirmButton: false,
-                confirmButtonText: 'Fermer',
-                timer: 2500,
-                timerProgressBar: false,
-                customClass: {
-                    popup: 'rounded-2xl'
-                }
+                customClass: { popup: 'rounded-2xl', title: 'text-base font-semibold', htmlContainer: 'text-xs text-gray-500' },
+                buttonsStyling: false,
+                icon: 'success', title: 'Succès', text: @json(session('success')),
+                timer: 2500, showConfirmButton: false, position: 'center'
             });
         @endif
 
         @if(session('error'))
             Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: @json(session('error')),
-                toast: false,
-                position: 'center',
-                showConfirmButton: false,
-                confirmButtonText: 'Fermer',
-                timer: 3000,
-                timerProgressBar: false,
-                customClass: {
-                    popup: 'rounded-2xl'
-                }
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white', title: 'text-base font-semibold', htmlContainer: 'text-xs text-gray-500' },
+                buttonsStyling: false,
+                icon: 'error', title: 'Erreur', text: @json(session('error')),
+                confirmButtonText: 'OK', position: 'center'
             });
         @endif
     });
 
     function openModal(id) {
         const modal = document.getElementById(id);
-        const contentId = id + '-content';
-        const content = document.getElementById(contentId);
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        const content = document.getElementById(id + '-content');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
     }
 
     function closeModal(id) {
         const modal = document.getElementById(id);
-        const contentId = id + '-content';
-        const content = document.getElementById(contentId);
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 300);
+        const content = document.getElementById(id + '-content');
+        content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
     }
 
     function openViewModal(student) {
@@ -1067,8 +1105,7 @@
         document.getElementById('viewStudentClasse').textContent = student.classe ?? student.class ?? 'N/A';
         document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
         document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
-        const nationalite = student.nationalite ?? '-';
-        document.getElementById('viewStudentNationalite').textContent = nationalite;
+        document.getElementById('viewStudentNationalite').textContent = student.nationalite ?? '-';
         document.getElementById('viewStudentInterne').textContent = student.interne ? 'Oui' : 'Non';
         document.getElementById('viewStudentAffecte').textContent = student.affecte ? 'Oui' : 'Non';
 
@@ -1076,34 +1113,19 @@
         const sexeLower = sexeRaw.toLowerCase();
         let sexeDisplay = 'Non renseigné';
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
-        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
-        if (masculinValues.includes(sexeLower)) {
-            sexeDisplay = 'Masculin';
-        } else if (femininValues.includes(sexeLower)) {
-            sexeDisplay = 'Féminin';
-        } else if (sexeRaw === 'Masculin' || sexeRaw === 'MASCULIN') {
-            sexeDisplay = 'Masculin';
-        } else if (sexeRaw === 'Féminin' || sexeRaw === 'FEMININ' || sexeRaw === 'FÉMININ') {
-            sexeDisplay = 'Féminin';
-        }
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme'];
+        if (masculinValues.includes(sexeLower)) sexeDisplay = 'Masculin';
+        else if (femininValues.includes(sexeLower)) sexeDisplay = 'Féminin';
         document.getElementById('viewStudentSexeDetail').textContent = sexeDisplay;
 
         const parentLastname = student.parent_lastname ?? null;
         const parentFirstname = student.parent_firstname ?? null;
         const parentPhone = student.parent_phone ?? null;
         const parentEmail = student.parent_email ?? null;
-        const hasSeparatedParents = parentLastname || parentFirstname || parentPhone || parentEmail;
         document.getElementById('viewStudentParentLastname').textContent = parentLastname ?? '-';
         document.getElementById('viewStudentParentFirstname').textContent = parentFirstname ?? '-';
         document.getElementById('viewStudentParentPhone').textContent = parentPhone ?? '-';
         document.getElementById('viewStudentParentEmail').textContent = parentEmail ?? '-';
-        if (!hasSeparatedParents) {
-            const parentName = student.parent_name ?? 'N/A';
-            document.getElementById('viewStudentParentLastname').textContent = parentName;
-            document.getElementById('viewStudentParentFirstname').textContent = '-';
-            document.getElementById('viewStudentParentPhone').textContent = '-';
-            document.getElementById('viewStudentParentEmail').textContent = '-';
-        }
         document.getElementById('viewStudentCreatedAt').textContent = student.created_at ?? 'N/A';
         document.getElementById('viewStudentUpdatedAt').textContent = student.updated_at ?? 'N/A';
 
@@ -1116,15 +1138,11 @@
             image.alt = `Photo de ${fullName || 'l’élève'}`;
             image.className = 'w-full h-full object-cover object-center';
             image.addEventListener('error', () => {
-                photoContainer.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full"><span class="text-3xl font-bold text-primary">${initials}</span></div>`;
+                photoContainer.innerHTML = `<span class="text-3xl font-bold text-indigo-600">${initials}</span>`;
             }, { once: true });
             photoContainer.replaceChildren(image);
         } else {
-            photoContainer.innerHTML = `
-                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary-container/20 rounded-full">
-                    <span class="text-3xl font-bold text-primary">${initials}</span>
-                </div>
-            `;
+            photoContainer.innerHTML = `<span class="text-3xl font-bold text-indigo-600">${initials}</span>`;
         }
         openModal('modal-view');
     }
@@ -1146,10 +1164,10 @@
         const sexe = student.sexe ?? '';
         const sexeLower = sexe.toLowerCase();
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
-        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme', 'f'];
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme'];
         if (masculinValues.includes(sexeLower) || sexe === 'Masculin') {
             document.querySelector('input[name="edit_sexe"][value="Masculin"]').checked = true;
-        } else if (femininValues.includes(sexeLower) || sexe === 'Féminin' || sexe === 'FEMININ') {
+        } else if (femininValues.includes(sexeLower) || sexe === 'Féminin') {
             document.querySelector('input[name="edit_sexe"][value="Féminin"]').checked = true;
         }
         document.getElementById('editLastnameHidden').value = student.lastname ?? '';
@@ -1185,24 +1203,19 @@
             const image = document.createElement('img');
             image.src = photoUrlEdit;
             image.alt = `Photo de ${student.firstname ?? ''} ${student.lastname ?? ''}`.trim();
-            image.className = 'block w-full h-full object-cover object-center rounded-full';
+            image.className = 'block w-full h-full object-cover object-center';
             image.addEventListener('error', () => {
-                photoPreviewEdit.innerHTML = `<span class="text-2xl font-bold text-primary">${editInitials}</span>`;
+                photoPreviewEdit.innerHTML = `<span class="text-xl font-bold text-amber-600">${editInitials}</span>`;
             }, { once: true });
             photoPreviewEdit.replaceChildren(image);
         } else {
-            photoPreviewEdit.innerHTML = `<span class="text-2xl font-bold text-primary">${editInitials}</span>`;
+            photoPreviewEdit.innerHTML = `<span class="text-xl font-bold text-amber-600">${editInitials}</span>`;
         }
         openModal('modal-edit');
     }
 
-    function viewStudent(student) {
-        openViewModal(student);
-    }
-
-    function editStudent(student) {
-        openEditModal(student);
-    }
+    function viewStudent(student) { openViewModal(student); }
+    function editStudent(student) { openEditModal(student); }
 
     function validateAge(inputDate, warningId) {
         if (!inputDate) return true;
@@ -1210,9 +1223,7 @@
         const today = new Date();
         let age = today.getFullYear() - birth.getFullYear();
         const m = today.getMonth() - birth.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-            age--;
-        }
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
         if (age < 5) {
             $(`#${warningId}`).removeClass('hidden');
             return false;
@@ -1228,12 +1239,9 @@
         });
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
-                const modals = ['modal-standard', 'modal-view', 'modal-edit'];
-                modals.forEach(id => {
+                ['modal-standard', 'modal-view', 'modal-edit'].forEach(id => {
                     const modal = document.getElementById(id);
-                    if (modal && modal.classList.contains('flex')) {
-                        closeModal(id);
-                    }
+                    if (modal && modal.classList.contains('flex')) closeModal(id);
                 });
             }
         });

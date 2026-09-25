@@ -2,6 +2,10 @@
 @section('title', 'EduManager - Gestion des Notes')
 @section('content')
 
+<!-- SweetAlert2 CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- Header & Actions -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5">
     <div>
@@ -107,7 +111,6 @@
                 @if(($subjects ?? collect())->count() === 1)
                     <div class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg text-xs py-1.5 px-3 font-semibold text-primary flex items-center justify-between h-[34px]">
                         <span>{{ $subjects->first()->nom }}</span>
-                       
                     </div>
                     <input type="hidden" name="matiere_id" value="{{ $subjects->first()->id }}">
                 @else
@@ -159,12 +162,12 @@
                 <p class="text-[11px] text-text-muted">Soumettez les notes de cette classe et matière au personnel administratif.</p>
             </div>
         </div>
-        <form method="POST" action="{{ route('enseignant.notes.soumettre') }}" class="inline">
+        <form method="POST" action="{{ route('enseignant.notes.soumettre') }}" class="inline" id="soumissionForm">
             @csrf
             <input type="hidden" name="classe_id" value="{{ $selectedClass }}">
             <input type="hidden" name="matiere_id" value="{{ $selectedSubject }}">
             <input type="hidden" name="periode" value="{{ $selectedPeriode }}">
-            <button type="submit" class="bg-primary text-white text-xs px-4 py-2 rounded-lg font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 card-shadow" onclick="return confirm('Soumettre ces notes au personnel pour vérification ?');">
+            <button type="button" onclick="confirmSoumission()" class="bg-primary text-white text-xs px-4 py-2 rounded-lg font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 card-shadow">
                 <span class="material-symbols-outlined text-sm">assignment_turned_in</span>
                 Soumettre pour validation
             </button>
@@ -336,7 +339,6 @@
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="noteModal">
     <div class="absolute inset-0 modal-overlay backdrop-blur-sm bg-black/40" onclick="closeModal()"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-2xl border border-outline-variant overflow-hidden transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="noteModalContent">
-        <!-- Header -->
         <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white">
             <h3 class="font-headline-md text-base" id="modalTitle">Ajouter une note</h3>
             <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal()">
@@ -344,13 +346,11 @@
             </button>
         </div>
         
-        <!-- Formulaire -->
         <form class="px-6 py-5 space-y-4" id="gradeForm" method="POST" action="{{ route('enseignant.notes.store') }}">
             @csrf
             <input type="hidden" id="gradeId" name="grade_id">
             <input type="hidden" id="methodField" name="_method" value="POST">
-            
-            <!-- Classe + Matière -->
+
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <label class="block text-xs font-semibold text-on-surface">Classe</label>
@@ -379,7 +379,6 @@
                 </div>
             </div>
             
-            <!-- Élève -->
             <div class="space-y-1">
                 <label class="block text-xs font-semibold text-on-surface">Élève</label>
                 <select class="w-full bg-surface rounded-lg border-outline-variant focus:border-primary focus:ring-primary py-2 px-3 text-xs" name="eleve_id" id="studentId" required>
@@ -390,7 +389,6 @@
                 </select>
             </div>
 
-            <!-- Titre & Type d'évaluation (Devoir, Interro, etc.) -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <label class="block text-xs font-semibold text-on-surface">Titre de l'évaluation</label>
@@ -407,7 +405,6 @@
                 </div>
             </div>
             
-            <!-- Période + Note -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <label class="block text-xs font-semibold text-on-surface">Période</label>
@@ -423,7 +420,6 @@
                 </div>
             </div>
             
-            <!-- Aperçu appréciation -->
             <div class="bg-surface-container-low p-3 rounded-lg border border-outline-variant/30 text-center flex flex-col items-center justify-center">
                 <span class="text-[10px] uppercase font-bold text-text-muted tracking-widest">Appréciation suggérée</span>
                 <div class="text-sm font-semibold italic text-primary" id="appreciationResult">
@@ -431,7 +427,6 @@
                 </div>
             </div>
             
-            <!-- Actions -->
             <div class="flex justify-end gap-3 pt-2">
                 <button class="px-4 py-2 text-xs font-medium text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" onclick="closeModal()" type="button">
                     Annuler
@@ -458,7 +453,7 @@
             </button>
         </div>
 
-        <form class="p-6 space-y-4 overflow-y-auto flex-1" method="POST" action="{{ route('enseignant.notes.bulk-store') }}">
+        <form class="p-6 space-y-4 overflow-y-auto flex-1" method="POST" action="{{ route('enseignant.notes.bulk-store') }}" id="bulkForm">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
@@ -512,7 +507,6 @@
                 </div>
             </div>
 
-            <!-- Grille des élèves -->
             <div class="mt-4 border rounded-lg overflow-hidden">
                 <div class="bg-surface-container-low px-4 py-2 border-b font-semibold text-xs text-primary flex justify-between">
                     <span>Élève</span>
@@ -548,6 +542,68 @@
 
 @push('scripts')
 <script>
+// CONFIGURATION GLOBALE SWEETALERT2
+const SwalCustom = Swal.mixin({
+    customClass: {
+        popup: 'rounded-xl',
+        confirmButton: 'bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 mx-1 cursor-pointer',
+        cancelButton: 'bg-surface-variant text-on-surface px-4 py-2 rounded-lg text-xs font-medium hover:bg-outline-variant/30 mx-1 cursor-pointer',
+        title: 'text-base font-semibold',
+        htmlContainer: 'text-xs text-text-muted'
+    },
+    buttonsStyling: false,
+    reverseButtons: true
+});
+
+// MESSAGES FLASH (succès / erreur / warning / erreurs validation)
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Succès',
+        text: @json(session('success')),
+        confirmButtonText: 'OK',
+        timer: 2000,
+        timerProgressBar: false,
+        position: 'center',         
+        showConfirmButton: false
+    });
+@endif
+
+@if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: @json(session('error')),
+        confirmButtonText: 'OK',
+        position: 'center'          
+    });
+@endif
+
+@if(session('warning'))
+    Swal.fire({
+        icon: 'warning',
+        title: 'Attention',
+        text: @json(session('warning')),
+        confirmButtonText: 'Compris',
+        position: 'center'          
+    });
+@endif
+
+@if($errors->any())
+    Swal.fire({
+        icon: 'error',
+        title: 'Erreur de validation',
+        html: `<ul class="text-left text-xs list-disc pl-5">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>`,
+        confirmButtonText: 'Corriger',
+        position: 'center'          
+    });
+@endif
+
+// MODALES
 function openModal() {
     const modal = document.getElementById('noteModal');
     const content = document.getElementById('noteModalContent');
@@ -600,11 +656,45 @@ function closeBulkModal() {
     }, 300);
 }
 
-function editGrade(id, isValidated = false) {
-    if (isValidated && !confirm('Cette note est validée. Sa modification invalidera les validations précédentes et nécessitera une nouvelle validation. Continuer ?')) {
-        return;
-    }
+// SOUMISSION POUR VALIDATION
+function confirmSoumission() {
+    SwalCustom.fire({
+        icon: 'question',
+        title: 'Soumettre pour validation ?',
+        html: 'Les notes de cette classe et matière seront envoyées au <strong>personnel administratif</strong> pour vérification.<br><br>Vous ne pourrez plus les modifier tant qu\'elles n\'auront pas été traitées.',
+        showCancelButton: true,
+        confirmButtonText: '<span class="material-symbols-outlined text-sm align-middle">send</span> Soumettre',
+        cancelButtonText: 'Annuler',
+        iconColor: '#3b82f6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('soumissionForm').submit();
+        }
+    });
+}
 
+// ÉDITION D'UNE NOTE
+function editGrade(id, isValidated = false) {
+    if (isValidated) {
+        SwalCustom.fire({
+            icon: 'warning',
+            title: 'Note validée',
+            html: 'Cette note est <strong>validée</strong>. Sa modification invalidera les validations précédentes et nécessitera une nouvelle validation.<br><br>Continuer ?',
+            showCancelButton: true,
+            confirmButtonText: '<span class="material-symbols-outlined text-sm align-middle">edit</span> Continuer',
+            cancelButtonText: 'Annuler',
+            iconColor: '#f59e0b'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                loadGradeForEdit(id);
+            }
+        });
+    } else {
+        loadGradeForEdit(id);
+    }
+}
+
+function loadGradeForEdit(id) {
     fetch(`{{ url('/enseignant/notes') }}/${id}/edit`, {
         headers: {
             'Accept': 'application/json',
@@ -638,21 +728,45 @@ function editGrade(id, isValidated = false) {
         }, 10);
     })
     .catch(err => {
-        alert('Erreur lors du chargement de la note.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'Impossible de charger la note. Veuillez réessayer.',
+            confirmButtonText: 'OK'
+        });
     });
 }
 
+// SUPPRESSION D'UNE NOTE
 function confirmDelete(id, isValidated = false) {
-    const message = isValidated
-        ? 'Cette note est publiée ou validée. Sa suppression la retirera du bulletin et nécessitera une nouvelle validation. Confirmer la suppression ?'
-        : 'Êtes-vous sûr de vouloir supprimer cette note ?';
-    if (confirm(message)) {
-        const form = document.getElementById('deleteForm');
-        form.action = `{{ url('/enseignant/notes') }}/${id}`;
-        form.submit();
-    }
+    const config = isValidated ? {
+        icon: 'warning',
+        title: 'Supprimer cette note ?',
+        html: 'Cette note est <strong class="text-rose-600">publiée ou validée</strong>.<br>Sa suppression la retirera du bulletin et nécessitera une nouvelle validation.',
+        confirmButtonText: '<span class="material-symbols-outlined text-sm align-middle">delete</span> Supprimer',
+        cancelButtonText: 'Annuler',
+    } : {
+        icon: 'question',
+        title: 'Confirmer la suppression',
+        text: 'Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.',
+        confirmButtonText: '<span class="material-symbols-outlined text-sm align-middle">delete</span> Supprimer',
+        cancelButtonText: 'Annuler',
+    };
+
+    SwalCustom.fire({
+        ...config,
+        showCancelButton: true,
+        iconColor: '#e11d48'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('deleteForm');
+            form.action = `{{ url('/enseignant/notes') }}/${id}`;
+            form.submit();
+        }
+    });
 }
 
+// APPRÉCIATION
 function updateAppreciation() {
     const val = parseFloat(document.getElementById('noteInput').value);
     const res = document.getElementById('appreciationResult');
@@ -667,6 +781,7 @@ function updateAppreciation() {
     else res.textContent = 'Insuffisant';
 }
 
+// CHARGEMENT DYNAMIQUE DES ÉLÈVES
 function loadStudentsForClass(classId) {
     if (!classId) return;
     fetch(`{{ route('enseignant.notes.data') }}?classe_id=${classId}`)
@@ -676,6 +791,14 @@ function loadStudentsForClass(classId) {
             sel.innerHTML = '<option value="">Sélectionner un élève</option>';
             data.students.forEach(s => {
                 sel.innerHTML += `<option value="${s.id}">${s.nom} ${s.prenom}</option>`;
+            });
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Impossible de charger la liste des élèves.',
+                confirmButtonText: 'OK'
             });
         });
 }
@@ -699,7 +822,58 @@ function loadBulkStudents(classId) {
                     </div>
                 `;
             });
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Impossible de charger la liste des élèves.',
+                confirmButtonText: 'OK'
+            });
         });
 }
+
+// VALIDATIONS FORMULAIRES
+document.addEventListener('DOMContentLoaded', function() {
+    // Formulaire note individuelle
+    const gradeForm = document.getElementById('gradeForm');
+    if (gradeForm) {
+        gradeForm.addEventListener('submit', function(e) {
+            const note = parseFloat(document.getElementById('noteInput').value);
+            if (isNaN(note) || note < 0 || note > 20) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Note invalide',
+                    text: 'La note doit être comprise entre 0 et 20.',
+                    confirmButtonText: 'Corriger'
+                });
+                return false;
+            }
+        });
+    }
+
+    // Formulaire saisie groupée
+    const bulkForm = document.getElementById('bulkForm');
+    if (bulkForm) {
+        bulkForm.addEventListener('submit', function(e) {
+            const inputs = bulkForm.querySelectorAll('input[name^="notes["]');
+            let hasValue = false;
+            inputs.forEach(inp => {
+                if (inp.value !== '' && inp.value !== null) hasValue = true;
+            });
+            if (!hasValue) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Aucune note saisie',
+                    text: 'Veuillez saisir au moins une note avant d\'enregistrer.',
+                    confirmButtonText: 'Compris'
+                });
+                return false;
+            }
+        });
+    }
+});
 </script>
 @endpush

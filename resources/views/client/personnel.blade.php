@@ -7,42 +7,16 @@
     let personnelsData = @json($personnels);
 </script>
 
-<!-- Page Header -->
-<div class="flex justify-between items-end mb-8">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary mb-1">Gestion du Personnel</h2>
-        <p class="text-text-muted font-body-lg text-body-lg">Gérez les utilisateurs de votre établissement</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion du Personnel</h2>
+        <p class="text-sm text-gray-500 mt-1">Gérez les utilisateurs de votre établissement</p>
     </div>
-    <button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-label-md text-label-md hover:bg-opacity-90 transition-all active:scale-95 whitespace-nowrap shadow-md" onclick="openModal('add-user-modal')">
-        <span class="material-symbols-outlined text-[20px]">person_add</span>
+    <button onclick="openModal('add-user-modal')" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <span class="material-symbols-outlined text-sm">person_add</span>
         Ajouter un utilisateur
     </button>
 </div>
-
-@if (session('success'))
-    <script>
-        Swal.fire({
-            title: 'Succès !',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#1f108e',
-            borderRadius: '12px',
-            timer: 3000
-        });
-    </script>
-@endif
-
-@if ($errors->any())
-    <script>
-        Swal.fire({
-            title: 'Erreur !',
-            html: `{!! implode('<br>', $errors->all()) !!}`,
-            icon: 'error',
-            confirmButtonColor: '#1f108e',
-            borderRadius: '12px'
-        });
-    </script>
-@endif
 
 @php
     $totalEmployes = $personnels->count();
@@ -50,493 +24,514 @@
     $bloques = $personnels->where('statut', 'bloqué')->count();
 @endphp
 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop mb-8">
-    <div class="bg-white p-6 rounded-xl custom-shadow border border-[#E2E8F0] flex items-center gap-4">
-        <div class="w-12 h-12 bg-primary-fixed flex items-center justify-center rounded-lg text-primary">
-            <span class="material-symbols-outlined text-[32px]">group</span>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-lg">group</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
         </div>
-        <div>
-            <p class="text-text-muted font-label-md text-label-md">Total Employés</p>
-            <p class="font-headline-lg text-headline-lg text-on-surface">{{ $totalEmployes }}</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalEmployes }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Employés</p>
     </div>
-    <div class="bg-white p-6 rounded-xl custom-shadow border border-[#E2E8F0] flex items-center gap-4">
-        <div class="w-12 h-12 bg-secondary-container flex items-center justify-center rounded-lg text-secondary">
-            <span class="material-symbols-outlined text-[32px]">person_check</span>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <span class="material-symbols-outlined text-lg">how_to_reg</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Actifs</span>
         </div>
-        <div>
-            <p class="text-text-muted font-label-md text-label-md">Actifs</p>
-            <p class="font-headline-lg text-headline-lg text-on-surface">{{ $actifs }}</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-emerald-600">{{ $actifs }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">En service</p>
     </div>
-    <div class="bg-white p-6 rounded-xl custom-shadow border border-[#E2E8F0] flex items-center gap-4">
-        <div class="w-12 h-12 bg-error-container flex items-center justify-center rounded-lg text-error">
-            <span class="material-symbols-outlined text-[32px]">block</span>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+                <span class="material-symbols-outlined text-lg">block</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Bloqués</span>
         </div>
-        <div>
-            <p class="text-text-muted font-label-md text-label-md">Bloqués</p>
-            <p class="font-headline-lg text-headline-lg text-on-surface">{{ $bloques }}</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-rose-600">{{ $bloques }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Accès suspendu</p>
     </div>
 </div>
 
-<!-- Content Card with List -->
-<div class="bg-white rounded-xl custom-shadow border border-[#E2E8F0] overflow-hidden">
-    <div class="p-6 border-b border-[#F1F5F9] flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 class="font-headline-md text-headline-md text-on-surface">Liste du personnel</h3>
-        <div class="relative w-full md:w-80">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
-            <input id="searchEmployee" class="pl-10 pr-4 py-2.5 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-body-sm w-full" placeholder="Rechercher un employé par nom, email ou poste..." type="text">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">badge</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900">Liste du personnel</h3>
+                <p class="text-[11px] text-gray-500">{{ $totalEmployes }} membre(s) enregistré(s)</p>
+            </div>
+        </div>
+        <div class="relative w-full sm:w-72">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">search</span>
+            <input id="searchEmployee" type="text" placeholder="Rechercher..."
+                   class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 pl-10 pr-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
         </div>
     </div>
 
-    <!-- Modern Table -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="employeesTable">
-            <thead class="bg-surface-container-low">
-                <tr>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Employé</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Email</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Téléphone</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Établissement</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Rôle</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Statut</th>
-                    <th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase tracking-wider text-right">Actions</th>
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left" id="employeesTable">
+            <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/50">
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Employé</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Établissement</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Rôle</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[#F1F5F9]">
+            <tbody class="divide-y divide-gray-100">
                 @forelse ($personnels as $p)
-                    <tr class="employee-row hover:bg-surface-bright transition-colors"
-                        data-name="{{ strtolower(($p->nom ?? '').' '.($p->prenom ?? '')) }}"
-                        data-email="{{ strtolower($p->email ?? '') }}"
-                        data-position="{{ strtolower($p->role ?? '') }}">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <span class="font-label-md text-label-md text-on-surface">
-                                    {{ $p->nom }} {{ $p->prenom }}
-                                </span>
+                <tr class="employee-row hover:bg-gray-50/50 transition-colors"
+                    data-name="{{ strtolower(($p->nom ?? '').' '.($p->prenom ?? '')) }}"
+                    data-email="{{ strtolower($p->email ?? '') }}"
+                    data-position="{{ strtolower($p->role ?? '') }}">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-gray-900 truncate">{{ $p->nom }} {{ $p->prenom }}</p>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $p->email }}</td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $p->telephone }}</td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
-                            {{ optional($p->etablissement)->nom ?? '—' }}
-                        </td>
-                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">
-                            <span class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">Personnel</span>
-                        </td>
-                        <td class="px-6 py-4">
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-gray-700 truncate">{{ $p->email }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $p->telephone ?? '—' }}</p>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-gray-700">{{ optional($p->etablissement)->nom ?? '—' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase">Personnel</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        @if (($p->statut ?? '') === 'actif')
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Actif
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                Bloqué
+                            </span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="openEditModal({{ $p->id }})"
+                                    class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                                    title="Modifier">
+                                <span class="material-symbols-outlined text-base">edit</span>
+                            </button>
+
                             @if (($p->statut ?? '') === 'actif')
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-success-green/10 text-success-green">
-                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                    Actif
-                                </span>
+                                <button onclick="confirmBlock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                                        class="w-8 h-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition"
+                                        title="Bloquer">
+                                    <span class="material-symbols-outlined text-base">block</span>
+                                </button>
                             @else
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-error-container/20 text-error">
-                                    <span class="material-symbols-outlined text-[14px]">block</span>
-                                    Bloqué
-                                </span>
+                                <button onclick="confirmUnblock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition"
+                                        title="Débloquer">
+                                    <span class="material-symbols-outlined text-base">lock_open</span>
+                                </button>
                             @endif
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <button type="button"
-                                        class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all"
-                                        title="Modifier"
-                                        onclick="openEditModal({{ $p->id }})">
-                                    <span class="material-symbols-outlined text-[20px]">edit</span>
-                                </button>
 
-                                @if (($p->statut ?? '') === 'actif')
-                                    <button type="button"
-                                            onclick="confirmBlock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
-                                            class="p-1.5 text-on-surface-variant hover:text-alert-red hover:bg-error-container rounded-lg transition-all"
-                                            title="Bloquer">
-                                        <span class="material-symbols-outlined text-[20px]">block</span>
-                                    </button>
-                                @else
-                                    <button type="button"
-                                            onclick="confirmUnblock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
-                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded-lg transition-all"
-                                            title="Débloquer">
-                                        <span class="material-symbols-outlined text-[20px]">lock_open</span>
-                                    </button>
-                                @endif
-
-                                <button type="button"
-                                        onclick="confirmDelete({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
-                                        class="p-1.5 text-on-surface-variant hover:text-alert-red hover:bg-error-container rounded-lg transition-all"
-                                        title="Supprimer">
-                                    <span class="material-symbols-outlined text-[20px]">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                            <button onclick="confirmDelete({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                                    class="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                    title="Supprimer">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
                 @empty
-                    <tr>
-                        <td class="px-6 py-10 text-center" colspan="7">Aucun personnel.</td>
-                    </tr>
+                <tr>
+                    <td colspan="6" class="py-16 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
+                                <span class="material-symbols-outlined text-2xl text-gray-300">badge</span>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-700">Aucun personnel</p>
+                            <p class="text-xs text-gray-400 mt-1">Ajoutez votre premier utilisateur.</p>
+                        </div>
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    <div class="px-6 py-4 border-t border-[#F1F5F9] flex items-center justify-between text-label-sm text-text-muted font-label-sm">
-        <span id="paginationInfo">Affichage de 1 sur {{ $totalEmployes }} employés</span>
-        <div class="flex items-center gap-2">
-            <button class="px-3 py-1 border border-outline-variant rounded-lg opacity-50 cursor-not-allowed">Précédent</button>
-            <button class="px-3 py-1 bg-primary text-white rounded-lg">1</button>
-            <button class="px-3 py-1 border border-outline-variant rounded-lg opacity-50 cursor-not-allowed">Suivant</button>
+    <div class="md:hidden divide-y divide-gray-100">
+        @forelse ($personnels as $p)
+        <div class="employee-row p-4 space-y-3"
+             data-name="{{ strtolower(($p->nom ?? '').' '.($p->prenom ?? '')) }}"
+             data-email="{{ strtolower($p->email ?? '') }}"
+             data-position="{{ strtolower($p->role ?? '') }}">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs font-bold flex-shrink-0">
+                        {{ strtoupper(substr($p->nom ?? 'P', 0, 1)) }}{{ strtoupper(substr($p->prenom ?? '', 0, 1)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $p->nom }} {{ $p->prenom }}</p>
+                        <p class="text-[11px] text-gray-500 truncate">{{ $p->email }}</p>
+                    </div>
+                </div>
+                @if (($p->statut ?? '') === 'actif')
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 flex-shrink-0">Actif</span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 flex-shrink-0">Bloqué</span>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 py-1 text-[11px]">
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Téléphone</p>
+                    <p class="text-xs text-gray-700 mt-0.5">{{ $p->telephone ?? '—' }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Établissement</p>
+                    <p class="text-xs text-gray-700 mt-0.5 truncate">{{ optional($p->etablissement)->nom ?? '—' }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+                <button onclick="openEditModal({{ $p->id }})"
+                        class="flex-1 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <span class="material-symbols-outlined text-sm">edit</span>Modifier
+                </button>
+                @if (($p->statut ?? '') === 'actif')
+                    <button onclick="confirmBlock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                            class="flex-1 h-9 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <span class="material-symbols-outlined text-sm">block</span>Bloquer
+                    </button>
+                @else
+                    <button onclick="confirmUnblock({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                            class="flex-1 h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <span class="material-symbols-outlined text-sm">lock_open</span>Débloquer
+                    </button>
+                @endif
+                <button onclick="confirmDelete({{ $p->id }}, '{{ addslashes($p->nom . ' ' . $p->prenom) }}')"
+                        class="w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+            </div>
+        </div>
+        @empty
+        <div class="py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-2xl text-gray-300">badge</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">Aucun personnel</p>
+            <p class="text-xs text-gray-400 mt-1">Ajoutez votre premier utilisateur.</p>
+        </div>
+        @endforelse
+    </div>
+
+    <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <span id="paginationInfo" class="text-[11px] text-gray-500">
+            Affichage de {{ $totalEmployes }} sur {{ $totalEmployes }} employé(s)
+        </span>
+        <div class="flex items-center gap-1.5 text-xs">
+            <button class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[11px] font-semibold">1</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Ajouter un utilisateur -->
-<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="add-user-modal">
-    <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('add-user-modal')"></div>
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="add-user-modal-content">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md">Ajouter un utilisateur</h3>
-            <button class="p-2 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('add-user-modal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="add-user-modal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('add-user-modal')"></div>
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh]" id="add-user-modal-content">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">person_add</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter un utilisateur</h3>
+                    <p class="text-[11px] text-gray-500">Créez un nouveau compte personnel</p>
+                </div>
+            </div>
+            <button onclick="closeModal('add-user-modal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <div class="flex-1 overflow-y-auto p-6">
+
+        <div class="flex-1 overflow-y-auto p-5">
             <form id="addUserForm" method="POST" action="{{ route('client.personnel.store') }}">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Nom <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Entrez le nom" type="text" name="nom" value="{{ old('nom') }}" required>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nom" value="{{ old('nom') }}" required placeholder="Entrez le nom"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Prénom <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Entrez le prénom" type="text" name="prenom" value="{{ old('prenom') }}" required>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom <span class="text-rose-500">*</span></label>
+                        <input type="text" name="prenom" value="{{ old('prenom') }}" required placeholder="Entrez le prénom"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Téléphone <span class="text-alert-red">*</span></label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">phone</span>
-                            <input class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="00 00 00 00" type="tel" name="telephone" value="{{ old('telephone') }}" required>
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="telephone" value="{{ old('telephone') }}" required placeholder="00 00 00 00"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Email <span class="text-alert-red">*</span></label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-                            <input class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="exemple@mail.com" type="email" name="email" value="{{ old('email') }}" required>
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Email <span class="text-rose-500">*</span></label>
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="exemple@mail.com"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Établissement</label>
-                        <input type="text" class="w-full px-4 py-2 border border-outline-variant rounded-lg bg-gray-100" value="{{ auth()->user()->etablissement->nom ?? '—' }}" disabled>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Établissement</label>
+                        <input type="text" value="{{ auth()->user()->etablissement->nom ?? '—' }}" disabled
+                               class="w-full bg-gray-100 border border-gray-200 rounded-lg text-xs py-2.5 px-3 text-gray-500">
                         <input type="hidden" name="etablissement_id" value="{{ auth()->user()->etablissement_id }}">
-                        <p class="text-label-sm text-text-muted mt-1">(Défini automatiquement pour votre client)</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Défini automatiquement</p>
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Mot de passe <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" type="password" name="password" required>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Mot de passe <span class="text-rose-500">*</span></label>
+                        <input type="password" name="password" required placeholder="••••••••"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Confirmer le mot de passe <span class="text-alert-red">*</span></label>
-                        <input class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" type="password" name="password_confirmation" required>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Confirmer <span class="text-rose-500">*</span></label>
+                        <input type="password" name="password_confirmation" required placeholder="••••••••"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
                 </div>
                 <input type="hidden" name="role" value="personnel">
-                <div class="mt-6 flex justify-end gap-4">
-                    <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" type="button" onclick="closeModal('add-user-modal')">Annuler</button>
-                    <button class="px-6 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:opacity-90 transition-all shadow-md" type="submit">Créer l'utilisateur</button>
+
+                <div class="flex justify-end gap-2 pt-5">
+                    <button type="button" onclick="closeModal('add-user-modal')"
+                            class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                        Créer l'utilisateur
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal: Modifier l'utilisateur -->
-<div class="hidden fixed inset-0 z-[100] items-center justify-center p-4" id="edit-user-modal">
-    <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('edit-user-modal')"></div>
-    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="edit-user-modal-content">
-        <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-primary text-white flex-shrink-0">
-            <h3 class="font-headline-md text-headline-md">Modifier l'utilisateur</h3>
-            <button class="p-2 hover:bg-white/20 rounded-full transition-colors" onclick="closeModal('edit-user-modal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="edit-user-modal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('edit-user-modal')"></div>
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh]" id="edit-user-modal-content">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Modifier l'utilisateur</h3>
+                    <p class="text-[11px] text-gray-500">Mise à jour des informations</p>
+                </div>
+            </div>
+            <button onclick="closeModal('edit-user-modal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <div class="flex-1 overflow-y-auto p-6">
+
+        <div class="flex-1 overflow-y-auto p-5">
             <form id="editForm" method="POST" action="">
-                @csrf
-                @method('PUT')
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Nom</label>
-                        <input id="edit_nom" name="nom" class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary" type="text" value="">
+                @csrf @method('PUT')
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom</label>
+                        <input id="edit_nom" name="nom" type="text"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Prénom</label>
-                        <input id="edit_prenom" name="prenom" class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary" type="text" value="">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom</label>
+                        <input id="edit_prenom" name="prenom" type="text"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Téléphone</label>
-                        <input id="edit_telephone" name="telephone" class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary" type="tel" value="">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone</label>
+                        <input id="edit_telephone" name="telephone" type="tel"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Email</label>
-                        <input id="edit_email" name="email" class="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary" type="email" value="">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Email</label>
+                        <input id="edit_email" name="email" type="email"
+                               class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Établissement</label>
-                        <input type="text" class="w-full px-4 py-2 border border-outline-variant rounded-lg bg-gray-100" id="edit_etablissement_text" value="" disabled>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Établissement</label>
+                        <input type="text" id="edit_etablissement_text" disabled
+                               class="w-full bg-gray-100 border border-gray-200 rounded-lg text-xs py-2.5 px-3 text-gray-500">
                         <input type="hidden" id="edit_etablissement_id" name="etablissement_id">
-                        <p class="text-label-sm text-text-muted mt-1">(Non modifiable)</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Non modifiable</p>
                     </div>
-                    <div class="space-y-2">
-                        <label class="font-label-md text-label-md text-on-surface">Rôle</label>
-                        <input type="text" class="w-full px-4 py-2 border border-outline-variant rounded-lg bg-gray-100" id="edit_role" value="Personnel" disabled>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Rôle</label>
+                        <input type="text" disabled value="Personnel"
+                               class="w-full bg-gray-100 border border-gray-200 rounded-lg text-xs py-2.5 px-3 text-gray-500">
                         <input type="hidden" name="role" value="personnel">
-                        <p class="text-label-sm text-text-muted mt-1">(Rôle non modifiable)</p>
                     </div>
                 </div>
-                <div class="mt-6 flex justify-end gap-4">
-                    <button class="px-6 py-2.5 border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-subtle transition-all" type="button" onclick="closeModal('edit-user-modal')">Annuler</button>
-                    <button class="px-6 py-2.5 bg-primary text-white font-label-md text-label-md rounded-lg hover:opacity-90 shadow-md" type="submit">Enregistrer les modifications</button>
+
+                <div class="flex justify-end gap-2 pt-5">
+                    <button type="button" onclick="closeModal('edit-user-modal')"
+                            class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                            class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                        Enregistrer
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    #add-user-modal, #edit-user-modal {
-        transition: opacity 0.3s ease;
-    }
-    .modal-backdrop {
-        transition: backdrop-filter 0.3s ease;
-    }
-</style>
+@endsection
 
+@push('scripts')
 <script>
-    function openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId + '-content';
-        const content = document.getElementById(contentId);
+    const swalConfig = {
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-xs text-gray-500'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    };
 
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+    @if(session('success'))
+        Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
+    @endif
+    @if($errors->any())
+        Swal.fire({
+            ...swalConfig,
+            icon: 'error',
+            title: 'Erreur de validation',
+            html: `<ul class="text-left text-xs list-disc pl-5 space-y-0.5">
+                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>`,
+            confirmButtonText: 'Corriger'
+        });
+    @endif
+    @if(session('error'))
+        Swal.fire({ ...swalConfig, icon: 'error', title: 'Erreur', text: @json(session('error')), confirmButtonText: 'OK' });
+    @endif
+
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        const content = document.getElementById(id + '-content');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
     }
-
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId + '-content';
-        const content = document.getElementById(contentId);
-        
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        const content = document.getElementById(id + '-content');
         if (content) {
             content.classList.remove('scale-100', 'opacity-100');
             content.classList.add('scale-95', 'opacity-0');
         }
-        
         setTimeout(() => {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            modal.classList.remove('flex'); modal.classList.add('hidden');
+            document.body.style.overflow = '';
         }, 300);
     }
 
-    // Recherche d'employés
-    const searchInput = document.getElementById('searchEmployee');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.employee-row');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                const name = row.getAttribute('data-name');
-                const email = row.getAttribute('data-email');
-                const position = row.getAttribute('data-position');
-                
-                if (name.includes(searchTerm) || email.includes(searchTerm) || position.includes(searchTerm)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            
-            const paginationSpan = document.getElementById('paginationInfo');
-            if (paginationSpan) {
-                if (visibleCount === 1) {
-                    paginationSpan.textContent = `Affichage de 1 sur ${visibleCount} employé`;
-                } else {
-                    paginationSpan.textContent = `Affichage de ${visibleCount} sur ${visibleCount} employés`;
-                }
-            }
+    document.getElementById('searchEmployee')?.addEventListener('keyup', function() {
+        const term = this.value.toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('.employee-row').forEach(row => {
+            const match = (row.dataset.name || '').includes(term)
+                       || (row.dataset.email || '').includes(term)
+                       || (row.dataset.position || '').includes(term);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
         });
-    }
+        const info = document.getElementById('paginationInfo');
+        if (info) info.textContent = `Affichage de ${visible} sur ${visible} employé(s)`;
+    });
 
     function openEditModal(id) {
-        const personnel = personnelsData.find(p => p.id === id);
-        if (!personnel) return;
-
-        // Pre-fill fields
-        document.getElementById('edit_nom').value = personnel.nom ?? '';
-        document.getElementById('edit_prenom').value = personnel.prenom ?? '';
-        document.getElementById('edit_telephone').value = personnel.telephone ?? '';
-        document.getElementById('edit_email').value = personnel.email ?? '';
-
-        // Etablissement
-        const etabNom = personnel.etablissement?.nom ?? (personnel.etablissement_id ? 'Établissement #' + personnel.etablissement_id : '—');
+        const p = personnelsData.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('edit_nom').value = p.nom ?? '';
+        document.getElementById('edit_prenom').value = p.prenom ?? '';
+        document.getElementById('edit_telephone').value = p.telephone ?? '';
+        document.getElementById('edit_email').value = p.email ?? '';
+        const etabNom = p.etablissement?.nom ?? (p.etablissement_id ? 'Établissement #' + p.etablissement_id : '—');
         document.getElementById('edit_etablissement_text').value = etabNom;
-        document.getElementById('edit_etablissement_id').value = personnel.etablissement_id ?? '';
-
+        document.getElementById('edit_etablissement_id').value = p.etablissement_id ?? '';
         document.getElementById('editForm').action = "{{ url('client/personnel') }}/" + id;
-
         openModal('edit-user-modal');
     }
 
-    // SweetAlert confirmations
+    function submitForm(method, url) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.innerHTML = `<input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="${method}">`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+
     function confirmDelete(id, name) {
         Swal.fire({
-            title: 'Supprimer le personnel',
-            text: `Êtes-vous sûr de vouloir supprimer ${name} ?`,
+            ...swalConfig,
+            title: 'Supprimer cet utilisateur ?',
+            html: `<strong class="text-rose-600">${name}</strong> sera définitivement supprimé.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#64748b',
             confirmButtonText: 'Oui, supprimer',
             cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Create and submit form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `{{ url('client/personnel') }}/${id}`;
-                form.innerHTML = `
-                    @csrf
-                    @method('DELETE')
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
+            iconColor: '#e11d48'
+        }).then(r => { if (r.isConfirmed) submitForm('DELETE', `{{ url('client/personnel') }}/${id}`); });
     }
 
     function confirmBlock(id, name) {
         Swal.fire({
-            title: 'Bloquer le personnel',
-            text: `Êtes-vous sûr de vouloir bloquer ${name} ? Il n'aura plus accès à la plateforme.`,
+            ...swalConfig,
+            title: 'Bloquer cet utilisateur ?',
+            html: `<strong class="text-amber-600">${name}</strong> n'aura plus accès à la plateforme.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d97706',
-            cancelButtonColor: '#64748b',
             confirmButtonText: 'Oui, bloquer',
             cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Create and submit form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `{{ url('client/personnel') }}/${id}/block`;
-                form.innerHTML = `
-                    @csrf
-                    @method('PATCH')
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
+            iconColor: '#d97706'
+        }).then(r => { if (r.isConfirmed) submitForm('PATCH', `{{ url('client/personnel') }}/${id}/block`); });
     }
 
     function confirmUnblock(id, name) {
         Swal.fire({
-            title: 'Débloquer le personnel',
-            text: `Êtes-vous sûr de vouloir débloquer ${name} ? Il pourra à nouveau accéder à la plateforme.`,
+            ...swalConfig,
+            title: 'Débloquer cet utilisateur ?',
+            html: `<strong class="text-emerald-600">${name}</strong> pourra à nouveau accéder à la plateforme.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#1f108e',
-            cancelButtonColor: '#64748b',
             confirmButtonText: 'Oui, débloquer',
             cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Create and submit form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `{{ url('client/personnel') }}/${id}/unblock`;
-                form.innerHTML = `
-                    @csrf
-                    @method('PATCH')
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
+            iconColor: '#059669'
+        }).then(r => { if (r.isConfirmed) submitForm('PATCH', `{{ url('client/personnel') }}/${id}/unblock`); });
     }
 
-    // SweetAlert for Add User Form submission
-    const addForm = document.getElementById('addUserForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: 'Création en cours...',
-                text: 'Veuillez patienter',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            this.submit();
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['add-user-modal', 'edit-user-modal'].forEach(id => {
+            const m = document.getElementById(id);
+            if (m && m.classList.contains('flex')) closeModal(id);
         });
-    }
-
-    // SweetAlert for Edit Form submission
-    const editForm = document.getElementById('editForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: 'Modification en cours...',
-                text: 'Veuillez patienter',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            this.submit();
-        });
-    }
-
-    // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === "Escape") {
-            const modals = ['add-user-modal', 'edit-user-modal'];
-            modals.forEach(id => {
-                const modal = document.getElementById(id);
-                if (modal && modal.classList.contains('flex')) {
-                    closeModal(id);
-                }
-            });
-        }
     });
 </script>
-
-@endsection
+@endpush

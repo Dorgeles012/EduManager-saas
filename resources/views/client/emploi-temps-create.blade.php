@@ -3,1026 +3,584 @@
 @section('title', $editing ? 'Modifier un emploi du temps' : 'Créer un emploi du temps')
 
 @section('content')
-    <!-- En-tête -->
-    <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+    <div class="flex items-center gap-3">
+        <a href="{{ route('client.enseignant') }}" class="w-9 h-9 rounded-xl bg-white border border-gray-100 hover:bg-gray-100 flex items-center justify-center transition flex-shrink-0">
+            <span class="material-symbols-outlined text-gray-600 text-base">arrow_back</span>
+        </a>
         <div>
-            <h2 class="font-headline-lg text-headline-lg text-primary">
-                {{ $editing ? 'Modifier' : 'Créer' }} l'emploi du temps
-            </h2>
-            <p class="text-sm text-on-surface-variant">Emploi du temps du professeur</p>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">{{ $editing ? 'Modifier' : 'Créer' }} l'emploi du temps</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Cliquez sur une cellule pour ajouter ou modifier un cours</p>
         </div>
-        <a href="{{ route('client.enseignant') }}" class="px-4 py-2 border rounded-lg">Retour</a>
+    </div>
+</div>
+
+<form id="scheduleForm"
+      action="{{ $editing ? route('client.emploi-temps.teacher.update', $enseignant) : route('client.emploi-temps.teacher.store', $enseignant) }}"
+      method="POST">
+
+    @csrf
+    @if($editing) @method('PUT') @endif
+
+    <input type="hidden" name="etablissement_id" value="{{ $establishmentId }}">
+
+    {{-- Fiche enseignant --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">person</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900">Informations de l'enseignant</h3>
+                <p class="text-[11px] text-gray-500">Récapitulatif</p>
+            </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="bg-gray-50/50 rounded-xl p-3">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nom</p>
+                    <p class="text-xs font-semibold text-gray-900">{{ $enseignant->nom }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Prénoms</p>
+                    <p class="text-xs font-semibold text-gray-900">{{ $enseignant->prenoms }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Matricule</p>
+                    <p class="text-xs font-semibold text-gray-900 font-mono">{{ $enseignant->matricule ?? '—' }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3 col-span-2">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Discipline(s)</p>
+                    <p class="text-xs font-semibold text-gray-900">{{ $enseignant->matieres->pluck('nom')->join(', ') ?: '—' }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Contact</p>
+                    <p class="text-xs font-semibold text-gray-900">{{ $enseignant->telephone ?? $enseignant->email ?? '—' }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3 col-span-2 lg:col-span-1">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Années d'enseignement</p>
+                    <p class="text-xs font-semibold text-gray-900">{{ $enseignant->nombre_annees_enseignement ?? '—' }}</p>
+                </div>
+                <div class="bg-gray-50/50 rounded-xl p-3 col-span-2">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Année académique</label>
+                    <select name="annee_academique_id"
+                            class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                        <option value="">Non précisée</option>
+                        @php($selectedYearId = old('annee_academique_id', $year?->id))
+                        @foreach($years as $academicYear)
+                            <option value="{{ $academicYear->id }}" @selected($selectedYearId == $academicYear->id)>{{ $academicYear->libelle }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Formulaire -->
-    <form id="scheduleForm"
-          action="{{ $editing ? route('client.emploi-temps.teacher.update', $enseignant) : route('client.emploi-temps.teacher.store', $enseignant) }}"
-          method="POST">
-
-        @csrf
-        @if($editing) @method('PUT') @endif
-
-        <input type="hidden" name="etablissement_id" value="{{ $establishmentId }}">
-
-        <!-- Informations du professeur -->
-        <div class="bg-white rounded-xl border custom-shadow p-6 mb-6">
-            <div class="text-center border-b pb-4 mb-5">
-                <h3 class="font-bold text-xl uppercase">Emploi du temps du professeur</h3>
+    {{-- Grille --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">calendar_view_week</span>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <p><b>Nom :</b> {{ $enseignant->nom }}</p>
-                <p><b>Prénoms :</b> {{ $enseignant->prenoms }}</p>
-                <p><b>Matricule :</b> {{ $enseignant->matricule ?? '—' }}</p>
-                <p><b>Discipline(s) :</b> {{ $enseignant->matieres->pluck('nom')->join(', ') }}</p>
-                <p><b>Contact :</b> {{ $enseignant->telephone ?? $enseignant->email ?? '—' }}</p>
-                <p><b>Années d'enseignement :</b> {{ $enseignant->nombre_annees_enseignement ?? '—' }}</p>
-            </div>
-
-            <!-- Année académique -->
-            <div class="mt-5 max-w-md">
-                <label class="block text-sm font-semibold mb-1">Année académique</label>
-                <select name="annee_academique_id" class="w-full border rounded-lg px-3 py-2">
-                    <option value="">Non précisée</option>
-                    @php($selectedYearId = old('annee_academique_id', $year?->id))
-                    @foreach($years as $academicYear)
-                        <option value="{{ $academicYear->id }}" @selected($selectedYearId == $academicYear->id)>{{ $academicYear->libelle }}</option>
-                    @endforeach
-                </select>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900">Grille hebdomadaire</h3>
+                <p class="text-[11px] text-gray-500">Cliquez sur une cellule pour ajouter, modifier ou supprimer</p>
             </div>
         </div>
 
-        <!-- Grille de l'emploi du temps -->
-        <div class="schedule-wrapper">
-            <div class="schedule-scroll-container">
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th class="col-horaire">Horaires</th>
-                            @foreach($days as $day)
-                                <th class="col-day">{{ ucfirst($day) }}</th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($slots as $slot)
-                            @if(isset($slot['break']))
-                                <!-- Pause -->
-                                <tr class="break-row">
-                                    <th colspan="{{ count($days) + 1 }}">{{ $slot['break'] }}</th>
-                                </tr>
-                            @else
-                                @php($slotKey = $slot['key'] ?? $slot[0] . '-' . $slot[1])
-                                @php($startTime = $slot['start'] ?? $slot[0])
-                                @php($endTime = $slot['end'] ?? $slot[1])
-                                <tr>
-                                    <th class="schedule-time-editor">
-                                        <label class="sr-only" for="start-{{ $slotKey }}">Début</label>
-                                        <input id="start-{{ $slotKey }}" type="time" name="slots[{{ $slotKey }}][heure_debut]" value="{{ $startTime }}" required>
-                                        <span>à</span>
-                                        <label class="sr-only" for="end-{{ $slotKey }}">Fin</label>
-                                        <input id="end-{{ $slotKey }}" type="time" name="slots[{{ $slotKey }}][heure_fin]" value="{{ $endTime }}" required>
-                                    </th>
-
-                                    @foreach($days as $day)
-                                        @php($entry = $grid[$day][$slotKey] ?? null)
-                                        @php($key = $day . '|' . $slotKey)
-                                        @php($hasData = $entry && ($entry->classe_id || $entry->matiere_id))
-                                        <td class="{{ $hasData ? 'has-data' : 'empty-cell' }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
-                                            @if($hasData)
-                                                <!-- Affichage des données existantes -->
-                                                <div class="cell-content">
-                                                    <div class="cell-info">
-                                                        <span class="cell-class-display">{{ $entry->classe->nom ?? '—' }}</span>
-                                                        <span class="cell-subject-display">{{ $entry->matiere->nom ?? '—' }}</span>
-                                                        @if($entry->serie)
-                                                            <span class="cell-serie-display">{{ $entry->serie->nom_serie }}</span>
-                                                        @endif
-                                                    </div>
-                                                    <button type="button" class="edit-cell-btn" data-key="{{ $key }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                                        </svg>
-                                                        Modifier
-                                                    </button>
-                                                </div>
-                                                
-                                                <!-- Champs cachés pour les données existantes -->
-                                                <input type="hidden" name="cells[{{ $key }}][classe_id]" value="{{ $entry->classe_id }}">
-                                                <input type="hidden" name="cells[{{ $key }}][matiere_id]" value="{{ $entry->matiere_id }}">
-                                                <input type="hidden" name="cells[{{ $key }}][serie_id]" value="{{ $entry->serie_id }}">
-                                            @else
-                                                <!-- Cellule vide avec point cliquable -->
-                                                <button type="button" class="add-cell-btn" data-key="{{ $key }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
-                                                    <span class="add-dot"></span>
-                                                </button>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endif
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[1200px] border-collapse text-xs">
+                <thead>
+                    <tr class="bg-gradient-to-r from-indigo-600 to-indigo-500">
+                        <th class="sticky left-0 z-20 bg-gradient-to-r from-indigo-700 to-indigo-600 text-white text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider w-[160px] min-w-[160px] max-w-[160px]">
+                            Horaires
+                        </th>
+                        @foreach($days as $day)
+                            <th class="text-white text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider min-w-[200px] w-[200px]">
+                                {{ ucfirst($day) }}
+                            </th>
                         @endforeach
-                    </tbody>
-                </table>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($slots as $slot)
+                        @if(isset($slot['break']))
+                            <tr>
+                                <th class="sticky left-0 z-10 bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-widest text-center py-2.5 px-3 border-y border-indigo-200">
+                                    {{ $slot['break'] }}
+                                </th>
+                                <td colspan="{{ count($days) }}" class="bg-gradient-to-r from-indigo-50 to-indigo-100/50 text-indigo-700 text-center py-2.5 text-[10px] font-bold uppercase tracking-widest border-y border-indigo-200">
+                                    {{ $slot['break'] }}
+                                </td>
+                            </tr>
+                        @else
+                            @php($slotKey = $slot['key'] ?? $slot[0] . '-' . $slot[1])
+                            @php($startTime = $slot['start'] ?? $slot[0])
+                            @php($endTime = $slot['end'] ?? $slot[1])
+                            <tr class="border-t border-gray-100 hover:bg-gray-50/30 transition-colors">
+                                <th class="sticky left-0 z-10 bg-gray-50/95 backdrop-blur-sm align-middle py-3 px-3 border-r border-gray-100">
+                                    <div class="flex flex-col gap-1.5 items-center">
+                                        <label class="sr-only" for="start-{{ $slotKey }}">Début</label>
+                                        <input id="start-{{ $slotKey }}" type="time" name="slots[{{ $slotKey }}][heure_debut]" value="{{ $startTime }}" required
+                                               class="w-[74px] text-center bg-white border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-900 py-1 px-1.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase">à</span>
+                                        <label class="sr-only" for="end-{{ $slotKey }}">Fin</label>
+                                        <input id="end-{{ $slotKey }}" type="time" name="slots[{{ $slotKey }}][heure_fin]" value="{{ $endTime }}" required
+                                               class="w-[74px] text-center bg-white border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-900 py-1 px-1.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                    </div>
+                                </th>
+
+                                @foreach($days as $day)
+                                    @php($entry = $grid[$day][$slotKey] ?? null)
+                                    @php($key = $day . '|' . $slotKey)
+                                    @php($hasData = $entry && ($entry->classe_id || $entry->matiere_id))
+                                    <td class="align-top p-2 {{ $hasData ? 'has-data' : 'empty-cell' }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
+                                        @if($hasData)
+                                            <div class="bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 h-full space-y-1.5 border-l-[3px] border-l-indigo-500">
+                                                <span class="block text-xs font-bold text-gray-900 leading-tight">{{ $entry->classe->nom ?? '—' }}</span>
+                                                <span class="block text-[11px] text-gray-600 font-medium">{{ $entry->matiere->nom ?? '—' }}</span>
+                                                @if($entry->serie)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                                                        {{ $entry->serie->nom_serie }}
+                                                    </span>
+                                                @endif
+                                                <button type="button" class="edit-cell-btn mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold text-indigo-700 bg-white border border-indigo-200 hover:bg-indigo-100 transition"
+                                                        data-key="{{ $key }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
+                                                    <span class="material-symbols-outlined text-[14px]">edit</span>
+                                                    Modifier
+                                                </button>
+                                            </div>
+
+                                            <input type="hidden" name="cells[{{ $key }}][classe_id]" value="{{ $entry->classe_id }}">
+                                            <input type="hidden" name="cells[{{ $key }}][matiere_id]" value="{{ $entry->matiere_id }}">
+                                            <input type="hidden" name="cells[{{ $key }}][serie_id]" value="{{ $entry->serie_id }}">
+                                        @else
+                                            <button type="button" class="add-cell-btn w-full h-full min-h-[100px] flex items-center justify-center transition"
+                                                    data-key="{{ $key }}" data-day="{{ $day }}" data-slot="{{ $slotKey }}">
+                                                <span class="add-dot w-3 h-3 rounded-full bg-gray-300 transition"></span>
+                                            </button>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Modal --}}
+    <div id="cellModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <span class="material-symbols-outlined text-base">event</span>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-base font-bold text-gray-900">Ajouter un cours</h3>
+                        <p class="text-[11px] text-gray-500">Sélectionnez classe et matière</p>
+                    </div>
+                </div>
+                <button type="button" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition" onclick="closeModal()">
+                    <span class="material-symbols-outlined text-gray-500">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalCellKey">
+                <input type="hidden" id="modalDay">
+                <input type="hidden" id="modalSlot">
+
+                <div class="form-group">
+                    <label for="modalClasse" class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Classe</label>
+                    <select id="modalClasse" class="modal-select">
+                        <option value="">— Libre —</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}">{{ $class->nom }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalMatiere" class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Matière</label>
+                    <select id="modalMatiere" class="modal-select">
+                        <option value="">Matière</option>
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}">{{ $subject->nom }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalSerie" class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série (facultatif)</label>
+                    <select id="modalSerie" class="modal-select">
+                        <option value="">Aucune série</option>
+                        @foreach($series as $serie)
+                            <option value="{{ $serie->id }}">{{ $serie->nom_serie }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @if($editing)
+                    <button type="button" class="btn-danger" id="deleteCellBtn">Supprimer</button>
+                @endif
+                <button type="button" class="btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="button" class="btn-primary" id="saveCellBtn">Enregistrer</button>
             </div>
         </div>
+    </div>
 
-        <!-- Modal pour ajouter/modifier une cellule -->
-        <div id="cellModal" class="modal-overlay" style="display:none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="modalTitle">Ajouter un cours</h3>
-                    <button type="button" class="modal-close" onclick="closeModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="modalCellKey">
-                    <input type="hidden" id="modalDay">
-                    <input type="hidden" id="modalSlot">
-                    
-                    <div class="form-group">
-                        <label for="modalClasse">Classe</label>
-                        <select id="modalClasse" class="modal-select">
-                            <option value="">— Libre —</option>
-                            @foreach($classes as $class)
-                                <option value="{{ $class->id }}">{{ $class->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="modalMatiere">Matière</label>
-                        <select id="modalMatiere" class="modal-select">
-                            <option value="">Matière</option>
-                            @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}">{{ $subject->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="modalSerie">Série (facultatif)</label>
-                        <select id="modalSerie" class="modal-select">
-                            <option value="">Série (facultatif)</option>
-                            @foreach($series as $serie)
-                                <option value="{{ $serie->id }}">{{ $serie->nom_serie }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Annuler</button>
-                    <button type="button" class="btn-primary" id="saveCellBtn">Enregistrer</button>
-                    @if($editing)
-                        <button type="button" class="btn-danger" id="deleteCellBtn">Supprimer</button>
-                    @endif
-                </div>
-            </div>
-        </div>
+    {{-- Actions --}}
+    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <a href="{{ route('client.enseignant') }}"
+           class="w-full sm:w-auto text-center px-5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+            Annuler
+        </a>
+        <button type="submit"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition shadow-sm">
+            <span class="material-symbols-outlined text-sm">save</span>
+            Enregistrer l'emploi du temps
+        </button>
+    </div>
+</form>
 
-        <!-- Actions -->
-        <div class="mt-6 flex justify-end gap-3">
-            <a href="{{ route('client.enseignant') }}" class="px-5 py-2.5 border rounded-lg">Annuler</a>
-            <button class="px-6 py-2.5 bg-primary text-white rounded-lg" type="submit">
-                Enregistrer l'emploi du temps
-            </button>
-        </div>
-    </form>
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet">
-    <style>
-        /* Container principal du tableau */
-        .schedule-wrapper {
-            background: white;
-            border-radius: 16px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        /* Conteneur de défilement horizontal */
-        .schedule-scroll-container {
-            overflow-x: auto;
-            overflow-y: visible;
-            padding: 0;
-            -webkit-overflow-scrolling: touch;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        /* Scrollbar personnalisée - WebKit (Chrome, Safari, Edge) */
-        .schedule-scroll-container::-webkit-scrollbar {
-            height: 14px;
-            width: 14px;
-        }
-
-        .schedule-scroll-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 7px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .schedule-scroll-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
-            border-radius: 7px;
-            transition: all 0.3s ease;
-            border: 2px solid #f1f5f9;
-            min-height: 40px;
-        }
-
-        .schedule-scroll-container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #1e4d8a 0%, #2a5a9a 100%);
-            transform: scale(1.05);
-        }
-
-        .schedule-scroll-container::-webkit-scrollbar-corner {
-            background: #f1f5f9;
-            border-radius: 0 0 7px 0;
-        }
-
-        /* Pour Firefox */
-        .schedule-scroll-container {
-            scrollbar-width: thin;
-            scrollbar-color: #1a3a6b #f1f5f9;
-        }
-
-        .schedule-scroll-container:hover {
-            scrollbar-color: #1e4d8a #f1f5f9;
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.875rem;
-            table-layout: fixed;
-            min-width: 1200px; /* Largeur minimale pour forcer le défilement */
-        }
-
-        /* En-tête du tableau - fixe */
-        .schedule-table thead th {
-            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
-            color: white;
-            text-align: center;
-            padding: 16px 12px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            border: none;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .schedule-table thead th.col-horaire {
-            min-width: 160px;
-            width: 160px;
-            max-width: 160px;
-            position: sticky;
-            left: 0;
-            z-index: 20;
-            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
-        }
-
-        .schedule-table thead th.col-day {
-            min-width: 200px;
-            width: 200px;
-            max-width: 200px;
-            background: linear-gradient(135deg, #1a3a6b 0%, #1e4d8a 100%);
-        }
-
-        /* Cellules du corps */
-        .schedule-table td,
-        .schedule-table th {
-            border: 1px solid #e5e7eb;
-            padding: 10px 8px;
-            vertical-align: top;
-        }
-
-        /* Colonne des horaires - fixe */
-        .schedule-table tbody>tr>th {
-            background: #f8fafc;
-            width: 160px;
-            min-width: 160px;
-            max-width: 160px;
-            text-align: center;
-            border-right: 2px solid #e5e7eb;
-            padding: 12px 8px;
-            vertical-align: middle;
-            position: sticky;
-            left: 0;
-            z-index: 5;
-            background: #f8fafc;
-        }
-
-        /* Cellules des jours - largeur fixe */
-        .schedule-table tbody>tr>td {
-            min-width: 200px;
-            width: 200px;
-            max-width: 200px;
-            background: white;
-            padding: 8px 6px;
-            min-height: 120px;
-            height: auto;
-            transition: all 0.3s ease;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .schedule-table td:hover {
-            background: #f8fafc;
-        }
-
-        .schedule-time-editor {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .schedule-time-editor input {
-            width: 74px;
-            padding: 4px 6px;
-            border: 1.5px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 500;
-            color: #1f2937;
-            background: white;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .schedule-time-editor input:focus {
-            outline: none;
-            border-color: #1a3a6b;
-            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.1);
-        }
-
-        .schedule-time-editor input:hover {
-            border-color: #6b7280;
-        }
-
-        .schedule-time-editor span {
-            font-weight: 700;
-            color: #6b7280;
-            font-size: 12px;
-        }
-
-        /* Style pour les cellules vides */
-        .schedule-table td.empty-cell {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-            min-height: 100px;
-        }
-
-        .add-cell-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            min-height: 80px;
-            transition: all 0.3s ease;
-        }
-
-        .add-dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #d1d5db;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .add-dot::before {
-            content: '+';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .empty-cell:hover .add-dot {
-            background: #1a3a6b;
-            transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(26, 58, 107, 0.2);
-        }
-
-        .empty-cell:hover .add-dot::before {
-            opacity: 1;
-        }
-
-        /* Style pour les cellules avec données */
-        .schedule-table td.has-data {
-            background: #fafcff;
-            border-left: 3px solid #1a3a6b;
-        }
-
-        .cell-content {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            width: 100%;
-        }
-
-        .cell-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 4px;
-        }
-
-        .cell-class-display {
-            font-weight: 600;
-            font-size: 12px;
-            color: #1f2937;
-        }
-
-        .cell-subject-display {
-            font-size: 11px;
-            color: #4b5563;
-        }
-
-        .cell-serie-display {
-            font-size: 10px;
-            color: #6b7280;
-            background: #f3f4f6;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-block;
-            align-self: flex-start;
-        }
-
-        .edit-cell-btn {
-            background: none;
-            border: none;
-            color: #6b7280;
-            font-size: 11px;
-            cursor: pointer;
-            padding: 4px 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            margin-top: 4px;
-        }
-
-        .edit-cell-btn:hover {
-            background: #e5e7eb;
-            color: #1a3a6b;
-        }
-
-        .edit-cell-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* Ligne de pause */
-        .break-row th {
-            background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 100%) !important;
-            color: #4b5563;
-            padding: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-left: none;
-            border-right: none;
-        }
-
-        .break-row th:first-child {
-            border-left: 1px solid #d1d5db;
-            background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 100%) !important;
-            position: sticky;
-            left: 0;
-            z-index: 5;
-        }
-
-        .break-row th:last-child {
-            border-right: 1px solid #d1d5db;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        }
-
-        .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-header h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 0;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .modal-close:hover {
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 4px;
-        }
-
-        .modal-select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #1f2937;
-            background: white;
-            transition: all 0.2s ease;
-        }
-
-        .modal-select:focus {
-            outline: none;
-            border-color: #1a3a6b;
-            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.08);
-        }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .btn-secondary {
-            padding: 8px 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            background: white;
-            color: #4b5563;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-secondary:hover {
-            background: #f3f4f6;
-        }
-
-        .btn-primary {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 8px;
-            background: #1a3a6b;
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary:hover {
-            background: #1e4d8a;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(26, 58, 107, 0.2);
-        }
-
-        .btn-danger {
-            padding: 8px 16px;
-            border: 1px solid #ef4444;
-            border-radius: 8px;
-            background: white;
-            color: #ef4444;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-right: auto;
-        }
-
-        .btn-danger:hover {
-            background: #fee2e2;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .schedule-time-editor {
-                flex-direction: column;
-                gap: 2px;
-            }
-
-            .schedule-time-editor input {
-                width: 100%;
-                max-width: 100px;
-            }
-
-            .schedule-table tbody>tr>th {
-                width: 120px;
-                min-width: 120px;
-                max-width: 120px;
-                padding: 8px 4px;
-            }
-
-            .schedule-table tbody>tr>td {
-                min-width: 160px;
-                width: 160px;
-                max-width: 160px;
-                padding: 6px 4px;
-            }
-
-            .schedule-table thead th.col-horaire {
-                min-width: 120px;
-                width: 120px;
-                max-width: 120px;
-            }
-
-            .schedule-table thead th.col-day {
-                min-width: 160px;
-                width: 160px;
-                max-width: 160px;
-            }
-
-            .schedule-table {
-                min-width: 1000px;
-            }
-
-            .schedule-scroll-container::-webkit-scrollbar {
-                height: 8px;
-                width: 8px;
-            }
-        }
-
-        .custom-shadow {
-            box-shadow: 0 4px 12px rgba(55,48,163,.04);
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-
-        /* Hover sur les lignes */
-        .schedule-table tbody tr:not(.break-row):hover td {
-            background: #fafcff;
-        }
-
-        .schedule-table tbody tr:not(.break-row):hover th {
-            background: #f1f5f9;
-        }
-    </style>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet">
+<style>
+    .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+    }
+
+    /* Empty cell — hover effect */
+    .empty-cell .add-cell-btn .add-dot {
+        position: relative;
+    }
+    .empty-cell .add-cell-btn .add-dot::before {
+        content: '+';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .empty-cell:hover {
+        background: #f8fafc;
+    }
+    .empty-cell:hover .add-dot {
+        background: #4f46e5 !important;
+        transform: scale(1.3);
+        box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+    }
+    .empty-cell:hover .add-dot::before {
+        opacity: 1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        animation: modalSlideUp 0.25s ease-out;
+    }
+
+    @keyframes modalSlideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .modal-select {
+        width: 100%;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 12px;
+        padding: 10px 12px;
+        color: #111827;
+        outline: none;
+        transition: all 0.15s ease;
+    }
+    .modal-select:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        background: #ffffff;
+    }
+
+    .modal-footer {
+        padding: 14px 20px;
+        border-top: 1px solid #f1f5f9;
+        background: #f9fafb;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .btn-secondary {
+        padding: 8px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .btn-secondary:hover { background: #f3f4f6; }
+
+    .btn-primary {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #4f46e5;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .btn-primary:hover { background: #4338ca; }
+
+    .btn-danger {
+        padding: 8px 14px;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: #e11d48;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        margin-right: auto;
+    }
+    .btn-danger:hover { background: #fee2e2; }
+</style>
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        // Variables globales
-        let currentCellKey = null;
-        let currentDay = null;
-        let currentSlot = null;
-        let isEditing = false;
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentCellKey = null;
+    let currentDay = null;
+    let currentSlot = null;
+    let isEditing = false;
 
-        // Gestion des clics sur les cellules vides
-        document.querySelectorAll('.add-cell-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const key = this.dataset.key;
-                const day = this.dataset.day;
-                const slot = this.dataset.slot;
-                
-                openModal(key, day, slot, false);
-            });
-        });
+    const swalConfig = {
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-xs text-gray-500'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    };
 
-        // Gestion des clics sur les boutons de modification
-        document.querySelectorAll('.edit-cell-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const key = this.dataset.key;
-                const day = this.dataset.day;
-                const slot = this.dataset.slot;
-                
-                // Récupérer les données existantes
-                const cell = this.closest('td');
-                
-                // Trouver les IDs correspondants
-                const classId = cell.querySelector('input[name*="[classe_id]"]')?.value || '';
-                const matiereId = cell.querySelector('input[name*="[matiere_id]"]')?.value || '';
-                const serieId = cell.querySelector('input[name*="[serie_id]"]')?.value || '';
-                
-                openModal(key, day, slot, true, classId, matiereId, serieId);
-            });
-        });
+    // ---- Bind cell buttons (with event delegation to survive re-render) ----
+    document.querySelector('table').addEventListener('click', function (e) {
+        const addBtn = e.target.closest('.add-cell-btn');
+        if (addBtn) {
+            e.stopPropagation();
+            openModal(addBtn.dataset.key, addBtn.dataset.day, addBtn.dataset.slot, false);
+            return;
+        }
+        const editBtn = e.target.closest('.edit-cell-btn');
+        if (editBtn) {
+            e.stopPropagation();
+            const cell = editBtn.closest('td');
+            const classId = cell.querySelector('input[name*="[classe_id]"]')?.value || '';
+            const matiereId = cell.querySelector('input[name*="[matiere_id]"]')?.value || '';
+            const serieId = cell.querySelector('input[name*="[serie_id]"]')?.value || '';
+            openModal(editBtn.dataset.key, editBtn.dataset.day, editBtn.dataset.slot, true, classId, matiereId, serieId);
+        }
+    });
 
-        // Fonction pour ouvrir le modal
-        function openModal(key, day, slot, editMode = false, classId = '', matiereId = '', serieId = '') {
-            currentCellKey = key;
-            currentDay = day;
-            currentSlot = slot;
-            isEditing = editMode;
+    function openModal(key, day, slot, editMode = false, classId = '', matiereId = '', serieId = '') {
+        currentCellKey = key;
+        currentDay = day;
+        currentSlot = slot;
+        isEditing = editMode;
 
-            const modal = document.getElementById('cellModal');
-            const title = document.getElementById('modalTitle');
-            const deleteBtn = document.getElementById('deleteCellBtn');
-            
-            title.textContent = editMode ? 'Modifier le cours' : 'Ajouter un cours';
-            
-            if (deleteBtn) {
-                deleteBtn.style.display = editMode ? 'inline-block' : 'none';
-            }
+        const modal = document.getElementById('cellModal');
+        const title = document.getElementById('modalTitle');
+        const deleteBtn = document.getElementById('deleteCellBtn');
 
-            // Remplir les champs
-            document.getElementById('modalClasse').value = classId;
-            document.getElementById('modalMatiere').value = matiereId;
-            document.getElementById('modalSerie').value = serieId;
+        title.textContent = editMode ? 'Modifier le cours' : 'Ajouter un cours';
+        if (deleteBtn) deleteBtn.style.display = editMode ? 'inline-block' : 'none';
 
-            modal.style.display = 'flex';
+        document.getElementById('modalClasse').value = classId;
+        document.getElementById('modalMatiere').value = matiereId;
+        document.getElementById('modalSerie').value = serieId;
+
+        modal.classList.remove('hidden');
+    }
+
+    window.closeModal = function () {
+        document.getElementById('cellModal').classList.add('hidden');
+        currentCellKey = null;
+        currentDay = null;
+        currentSlot = null;
+        isEditing = false;
+    };
+
+    // ---- Save cell ----
+    document.getElementById('saveCellBtn').addEventListener('click', function () {
+        const classId = document.getElementById('modalClasse').value;
+        const matiereId = document.getElementById('modalMatiere').value;
+        const serieId = document.getElementById('modalSerie').value;
+
+        if (!classId || !matiereId) {
+            Swal.fire({ ...swalConfig, icon: 'warning', title: 'Champs requis', text: 'Veuillez sélectionner une classe et une matière.', confirmButtonText: 'OK' });
+            return;
         }
 
-        // Fonction pour fermer le modal
-        function closeModal() {
-            document.getElementById('cellModal').style.display = 'none';
-            currentCellKey = null;
-            currentDay = null;
-            currentSlot = null;
-            isEditing = false;
+        const cell = document.querySelector(`td[data-day="${currentDay}"][data-slot="${currentSlot}"]`);
+
+        if (cell) {
+            const classText = document.querySelector(`#modalClasse option[value="${classId}"]`)?.textContent || '—';
+            const matiereText = document.querySelector(`#modalMatiere option[value="${matiereId}"]`)?.textContent || '—';
+            const serieText = serieId ? (document.querySelector(`#modalSerie option[value="${serieId}"]`)?.textContent || '') : '';
+
+            let html = `
+                <div class="bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 h-full space-y-1.5 border-l-[3px] border-l-indigo-500">
+                    <span class="block text-xs font-bold text-gray-900 leading-tight">${classText}</span>
+                    <span class="block text-[11px] text-gray-600 font-medium">${matiereText}</span>
+                    ${serieText ? `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase tracking-wider">${serieText}</span>` : ''}
+                    <button type="button" class="edit-cell-btn mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold text-indigo-700 bg-white border border-indigo-200 hover:bg-indigo-100 transition"
+                            data-key="${currentCellKey}" data-day="${currentDay}" data-slot="${currentSlot}">
+                        <span class="material-symbols-outlined text-[14px]">edit</span>
+                        Modifier
+                    </button>
+                </div>
+                <input type="hidden" name="cells[${currentCellKey}][classe_id]" value="${classId}">
+                <input type="hidden" name="cells[${currentCellKey}][matiere_id]" value="${matiereId}">
+                <input type="hidden" name="cells[${currentCellKey}][serie_id]" value="${serieId}">
+            `;
+
+            cell.innerHTML = html;
+            cell.className = 'align-top p-2 has-data';
+            cell.setAttribute('data-day', currentDay);
+            cell.setAttribute('data-slot', currentSlot);
         }
 
-        // Sauvegarder la cellule
-        document.getElementById('saveCellBtn').addEventListener('click', function() {
-            const classId = document.getElementById('modalClasse').value;
-            const matiereId = document.getElementById('modalMatiere').value;
-            const serieId = document.getElementById('modalSerie').value;
+        closeModal();
+        Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: 'Le cours a été enregistré.', timer: 1500, showConfirmButton: false });
+    });
 
-            if (!classId || !matiereId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Information',
-                    text: 'Veuillez sélectionner une classe et une matière'
-                });
-                return;
-            }
-
-            // Mettre à jour la cellule
-            const cell = document.querySelector(`td[data-day="${currentDay}"][data-slot="${currentSlot}"]`);
-            
-            if (cell) {
-                // Créer le contenu de la cellule
-                const classText = classId ? document.querySelector(`#modalClasse option[value="${classId}"]`)?.textContent || '—' : '—';
-                const matiereText = matiereId ? document.querySelector(`#modalMatiere option[value="${matiereId}"]`)?.textContent || '—' : '—';
-                const serieText = serieId ? document.querySelector(`#modalSerie option[value="${serieId}"]`)?.textContent || '' : '';
-
-                let html = `
-                    <div class="cell-content">
-                        <div class="cell-info">
-                            <span class="cell-class-display">${classText}</span>
-                            <span class="cell-subject-display">${matiereText}</span>
-                            ${serieText ? `<span class="cell-serie-display">${serieText}</span>` : ''}
-                        </div>
-                        <button type="button" class="edit-cell-btn" data-key="${currentCellKey}" data-day="${currentDay}" data-slot="${currentSlot}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            Modifier
+    // ---- Delete cell ----
+    document.getElementById('deleteCellBtn')?.addEventListener('click', function () {
+        Swal.fire({
+            ...swalConfig,
+            title: 'Supprimer ce cours ?',
+            text: 'Cette action est irréversible.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler',
+            iconColor: '#e11d48'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const cell = document.querySelector(`td[data-day="${currentDay}"][data-slot="${currentSlot}"]`);
+                if (cell) {
+                    cell.innerHTML = `
+                        <button type="button" class="add-cell-btn w-full h-full min-h-[100px] flex items-center justify-center transition"
+                                data-key="${currentCellKey}" data-day="${currentDay}" data-slot="${currentSlot}">
+                            <span class="add-dot w-3 h-3 rounded-full bg-gray-300 transition"></span>
                         </button>
-                    </div>
-                `;
-
-                // Ajouter les champs cachés
-                html += `
-                    <input type="hidden" name="cells[${currentCellKey}][classe_id]" value="${classId}">
-                    <input type="hidden" name="cells[${currentCellKey}][matiere_id]" value="${matiereId}">
-                    <input type="hidden" name="cells[${currentCellKey}][serie_id]" value="${serieId}">
-                `;
-
-                cell.innerHTML = html;
-                cell.className = 'has-data';
-                
-                // Réattacher l'événement au nouveau bouton modifier
-                const newEditBtn = cell.querySelector('.edit-cell-btn');
-                if (newEditBtn) {
-                    newEditBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const key = this.dataset.key;
-                        const day = this.dataset.day;
-                        const slot = this.dataset.slot;
-                        
-                        const cellData = this.closest('td');
-                        
-                        // Récupérer les IDs depuis les champs cachés
-                        const classIdInput = cellData.querySelector('input[name*="[classe_id]"]');
-                        const matiereIdInput = cellData.querySelector('input[name*="[matiere_id]"]');
-                        const serieIdInput = cellData.querySelector('input[name*="[serie_id]"]');
-                        
-                        openModal(
-                            key, day, slot, true,
-                            classIdInput ? classIdInput.value : '',
-                            matiereIdInput ? matiereIdInput.value : '',
-                            serieIdInput ? serieIdInput.value : ''
-                        );
-                    });
+                    `;
+                    cell.className = 'align-top p-2 empty-cell';
+                    cell.setAttribute('data-day', currentDay);
+                    cell.setAttribute('data-slot', currentSlot);
                 }
+                closeModal();
+                Swal.fire({ ...swalConfig, icon: 'success', title: 'Supprimé', text: 'Le cours a été supprimé.', timer: 1500, showConfirmButton: false });
             }
+        });
+    });
 
+    // ---- Modal close on backdrop click ----
+    document.getElementById('cellModal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ---- Modal close on Escape ----
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !document.getElementById('cellModal').classList.contains('hidden')) {
             closeModal();
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: 'Le cours a été ajouté avec succès',
-                timer: 1500,
-                showConfirmButton: false
-            });
+        }
+    });
+
+    // ---- Form submit via AJAX ----
+    document.getElementById('scheduleForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.currentTarget;
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: new FormData(form)
         });
 
-        // Supprimer la cellule
-        document.getElementById('deleteCellBtn')?.addEventListener('click', function() {
-            Swal.fire({
-                title: 'Supprimer le cours',
-                text: 'Êtes-vous sûr de vouloir supprimer ce cours ?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Oui, supprimer',
-                cancelButtonText: 'Annuler'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const cell = document.querySelector(`td[data-day="${currentDay}"][data-slot="${currentSlot}"]`);
-                    if (cell) {
-                        // Réinitialiser la cellule
-                        cell.innerHTML = `
-                            <button type="button" class="add-cell-btn" data-key="${currentCellKey}" data-day="${currentDay}" data-slot="${currentSlot}">
-                                <span class="add-dot"></span>
-                            </button>
-                        `;
-                        cell.className = 'empty-cell';
-                        
-                        // Réattacher l'événement au nouveau bouton ajouter
-                        const newAddBtn = cell.querySelector('.add-cell-btn');
-                        if (newAddBtn) {
-                            newAddBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                const key = this.dataset.key;
-                                const day = this.dataset.day;
-                                const slot = this.dataset.slot;
-                                openModal(key, day, slot, false);
-                            });
-                        }
-                        
-                        closeModal();
-                        
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Supprimé',
-                            text: 'Le cours a été supprimé avec succès',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                    }
-                }
-            });
-        });
+        const data = await response.json().catch(() => ({}));
 
-        // Fermer le modal en cliquant à l'extérieur
-        document.getElementById('cellModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // Fermer le modal avec la touche Echap
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // Gestion de la soumission du formulaire
-        document.getElementById('scheduleForm').addEventListener('submit', async e => {
-            e.preventDefault();
-            const form = e.currentTarget;
-
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: new FormData(form)
-            });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Succès',
-                    text: data.message || 'Emploi du temps enregistré avec succès'
-                });
-                if (data.redirect) {
-                    window.location = data.redirect;
-                }
-            } else {
-                let errorMessage = 'Veuillez vérifier la grille.';
-                if (data.errors) {
-                    errorMessage = Object.values(data.errors).flat().join('\n');
-                } else if (data.message) {
-                    errorMessage = data.message;
-                }
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: errorMessage
-                });
-            }
-        });
-    </script>
+        if (response.ok) {
+            await Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: data.message || 'Emploi du temps enregistré avec succès.', confirmButtonText: 'OK' });
+            if (data.redirect) window.location = data.redirect;
+        } else {
+            let msg = 'Veuillez vérifier la grille.';
+            if (data.errors) msg = Object.values(data.errors).flat().join('\n');
+            else if (data.message) msg = data.message;
+            Swal.fire({ ...swalConfig, icon: 'error', title: 'Erreur', text: msg, confirmButtonText: 'OK' });
+        }
+    });
+});
+</script>
 @endpush

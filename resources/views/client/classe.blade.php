@@ -1,100 +1,109 @@
 @extends('client.layouts.app')
 @section('title', 'EduManager - Classe')
 @section('content')
-<!-- Header Section -->
-<div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Classes</h2>
-        <p class="text-text-muted font-body-md">Gérez les différentes classes de votre établissement</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Classes</h2>
+        <p class="text-sm text-gray-500 mt-1">Gérez les différentes classes de votre établissement</p>
     </div>
-    <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-add')">
-        <span class="material-symbols-outlined text-lg">add</span>
+    <button onclick="openModal('modal-add')" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <span class="material-symbols-outlined text-sm">add</span>
         Ajouter une classe
     </button>
 </div>
 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
-        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-2xl">groups</span>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-lg">groups</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
         </div>
-        <div>
-            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Classes disponibles</p>
-            <h3 class="font-headline-md text-headline-md">{{ $totalClasses ?? 0 }}</h3>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalClasses ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Classes disponibles</p>
     </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
-        <div class="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
-            <span class="material-symbols-outlined text-2xl">account_tree</span>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <span class="material-symbols-outlined text-lg">account_tree</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Niveaux</span>
         </div>
-        <div>
-            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Niveaux</p>
-            <h3 class="font-headline-md text-headline-md">{{ $totalLevels ?? 0 }}</h3>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalLevels ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Niveaux actifs</p>
     </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
-        <div class="w-12 h-12 bg-warning-amber/10 rounded-full flex items-center justify-center text-warning-amber">
-            <span class="material-symbols-outlined text-2xl">location_away</span>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span class="material-symbols-outlined text-lg">domain</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Établissement</span>
         </div>
-        <div>
-            <p class="text-label-sm text-text-muted uppercase tracking-wider font-bold">Mon Établissement</p>
-            <h3 class="font-headline-md text-headline-md">{{ $schoolName ?? 'Mon Établissement' }}</h3>
-        </div>
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 truncate">{{ $schoolName ?? 'Mon Établissement' }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Établissement actif</p>
     </div>
 </div>
 
-<!-- Main Data Table Section -->
-<div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant overflow-hidden">
-    <!-- Table Header Action Area -->
-    <div class="p-6 border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h4 class="font-headline-md text-headline-md flex items-center gap-2">
-            Liste des classes
-        </h4>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-base">list_alt</span>
+        </div>
+        <div>
+            <h3 class="text-sm font-semibold text-gray-900">Liste des classes</h3>
+            <p class="text-[11px] text-gray-500">{{ $classes->count() }} classe(s) enregistrée(s)</p>
+        </div>
     </div>
 
-    <!-- Table Content -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-surface-container-low border-b border-outline-variant">
-                <tr>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">N°</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Nom de la classe</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Établissement</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Niveau</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Effectif</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/50">
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">N°</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Établissement</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Niveau</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-center">Effectif</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
-            </thead>    
-            <tbody>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
                 @forelse($classes ?? [] as $class)
-                <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-                    <td class="px-6 py-4 text-body-sm">{{ $loop->iteration }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-[18px]">class</span>
-                            </div>
-                            <span class="font-body-md font-medium">{{ $class['name'] }}</span>
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 text-xs text-gray-500 font-semibold">{{ $loop->iteration }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-[11px] font-semibold text-gray-900">{{ $class['name'] }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $class['school'] }}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-label-sm bg-secondary-container/20 text-on-secondary-container">
+                    <td class="px-4 py-3 text-xs text-gray-700">{{ $class['school'] }}</td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase">
                             {{ $class['level'] }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $class['student_count'] ?? 0 }} élèves</td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors" onclick="openEditModal({{ json_encode($class) }})" title="Modifier">
-                                <span class="material-symbols-outlined">edit</span>
+                    <td class="px-4 py-3 text-center">
+                        <span class="text-xs font-semibold text-gray-900">{{ $class['student_count'] ?? 0 }}</span>
+                        <span class="text-[10px] text-gray-400">élèves</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick='openEditModal(@json($class))'
+                                    class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                                    title="Modifier">
+                                <span class="material-symbols-outlined text-base">edit</span>
                             </button>
                             <form action="{{ route('client.classe.destroy', $class['id']) }}" method="POST" class="inline delete-class-form">
-                                @csrf
-                                @method('DELETE')
-                                <button class="p-2 text-alert-red hover:bg-error-container/20 rounded-lg transition-colors delete-class-btn" data-name="{{ $class['name'] }}" title="Supprimer" type="button">
-                                    <span class="material-symbols-outlined">delete</span>
+                                @csrf @method('DELETE')
+                                <button type="button"
+                                        data-name="{{ $class['name'] }}"
+                                        class="delete-class-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                        title="Supprimer">
+                                    <span class="material-symbols-outlined text-base">delete</span>
                                 </button>
                             </form>
                         </div>
@@ -102,12 +111,13 @@
                 </tr>
                 @empty
                 <tr>
-                    <td class="py-10 px-6 text-center" colspan="6">
-                        <div class="flex flex-col items-center max-w-xs mx-auto">
-                            <div class="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-6">
-                                <span class="material-symbols-outlined text-5xl text-outline-variant">co_present</span>
+                    <td colspan="6" class="py-16 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
+                                <span class="material-symbols-outlined text-2xl text-gray-300">co_present</span>
                             </div>
-                            <h5 class="font-headline-md text-headline-md text-on-surface mb-2">Aucune classe disponible</h5>
+                            <p class="text-sm font-semibold text-gray-700">Aucune classe disponible</p>
+                            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre première classe.</p>
                         </div>
                     </td>
                 </tr>
@@ -116,230 +126,244 @@
         </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="p-6 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
-        @if(isset($classes) && method_exists($classes, 'links'))
-            <span class="text-label-sm text-text-muted">Affichage de {{ $classes->firstItem() ?? 0 }} à {{ $classes->lastItem() ?? 0 }} sur {{ $classes->total() ?? 0 }} entrées</span>
-            <div class="flex gap-2">
-                {{ $classes->links() ?? '' }}
+    <div class="md:hidden divide-y divide-gray-100">
+        @forelse($classes ?? [] as $class)
+        <div class="p-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm font-bold flex-shrink-0">
+                        {{ strtoupper(substr($class['name'], 0, 1)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $class['name'] }}</p>
+                        <p class="text-[11px] text-gray-500 truncate">{{ $class['school'] }}</p>
+                    </div>
+                </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase flex-shrink-0">
+                    {{ $class['level'] }}
+                </span>
             </div>
-        @else
-            <span class="text-label-sm text-text-muted">Affichage de 0 à {{ $classes?->count() ?? 0 }} sur {{ $classes?->count() ?? 0 }} entrées</span>
-            <div class="flex gap-2"></div>
-        @endif
+
+            <div class="grid grid-cols-2 gap-2 py-2">
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Effectif</p>
+                    <p class="text-sm font-bold text-gray-900 mt-0.5">{{ $class['student_count'] ?? 0 }} élèves</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+                <button onclick='openEditModal(@json($class))'
+                        class="flex-1 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Modifier
+                </button>
+                <form action="{{ route('client.classe.destroy', $class['id']) }}" method="POST" class="flex-1 delete-class-form">
+                    @csrf @method('DELETE')
+                    <button type="button"
+                            data-name="{{ $class['name'] }}"
+                            class="delete-class-btn w-full h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+        @empty
+        <div class="py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-2xl text-gray-300">co_present</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">Aucune classe disponible</p>
+            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre première classe.</p>
+        </div>
+        @endforelse
     </div>
+
+    @if(isset($classes) && method_exists($classes, 'links'))
+    <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-gray-500">
+            {{ $classes->firstItem() ?? 0 }} - {{ $classes->lastItem() ?? 0 }} sur {{ $classes->count() }}
+        </span>
+        <div class="text-xs">
+            {{ $classes->links() ?? '' }}
+        </div>
+    </div>
+    @endif
 </div>
 
-<!-- Modal: Ajouter une Classe -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-add">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-add')"></div>
-    <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-add-content">
-        <div class="bg-primary p-6 text-white flex items-center justify-between">
-            <div>
-                <h3 class="font-headline-md text-headline-md">Ajouter une classe</h3>
-                <p class="text-white/80 text-sm">Créez une nouvelle structure pédagogique</p>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('modal-add')"></div>
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="modal-add-content">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">add_circle</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter une classe</h3>
+                    <p class="text-[11px] text-gray-500">Créez une nouvelle structure pédagogique</p>
+                </div>
             </div>
-            <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="closeModal('modal-add')">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeModal('modal-add')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-8 space-y-6" id="addClassForm" action="{{ route('client.classe.store') }}" method="POST">
+
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" action="{{ route('client.classe.store') }}" method="POST" id="addClassForm">
             @csrf
-            <div class="grid grid-cols-1 gap-6">
-                <div class="space-y-1.5">
-                    <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="className" name="nom" placeholder="Ex: 6ème A, Terminale S1..." type="text" required>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classSchool" name="etablissement_id" required>
-                        <option value="">Sélectionner un établissement</option>
-                        @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
-                        <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la classe</label>
+                <input type="text" name="nom" id="className" required placeholder="Ex: 6ème A, Terminale S1..."
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Établissement</label>
+                <select name="etablissement_id" id="classSchool" required
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                    <option value="">Sélectionner un établissement</option>
+                    @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                    <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
+                    <select name="niveau_id" id="classLevel" required
+                            class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                        <option value="">Sélectionner</option>
+                        @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                        <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classLevel" name="niveau_id" required>
-                            <option value="">Sélectionner un niveau</option>
-                            @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
-                            <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" id="classMaxStudents" name="capacite" placeholder="40" type="number">
-                    </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Effectif max</label>
+                    <input type="number" name="capacite" id="classMaxStudents" placeholder="40"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                 </div>
             </div>
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
-                <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-add')" type="button">Annuler</button>
-                <button class="bg-primary text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-primary/90 shadow-md" type="submit">Enregistrer</button>
+
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('modal-add')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Enregistrer
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal: Modifier la Classe -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modal-edit">
-    <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modal-edit')"></div>
-    <div class="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-edit-content">
-        <div class="bg-warning-amber p-6 text-white flex items-center justify-between">
-            <div>
-                <h3 class="font-headline-md text-headline-md">Modifier la classe</h3>
-                <p class="text-white/80 text-sm">Mise à jour des informations de classe</p>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('modal-edit')"></div>
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="modal-edit-content">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Modifier la classe</h3>
+                    <p class="text-[11px] text-gray-500">Mise à jour des informations</p>
+                </div>
             </div>
-            <button class="hover:bg-white/10 p-2 rounded-full transition-colors" onclick="closeModal('modal-edit')">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeModal('modal-edit')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-8 space-y-6" id="editClassForm" method="POST">
-            @csrf
-            @method('PUT')
+
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" action="" method="POST" id="editClassForm">
+            @csrf @method('PUT')
             <input type="hidden" id="editClassId">
-            <div class="grid grid-cols-1 gap-6">
-                <div class="space-y-1.5">
-                    <label class="font-label-md text-label-md text-on-surface-variant">Nom de la classe</label>
-                    <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassName" name="nom" type="text" required>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="font-label-md text-label-md text-on-surface-variant">Établissement</label>
-                    <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassSchool" name="etablissement_id" required>
-                        @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
-                        <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la classe</label>
+                <input type="text" name="nom" id="editClassName" required
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Établissement</label>
+                <select name="etablissement_id" id="editClassSchool" required
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    @foreach($schools ?? [['id' => 1, 'name' => 'Mon Établissement Principal']] as $school)
+                    <option value="{{ $school['id'] }}">{{ $school['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
+                    <select name="niveau_id" id="editClassLevel" required
+                            class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                        @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
+                        <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Niveau</label>
-                        <select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassLevel" name="niveau_id" required>
-                            @foreach($levels ?? [['id' => 1, 'name' => 'Primaire'], ['id' => 2, 'name' => 'Collège'], ['id' => 3, 'name' => 'Lycée']] as $level)
-                            <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="font-label-md text-label-md text-on-surface-variant">Effectif Max</label>
-                        <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-warning-amber focus:ring-4 focus:ring-warning-amber/10 transition-all outline-none" id="editClassMaxStudents" name="capacite" type="number">
-                    </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Effectif max</label>
+                    <input type="number" name="capacite" id="editClassMaxStudents"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                 </div>
             </div>
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
-                <button class="px-6 py-2.5 rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit')" type="button">Annuler</button>
-                <button class="bg-warning-amber text-white px-8 py-2.5 rounded-lg font-label-md hover:bg-warning-amber/90 shadow-md" type="submit">Mettre à jour</button>
+
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('modal-edit')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Mettre à jour
+                </button>
             </div>
         </form>
     </div>
 </div>
-@endsection
 
-@push('styles')
-<style>
-    body { font-family: 'Inter', sans-serif; background-color: #f9f9ff; }
-    .font-headline { font-family: 'Lexend', sans-serif; }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-    .custom-shadow { box-shadow: 0 4px 12px rgba(55, 48, 163, 0.04); }
-    .modal-overlay { transition: backdrop-filter 0.3s ease; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    
-    /* Animation styles for modals */
-    #modal-add, #modal-edit {
-        transition: opacity 0.3s ease;
-    }
-</style>
-@endpush
+@endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: @json(session('success')),
-                timer: 2000,
-                showConfirmButton: false,
-            });
-        @endif
+    const swalConfig = {
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-xs text-gray-500'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    };
 
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: @json(session('error')),
-                timer: 3000,
-                showConfirmButton: false,
-            });
-        @endif
+    @if(session('success'))
+        Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
+    @endif
+    @if(session('error'))
+        Swal.fire({ ...swalConfig, icon: 'error', title: 'Erreur', text: @json(session('error')), confirmButtonText: 'OK' });
+    @endif
 
-        const classForms = ['addClassForm', 'editClassForm'];
-        classForms.forEach((formId) => {
-            const form = document.getElementById(formId);
-            if (!form) return;
-
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                HTMLFormElement.prototype.submit.call(form);
-            }, true);
-        });
-
-        document.querySelectorAll('.delete-class-btn').forEach((button) => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                const form = this.closest('form');
-                Swal.fire({
-                    title: 'Êtes-vous sûr ?',
-                    text: `La classe "${this.dataset.name}" sera définitivement supprimée.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ba1a1a',
-                    cancelButtonColor: '#64748B',
-                    confirmButtonText: 'Oui, supprimer',
-                    cancelButtonText: 'Annuler'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            }, true);
-        });
-    });
-
-    function openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId + '-content';
-        const content = document.getElementById(contentId);
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        const content = document.getElementById(id + '-content');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
     }
-
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const contentId = modalId + '-content';
-        const content = document.getElementById(contentId);
-        
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 300);
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        const content = document.getElementById(id + '-content');
+        content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
     }
 
     function openEditModal(classData) {
@@ -347,121 +371,33 @@
         document.getElementById('editClassId').value = classData.id;
         document.getElementById('editClassName').value = classData.name;
         document.getElementById('editClassMaxStudents').value = classData.max_students || '';
-        
-        // Sélectionner les options correspondantes
-        const schoolSelect = document.getElementById('editClassSchool');
-        schoolSelect.value = classData.school_id;
-        
-        const levelSelect = document.getElementById('editClassLevel');
-        levelSelect.value = classData.level_id;
-        
+        document.getElementById('editClassSchool').value = classData.school_id;
+        document.getElementById('editClassLevel').value = classData.level_id;
         openModal('modal-edit');
     }
 
-    // Add Class Form Submission
-    const addForm = document.getElementById('addClassForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function(e) {
+    document.querySelectorAll('.delete-class-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
             e.preventDefault();
-            const className = document.getElementById('className').value;
-            
+            const form = this.closest('form');
             Swal.fire({
-                title: 'Confirmation',
-                text: `Souhaitez-vous ajouter la classe "${className}" ?`,
-                icon: 'question',
+                ...swalConfig,
+                title: 'Supprimer cette classe ?',
+                html: `La classe <strong class="text-rose-600">"${this.dataset.name}"</strong> sera définitivement supprimée.`,
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Oui, ajouter',
+                confirmButtonText: 'Oui, supprimer',
                 cancelButtonText: 'Annuler',
-                confirmButtonColor: '#1f108e',
-                cancelButtonColor: '#64748B',
-                borderRadius: '12px'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Succès !',
-                        text: 'La classe a été ajoutée avec succès.',
-                        icon: 'success',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        borderRadius: '12px'
-                    });
-                    closeModal('modal-add');
-                    addForm.reset();
-                }
-            });
+                iconColor: '#e11d48'
+            }).then(r => { if (r.isConfirmed) form.submit(); });
         });
-    }
+    });
 
-    // Edit Class Form Submission
-    const editForm = document.getElementById('editClassForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const className = document.getElementById('editClassName').value;
-            
-            Swal.fire({
-                title: 'Confirmation',
-                text: `Souhaitez-vous modifier la classe "${className}" ?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Oui, modifier',
-                cancelButtonText: 'Annuler',
-                confirmButtonColor: '#D97706',
-                cancelButtonColor: '#64748B',
-                borderRadius: '12px'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Modifié !',
-                        text: 'La classe a été modifiée avec succès.',
-                        icon: 'success',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        borderRadius: '12px'
-                    });
-                    closeModal('modal-edit');
-                }
-            });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['modal-add', 'modal-edit'].forEach(id => {
+            const m = document.getElementById(id);
+            if (m && m.classList.contains('flex')) closeModal(id);
         });
-    }
-
-    // Delete Logic
-    function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: `La classe "${name}" sera définitivement supprimée.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ba1a1a',
-            cancelButtonColor: '#64748B',
-            confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler',
-            borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Supprimé !',
-                    text: 'La classe a été supprimée avec succès.',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    borderRadius: '12px'
-                });
-            }
-        });
-    }
-
-    // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === "Escape") {
-            const modals = ['modal-add', 'modal-edit'];
-            modals.forEach(id => {
-                const modal = document.getElementById(id);
-                if (modal && modal.classList.contains('flex')) {
-                    closeModal(id);
-                }
-            });
-        }
     });
 </script>
 @endpush

@@ -1,92 +1,115 @@
 @extends('client.layouts.app')
 @section('title', 'EduManager - Séries')
 @section('content')
-<!-- Page Header -->
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-on-surface">
-            <span class="text-primary">Gestion des Matières</span>
-        </h2>
-        <p class="font-body-md text-body-md text-text-muted mt-1">Créez et gérez les séries du secondaire</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Séries</h2>
+        <p class="text-sm text-gray-500 mt-1">Créez et gérez les séries du secondaire</p>
     </div>
-    <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('addModal')">
-        <span class="material-symbols-outlined">add</span>
+    <button onclick="openModal('addModal')" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <span class="material-symbols-outlined text-sm">add</span>
         Ajouter une série
     </button>
 </div>
 
-<!-- Bento Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop mb-10">
-    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
-        <div class="w-14 h-14 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">school</span>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-lg">school</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
         </div>
-        <div>
-            <p class="text-text-muted text-sm font-medium">Séries disponibles</p>
-            <p class="text-3xl font-headline-md text-primary">{{ $totalSeries ?? 0 }}</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalSeries ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Séries disponibles</p>
     </div>
 
-    
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <span class="material-symbols-outlined text-lg">class</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Classes</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $classes->count() ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Classes associées</p>
+    </div>
 
-    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
-        <div class="w-14 h-14 rounded-full bg-warning-amber/10 flex items-center justify-center text-warning-amber">
-            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">assignment</span>
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span class="material-symbols-outlined text-lg">assignment</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Disciplines</span>
         </div>
-        <div>
-            <p class="text-text-muted text-sm font-medium">Assoc. matières</p>
-            <p class="text-3xl font-headline-md text-warning-amber">—</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $series->sum('matieres_count') ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Associations matière</p>
     </div>
 </div>
 
-<!-- Data Table Container -->
-<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_24px_rgba(55,48,163,0.04)] border border-outline-variant overflow-hidden">
-    <div class="px-6 py-5 border-b border-surface-subtle flex justify-between items-center bg-white">
-        <h3 class="font-headline-md text-headline-md text-on-surface">
-            <span class="text-primary">Liste des Séries</span>
-        </h3>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-base">filter_alt</span>
+        </div>
+        <div>
+            <h3 class="text-sm font-semibold text-gray-900">Liste des séries</h3>
+            <p class="text-[11px] text-gray-500">{{ $series->count() ?? 0 }} série(s) enregistrée(s)</p>
+        </div>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-left zebra-table">
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left">
             <thead>
-                <tr class="bg-surface-subtle/50 text-slate-600">
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">N°</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Nom de la série</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Classe</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Disciplines</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
+                <tr class="border-b border-gray-100 bg-gray-50/50">
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">N°</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom de la série</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Classes</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-center">Disciplines</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-outline-variant/20">
+            <tbody class="divide-y divide-gray-100">
                 @forelse($series ?? [] as $s)
-                <tr class="hover:bg-primary/5 transition-colors group">
-                    <td class="px-6 py-4 text-on-surface-variant">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-lg">filter_alt</span>
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 text-xs text-gray-500 font-semibold">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-[11px] font-bold flex-shrink-0">
+                                {{ strtoupper(substr($s['nom_serie'], 0, 2)) }}
                             </div>
-                            <span class="font-medium text-on-surface">{{ $s['nom_serie'] }}</span>
+                        
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $s['classe'] }}</td>
-                    <td class="px-6 py-4 text-on-surface-variant">{{ $s['matieres_count'] }}</td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <a href="{{ route('client.series.disciplines', $s['id']) }}" class="px-3 py-2 text-primary hover:bg-primary/10 rounded-lg transition-all flex items-center gap-1" title="Gérer les disciplines">
-                                <span class="material-symbols-outlined">menu_book</span>
-                                <span class="text-xs font-medium"></span>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700">
+                            {{ $s['classe'] }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="text-xs font-bold text-gray-900">{{ $s['matieres_count'] }}</span>
+                        <span class="text-[10px] text-gray-400"> matières</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="{{ route('client.series.disciplines', $s['id']) }}"
+                               class="w-8 h-8 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-600 flex items-center justify-center transition"
+                               title="Gérer les disciplines">
+                                <span class="material-symbols-outlined text-base">menu_book</span>
                             </a>
-                            <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), @js($s['id_classes']))" title="Modifier">
-                                <span class="material-symbols-outlined">edit</span>
+                            <button onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), @js($s['id_classes']))"
+                                    class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                                    title="Modifier">
+                                <span class="material-symbols-outlined text-base">edit</span>
                             </button>
                             <form action="{{ route('client.series.destroy', $s['id']) }}" method="POST" class="inline delete-series-form">
-                                @csrf
-                                @method('DELETE')
-                                <button class="p-2 text-alert-red hover:bg-alert-red/10 rounded-lg transition-all delete-series-btn" data-name="{{ $s['nom_serie'] }}" type="button" title="Supprimer">
-                                    <span class="material-symbols-outlined">delete</span>
+                                @csrf @method('DELETE')
+                                <button type="button"
+                                        data-name="{{ $s['nom_serie'] }}"
+                                        class="delete-series-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                        title="Supprimer">
+                                    <span class="material-symbols-outlined text-base">delete</span>
                                 </button>
                             </form>
                         </div>
@@ -94,160 +117,207 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-6 py-10 text-center text-on-surface-variant">Aucune série enregistrée</td>
+                    <td colspan="5" class="py-16 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
+                                <span class="material-symbols-outlined text-2xl text-gray-300">filter_alt</span>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-700">Aucune série enregistrée</p>
+                            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre première série.</p>
+                        </div>
+                    </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    <div class="md:hidden divide-y divide-gray-100">
+        @forelse($series ?? [] as $s)
+        <div class="p-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm font-bold flex-shrink-0">
+                        {{ strtoupper(substr($s['nom_serie'], 0, 2)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $s['nom_serie'] }}</p>
+                        <p class="text-[11px] text-gray-500 truncate">{{ $s['classe'] }}</p>
+                    </div>
+                </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 flex-shrink-0">
+                    {{ $s['matieres_count'] }} mat.
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+                <a href="{{ route('client.series.disciplines', $s['id']) }}"
+                   class="flex-1 h-9 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <span class="material-symbols-outlined text-sm">menu_book</span>
+                    Disciplines
+                </a>
+                <button onclick="editSeries({{ $s['id'] }}, @js($s['nom_serie']), @js($s['id_classes']))"
+                        class="flex-1 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Modifier
+                </button>
+                <form action="{{ route('client.series.destroy', $s['id']) }}" method="POST" class="delete-series-form">
+                    @csrf @method('DELETE')
+                    <button type="button"
+                            data-name="{{ $s['nom_serie'] }}"
+                            class="delete-series-btn w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        @empty
+        <div class="py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-2xl text-gray-300">filter_alt</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">Aucune série enregistrée</p>
+            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre première série.</p>
+        </div>
+        @endforelse
+    </div>
 </div>
 
-<!-- Add Modal -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="addModal">
-    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('addModal')"></div>
-    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl relative z-10 overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="addModalContent">
-        <div class="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-primary text-on-primary">
-            <h3 class="font-headline-md text-headline-md">Ajouter une série</h3>
-            <button class="hover:bg-white/20 p-1 rounded-full transition-colors" onclick="closeModal('addModal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="addModal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('addModal')"></div>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="addModalContent">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">add_circle</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter une série</h3>
+                    <p class="text-[11px] text-gray-500">Nouvelle série pédagogique</p>
+                </div>
+            </div>
+            <button onclick="closeModal('addModal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
 
-        <form class="p-6 space-y-5" id="addSeriesForm" action="{{ route('client.series.store') }}" method="POST">
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" id="addSeriesForm" action="{{ route('client.series.store') }}" method="POST">
             @csrf
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Classes</label>
-                <select name="id_classes[]" multiple required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant" size="5">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Classes</label>
+                <select name="id_classes[]" multiple required size="5"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     @foreach($classes as $classe)
-                        <option value="{{ $classe->id }}" @selected(collect(old('id_classes'))->contains($classe->id))>{{ $classe->nom }}</option>
+                    <option value="{{ $classe->id }}" @selected(collect(old('id_classes'))->contains($classe->id))>{{ $classe->nom }}</option>
                     @endforeach
                 </select>
-                <p class="text-[11px] text-text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs classes.</p>
+                <p class="text-[10px] text-gray-400 mt-1.5">Maintenez Ctrl/Cmd pour sélectionner plusieurs classes.</p>
             </div>
 
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Nom de la série</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="nom_serie" placeholder="Ex: Série A1" required type="text">
-                <p class="text-[11px] text-text-muted">Exemples: A1, A2, B, C, D, F2, F3, G1, G2</p>
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la série</label>
+                <input type="text" name="nom_serie" required placeholder="Ex: Série A1"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                <p class="text-[10px] text-gray-400 mt-1.5">Exemples: A1, A2, B, C, D, F2, F3, G1, G2</p>
             </div>
 
-            <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('addModal')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary-container transition-colors" type="submit">Enregistrer</button>
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('addModal')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Enregistrer
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Edit Modal -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="editModal">
-    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('editModal')"></div>
-    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl relative z-10 overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="editModalContent">
-        <div class="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-primary text-on-primary">
-            <h3 class="font-headline-md text-headline-md">Modifier la série</h3>
-            <button class="hover:bg-white/20 p-1 rounded-full transition-colors" onclick="closeModal('editModal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="editModal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('editModal')"></div>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="editModalContent">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Modifier la série</h3>
+                    <p class="text-[11px] text-gray-500">Mise à jour des informations</p>
+                </div>
+            </div>
+            <button onclick="closeModal('editModal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
 
-        <form class="p-6 space-y-5" id="editSeriesForm" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Classes</label>
-                <select id="editSerieClasses" name="id_classes[]" multiple required class="w-full px-4 py-2.5 rounded-lg border border-outline-variant" size="5">
-                    @foreach($classes as $classe)<option value="{{ $classe->id }}">{{ $classe->nom }}</option>@endforeach
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" id="editSeriesForm" method="POST">
+            @csrf @method('PUT')
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Classes</label>
+                <select id="editSerieClasses" name="id_classes[]" multiple required size="5"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
+                    @foreach($classes as $classe)
+                    <option value="{{ $classe->id }}">{{ $classe->nom }}</option>
+                    @endforeach
                 </select>
+                <p class="text-[10px] text-gray-400 mt-1.5">Maintenez Ctrl/Cmd pour sélectionner plusieurs classes.</p>
             </div>
 
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Nom de la série</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editNomSerie" name="nom_serie" required type="text">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la série</label>
+                <input type="text" id="editNomSerie" name="nom_serie" required
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
             </div>
 
-            <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('editModal')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary-container transition-colors" type="submit">Appliquer</button>
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('editModal')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Appliquer
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<style>
-    /* Animation styles for modals */
-    #addModal, #editModal {
-        transition: opacity 0.3s ease;
-    }
+@endsection
 
-    .modal-backdrop {
-        transition: backdrop-filter 0.3s ease;
-    }
-
-    /* SweetAlert custom styles - légèrement augmenté */
-    .swal2-popup {
-        font-size: 0.95rem !important;
-        padding: 1.5rem !important;
-    }
-    
-    .swal2-title {
-        font-size: 1.3rem !important;
-        padding: 0.8rem 0 0.5rem 0 !important;
-    }
-    
-    .swal2-html-container {
-        font-size: 0.95rem !important;
-        padding: 0.5rem 0 1rem 0 !important;
-    }
-    
-    .swal2-confirm, .swal2-cancel {
-        font-size: 0.9rem !important;
-        padding: 0.6rem 1.5rem !important;
-        margin: 0 0.3rem !important;
-    }
-    
-    .swal2-timer-progress-bar {
-        height: 3px !important;
-    }
-    
-    .swal2-icon {
-        font-size: 0.7rem !important;
-    }
-    
-    .swal2-close {
-        font-size: 1.2rem !important;
-    }
-</style>
-
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    const swalConfig = {
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-xs text-gray-500'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    };
+
     function openModal(id) {
         const modal = document.getElementById(id);
         const content = document.getElementById(id + 'Content');
-
-        modal.classList.remove('hidden');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
     }
-
     function closeModal(id) {
         const modal = document.getElementById(id);
         const content = document.getElementById(id + 'Content');
-
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 300);
+        content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
     }
 
     function editSeries(id, nomSerie, classeIds) {
-        // Pour la compat UI: classeId = première classe (si série multi-classes)
         document.getElementById('editSeriesForm').action = `{{ url('/client/series') }}/${id}`;
         document.getElementById('editNomSerie').value = nomSerie;
 
@@ -258,66 +328,38 @@
                 opt.selected = selectedIds.includes(String(opt.value));
             });
         }
-
         openModal('editModal');
     }
 
-
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.delete-series-btn').forEach((button) => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                Swal.fire({
-                    title: `Supprimer la série « ${this.dataset.name} » ?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    cancelButtonText: 'Annuler',
-                    confirmButtonText: 'Oui, supprimer',
-                    confirmButtonColor: '#d33',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.closest('form').submit();
-                    }
-                });
-            }, true);
+    document.querySelectorAll('.delete-series-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            Swal.fire({
+                ...swalConfig,
+                title: 'Supprimer cette série ?',
+                html: `La série <strong class="text-rose-600">"${this.dataset.name}"</strong> sera définitivement supprimée.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                iconColor: '#e11d48'
+            }).then(r => { if (r.isConfirmed) form.submit(); });
         });
-
-        // Affichage success/error via SweetAlert si dispo
-        @if(session('success'))
-            Swal?.fire?.({
-                icon: 'success',
-                title: 'Succès',
-                text: @json(session('success')),
-                timer: 2500,
-                showConfirmButton: false,
-            });
-        @endif
-
-        @if(session('error'))
-            Swal?.fire?.({
-                icon: 'error',
-                title: 'Erreur',
-                text: @json(session('error')),
-                timer: 3000,
-                showConfirmButton: false,
-            });
-        @endif
     });
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const addModal = document.getElementById('addModal');
-            const editModal = document.getElementById('editModal');
-
-            if (addModal && !addModal.classList.contains('hidden')) {
-                closeModal('addModal');
-            }
-            if (editModal && !editModal.classList.contains('hidden')) {
-                closeModal('editModal');
-            }
-        }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['addModal', 'editModal'].forEach(id => {
+            const m = document.getElementById(id);
+            if (m && !m.classList.contains('hidden')) closeModal(id);
+        });
     });
+
+    @if(session('success'))
+        Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
+    @endif
+    @if(session('error'))
+        Swal.fire({ ...swalConfig, icon: 'error', title: 'Erreur', text: @json(session('error')), confirmButtonText: 'OK' });
+    @endif
 </script>
-@endsection
+@endpush

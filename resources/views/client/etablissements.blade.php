@@ -6,7 +6,7 @@
 <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <div>
         <h2 class="font-headline-lg text-headline-lg text-primary mb-2">Mes etablissements</h2>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">Creez vos ecoles selon la limite de votre abonnement et choisissez l'etablissement actif.</p>
+        <p class="font-body-md text-text-muted mt-1">Creez vos ecoles selon la limite de votre abonnement et choisissez l'etablissement actif.</p>
     </div>
     <div class="rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm">
         <span class="font-semibold">Utilisation :</span>

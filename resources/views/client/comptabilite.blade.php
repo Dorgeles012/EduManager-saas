@@ -5,7 +5,7 @@
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
     <div>
         <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financière</h2>
-        <p class="text-body-md text-on-surface-variant">Gérez les finances de votre établissement avec précision et clarté.</p>
+        <p class="font-body-md text-text-muted mt-1">Gérez les finances de votre établissement avec précision et clarté.</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
         <button class="flex items-center gap-1.5 bg-success-green text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">

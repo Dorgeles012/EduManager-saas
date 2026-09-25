@@ -3,133 +3,148 @@
 @section('content')
 
 @if(session('error'))
-    <div class="mb-4 px-4 py-3 rounded-lg bg-error-container/20 text-error">
+    <div class="mb-4 px-4 py-3 rounded-xl bg-rose-50 text-rose-700 text-xs border border-rose-100">
         {{ session('error') }}
     </div>
 @endif
 
-<!-- Page Header -->
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion des Matières</h2>
-        <p class="font-body-md text-body-md text-text-muted mt-1">Gérez l'ensemble des matières enseignées dans l'établissement</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Matières</h2>
+        <p class="text-sm text-gray-500 mt-1">Gérez l'ensemble des matières enseignées dans l'établissement</p>
     </div>
-    <button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('addModal')">
-        <span class="material-symbols-outlined">add</span>
+    <button onclick="openModal('addModal')" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <span class="material-symbols-outlined text-sm">add</span>
         Ajouter une matière
     </button>
 </div>
 
-<!-- Bento Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop mb-10">
-    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
-        <div class="w-14 h-14 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">book</span>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-lg">book</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
         </div>
-        <div>
-            <p class="text-text-muted text-sm font-medium">Matières disponibles</p>
-            <p class="text-3xl font-headline-md text-primary" id="totalSubjectsCount">{{ $totalSubjects ?? 0 }}</p>
-        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900" id="totalSubjectsCount">{{ $totalSubjects ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Matières disponibles</p>
     </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[4px_4px_12px_rgba(55,48,163,0.04)] border border-outline-variant/30 flex items-center gap-5">
-        <div class="w-14 h-14 rounded-full bg-warning-amber/10 flex items-center justify-center text-warning-amber">
-            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">person_search</span>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span class="material-symbols-outlined text-lg">person_search</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Enseignants</span>
         </div>
-        <div>
-            <p class="text-text-muted text-sm font-medium">Enseignants assignés</p>
-            <p class="text-3xl font-headline-md text-warning-amber">{{ $assignedTeachersCount ?? 0 }}</p>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $assignedTeachersCount ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Assignés</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <span class="material-symbols-outlined text-lg">calculate</span>
+            </div>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Coefficients</span>
         </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900" id="totalCoefficientDisplay">{{ $totalCoefficient ?? 0 }}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Somme totale</p>
     </div>
 </div>
 
-<!-- Data Table Container -->
-<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_24px_rgba(55,48,163,0.04)] border border-outline-variant overflow-hidden">
-    <div class="px-6 py-5 border-b border-surface-subtle flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-            <h3 class="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Liste des Matières</h3>
-            
-            <!-- Filtre par série - Select déroulant -->
-            <div class="relative w-full sm:w-56">
-                <select 
-                    id="serieFilterSelect" 
-                    class="w-full appearance-none px-4 py-2 pr-10 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all bg-surface-container-lowest cursor-pointer"
-                    onchange="filterBySerie(this.value)"
-                >
-                    <option value="all">Toutes les séries</option>
-                    @foreach($series ?? [] as $serie)
-                        @php
-                            $countForSerie = $subjects->where('serie_id', $serie->id)->count() ?? 0;
-                        @endphp
-                        @if($countForSerie > 0)
-                            <option value="{{ $serie->id }}">{{ $serie->nom_serie }} ({{ $countForSerie }})</option>
-                        @else
-                           <option value="{{ $serie->id }}">{{ $serie->nom_serie }}</option>
-                        @endif
-                    @endforeach
-                </select>
-                <span class="absolute inset-y-0 right-3 flex items-center text-text-muted pointer-events-none">
-                    <span class="material-symbols-outlined text-xl">expand_more</span>
-                </span>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">menu_book</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900">Liste des matières</h3>
+                <p class="text-[11px] text-gray-500">{{ count($subjects ?? []) }} matière(s) enregistrée(s)</p>
             </div>
         </div>
+
+        <div class="relative w-full sm:w-64">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">filter_list</span>
+            <select id="serieFilterSelect" onchange="filterBySerie(this.value)"
+                    class="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 pl-10 pr-8 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition cursor-pointer font-medium">
+                <option value="all">Toutes les séries</option>
+                @foreach($series ?? [] as $serie)
+                    @php
+                        $countForSerie = $subjects->where('serie_id', $serie->id)->count() ?? 0;
+                    @endphp
+                    @if($countForSerie > 0)
+                        <option value="{{ $serie->id }}">{{ $serie->nom_serie }} ({{ $countForSerie }})</option>
+                    @else
+                        <option value="{{ $serie->id }}">{{ $serie->nom_serie }}</option>
+                    @endif
+                @endforeach
+            </select>
+            <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">expand_more</span>
+        </div>
     </div>
-    
-    <!-- Indicateur de filtre actif avec coefficient -->
-    <div id="activeFilterIndicator" class="px-6 py-2 bg-primary/5 border-b border-outline-variant/20 text-sm text-text-muted hidden">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-base">filter_list</span>
-                Filtré par : <span id="activeFilterName" class="font-medium text-primary">Toutes</span>
-                <button onclick="resetAllFilters()" class="ml-2 text-xs text-primary hover:underline">(Effacer le filtre)</button>
+
+    <div id="activeFilterIndicator" class="px-5 py-2.5 bg-indigo-50/50 border-b border-indigo-100 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="flex items-center gap-2 text-gray-700">
+                <span class="material-symbols-outlined text-indigo-600 text-base">filter_alt</span>
+                Filtré par : <span id="activeFilterName" class="font-semibold text-indigo-700">Toutes</span>
+                <button onclick="resetAllFilters()" class="ml-2 text-[11px] text-indigo-600 hover:underline font-medium">(Effacer)</button>
             </span>
-            <span class="flex items-center gap-2 text-sm">
-                <span class="text-text-muted">Coefficient total :</span>
-                <span class="font-bold text-secondary" id="filteredCoefficientDisplay">0</span>
-                <span id="coefficientSerieLabel" class="hidden text-primary font-medium"></span>
+            <span class="flex items-center gap-2 text-xs">
+                <span class="text-gray-500">Coefficient total :</span>
+                <span class="font-bold text-emerald-600" id="filteredCoefficientDisplay">0</span>
+                <span id="coefficientSerieLabel" class="hidden text-indigo-600 font-medium text-[11px]"></span>
             </span>
         </div>
     </div>
 
     <template id="initialSubjectsTemplate">
         @foreach($subjects ?? [] as $subject)
-        <tr class="hover:bg-primary/5 transition-colors group subject-row" 
-            data-subject-name="{{ strtolower($subject['name']) }}" 
+        <tr class="hover:bg-gray-50/50 transition-colors subject-row"
+            data-subject-name="{{ strtolower($subject['name']) }}"
             data-subject-serie="{{ $subject['serie_id'] ?? '' }}"
             data-subject-serie-name="{{ strtolower($subject['serie'] ?? '') }}"
             data-subject-coefficient="{{ $subject['coefficient'] ?? 0 }}">
-            <td class="px-6 py-4 text-on-surface-variant">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
-            <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined text-lg">menu_book</span>
-                    </div>
-                    <span class="font-medium text-on-surface subject-name">{{ $subject['name'] }}</span>
-                </div>
-            </td>
-            <td class="px-6 py-4 text-center">
-                <span class="px-3 py-1 bg-surface-container-high text-primary rounded-full font-bold text-xs subject-coefficient">{{ $subject['coefficient'] }}</span>
-            </td>
-            <td class="px-6 py-4">
+            <td class="px-4 py-3 text-xs text-gray-500 font-semibold">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
+            <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-success-green"></div>
-                    <span class="text-sm font-medium text-success-green">Active</span>
+                    <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-[11px] font-bold">
+                        {{ strtoupper(substr($subject['name'], 0, 1)) }}
+                    </div>
+                    <span class="text-xs font-semibold text-gray-900 subject-name">{{ $subject['name'] }}</span>
                 </div>
             </td>
-            <td class="px-6 py-4">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface-container-high/40 text-on-surface subject-serie">
+            <td class="px-4 py-3 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs subject-coefficient">{{ $subject['coefficient'] }}</span>
+            </td>
+            <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Active
+                </span>
+            </td>
+            <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase subject-serie">
                     {{ $subject['serie'] ?? 'N/A' }}
                 </span>
             </td>
-            <td class="px-6 py-4 text-right">
-                <div class="flex justify-end gap-2">
-                    <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editMatiere({{ $subject['id'] }}, @js($subject['name']), {{ $subject['coefficient'] }}, @js($subject['serie_id'] ?? 0))" title="Modifier">
-                        <span class="material-symbols-outlined">edit</span>
+            <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-1.5">
+                    <button onclick="editMatiere({{ $subject['id'] }}, @js($subject['name']), {{ $subject['coefficient'] }}, @js($subject['serie_id'] ?? 0))"
+                            class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                            title="Modifier">
+                        <span class="material-symbols-outlined text-base">edit</span>
                     </button>
                     <form action="{{ route('client.matiere.destroy', $subject['id']) }}" method="POST" class="inline delete-subject-form">
-                        @csrf
-                        @method('DELETE')
-                        <button class="p-2 text-alert-red hover:bg-alert-red/10 rounded-lg transition-all delete-subject-btn" data-name="{{ $subject['name'] }}" type="button" title="Supprimer">
-                            <span class="material-symbols-outlined">delete</span>
+                        @csrf @method('DELETE')
+                        <button type="button"
+                                data-name="{{ $subject['name'] }}"
+                                class="delete-subject-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                title="Supprimer">
+                            <span class="material-symbols-outlined text-base">delete</span>
                         </button>
                     </form>
                 </div>
@@ -138,66 +153,74 @@
         @endforeach
     </template>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-left zebra-table" id="subjectsTable">
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left" id="subjectsTable">
             <thead>
-                <tr class="bg-surface-subtle/50 text-slate-600">
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">N°</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Nom de la matière</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-center">Coefficient</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Statut</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px]">Série</th>
-                    <th class="px-6 py-4 font-label-sm text-on-surface-variant uppercase tracking-wider text-[12px] text-right">Actions</th>
+                <tr class="border-b border-gray-100 bg-gray-50/50">
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">N°</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom de la matière</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-center">Coeff.</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Série</th>
+                    <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-outline-variant/20" id="subjectsTableBody">
-                {{-- Lignes injectées par renderInitialRows() (template initialSubjectsTemplate) --}}
+            <tbody class="divide-y divide-gray-100" id="subjectsTableBody">
             </tbody>
         </table>
     </div>
-    
-    <!-- Message de résultat de filtrage -->
-    <div id="filterResult" class="px-6 py-3 text-sm text-text-muted border-t border-outline-variant/20 hidden">
+
+    <div class="md:hidden divide-y divide-gray-100" id="subjectsMobileBody">
+    </div>
+
+    <div id="filterResult" class="px-5 py-3 text-xs text-gray-500 border-t border-gray-100 hidden">
         <span id="filterResultText"></span>
     </div>
-    
-    <div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant flex justify-between items-center text-sm text-text-muted">
-        <span id="paginationInfo">Affichage de <span id="visibleCount">0</span> sur <span id="totalCount">{{ count($subjects ?? []) }}</span> matières</span>
-        <div class="flex gap-1">
-            <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white disabled:opacity-50" disabled>
-                <span class="material-symbols-outlined text-lg">chevron_left</span>
-            </button>
-            <button class="w-8 h-8 flex items-center justify-center rounded border border-primary bg-primary text-on-primary">1</button>
-            <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white disabled:opacity-50" disabled>
-                <span class="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
+
+    <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-gray-500" id="paginationInfo">
+            Affichage de <span id="visibleCount">0</span> sur <span id="totalCount">{{ count($subjects ?? []) }}</span> matière(s)
+        </span>
+        <div class="flex items-center gap-1.5 text-xs">
+            <button class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[11px] font-semibold">1</button>
         </div>
     </div>
 </div>
 
-<!-- Add Modal -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="addModal">
-    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('addModal')"></div>
-    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl relative z-10 overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="addModalContent">
-        <div class="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-primary text-on-primary">
-            <h3 class="font-headline-md text-headline-md">Ajouter une matière</h3>
-            <button class="hover:bg-white/20 p-1 rounded-full transition-colors" onclick="closeModal('addModal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="addModal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('addModal')"></div>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="addModalContent">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <span class="material-symbols-outlined text-base">add_circle</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter une matière</h3>
+                    <p class="text-[11px] text-gray-500">Créez une nouvelle matière</p>
+                </div>
+            </div>
+            <button onclick="closeModal('addModal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-5" id="addSubjectForm" action="{{ route('client.matiere.store') }}" method="POST">
+
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" id="addSubjectForm" action="{{ route('client.matiere.store') }}" method="POST">
             @csrf
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Nom de la matière</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="nom" placeholder="Ex: Informatique" required type="text">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la matière</label>
+                <input type="text" name="nom" required placeholder="Ex: Informatique"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
             </div>
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Coefficient</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="coefficient" max="10" min="1" placeholder="1-10" required type="number">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Coefficient</label>
+                <input type="number" name="coefficient" min="1" max="10" required placeholder="1-10"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
             </div>
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Série <span class="text-alert-red">*</span></label>
-                <select class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" name="serie" required>
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série <span class="text-rose-500">*</span></label>
+                <select name="serie" required
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     <option value="">Sélectionner une série</option>
                     @foreach($series ?? [] as $s)
                         <option value="{{ $s->id }}">{{ $s->nom_serie }}</option>
@@ -205,370 +228,258 @@
                 </select>
             </div>
 
-            <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('addModal')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary-container transition-colors" type="submit">Enregistrer</button>
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('addModal')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Enregistrer
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Edit Modal -->
-<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4" id="editModal">
-    <div class="absolute inset-0 modal-backdrop backdrop-blur-md bg-black/30" onclick="closeModal('editModal')"></div>
-    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl relative z-10 overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="editModalContent">
-        <div class="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-primary text-on-primary">
-            <h3 class="font-headline-md text-headline-md">Modifier la matière</h3>
-            <button class="hover:bg-white/20 p-1 rounded-full transition-colors" onclick="closeModal('editModal')">
-                <span class="material-symbols-outlined">close</span>
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="editModal">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('editModal')"></div>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10 max-h-[90vh] flex flex-col" id="editModalContent">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Modifier la matière</h3>
+                    <p class="text-[11px] text-gray-500">Mise à jour des informations</p>
+                </div>
+            </div>
+            <button onclick="closeModal('editModal')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                <span class="material-symbols-outlined text-gray-500">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-5" id="editSubjectForm" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Nom de la matière</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editName" name="nom" required type="text">
+
+        <form class="p-5 space-y-4 overflow-y-auto flex-1" id="editSubjectForm" method="POST">
+            @csrf @method('PUT')
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nom de la matière</label>
+                <input type="text" id="editName" name="nom" required
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
             </div>
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Coefficient</label>
-                <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editCoeff" name="coefficient" max="10" min="1" required type="number">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Coefficient</label>
+                <input type="number" id="editCoeff" name="coefficient" min="1" max="10" required
+                       class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
             </div>
-            <div class="space-y-2">
-                <label class="font-label-md text-on-surface">Série <span class="text-alert-red">*</span></label>
-                <select class="w-full px-4 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" id="editSerie" name="serie" required>
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série <span class="text-rose-500">*</span></label>
+                <select id="editSerie" name="serie" required
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     <option value="">Sélectionner une série</option>
                     @foreach($series ?? [] as $s)
                         <option value="{{ $s->id }}">{{ $s->nom_serie }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="pt-4 flex gap-3">
-                <button class="flex-1 px-4 py-2.5 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="closeModal('editModal')" type="button">Annuler</button>
-                <button class="flex-1 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary-container transition-colors" type="submit">Appliquer les changements</button>
+
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeModal('editModal')"
+                        class="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+                    Appliquer
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-    /* Animation styles for modals */
-    #addModal, #editModal {
-        transition: opacity 0.3s ease;
-    }
-    
-    .modal-backdrop {
-        transition: backdrop-filter 0.3s ease;
-    }
-    
-    /* Animation pour le filtre */
-    .subject-row {
-        transition: all 0.3s ease;
-    }
-    
-    .subject-row.hidden-row {
-        display: none;
-    }
-    
-    /* Style du select personnalisé */
-    #serieFilterSelect {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        cursor: pointer;
-        min-width: 180px;
-        background-image: none;
-    }
-    
-    #serieFilterSelect::-ms-expand {
-        display: none;
-    }
-    
-    #serieFilterSelect:focus {
-        border-color: #1f108e;
-        box-shadow: 0 0 0 4px rgba(31, 16, 142, 0.1);
-    }
-    
-    /* Animation du coefficient */
-    #filteredCoefficientDisplay {
-        transition: all 0.3s ease;
-    }
-    
-    .coefficient-update {
-        animation: pulse 0.3s ease;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.2); color: #1f108e; }
-        100% { transform: scale(1); }
-    }
-    
-    /* SweetAlert custom styles */
-    .swal2-popup {
-        font-size: 0.95rem !important;
-        padding: 1.5rem !important;
-    }
-    
-    .swal2-title {
-        font-size: 1.3rem !important;
-        padding: 0.8rem 0 0.5rem 0 !important;
-    }
-    
-    .swal2-html-container {
-        font-size: 0.95rem !important;
-        padding: 0.5rem 0 1rem 0 !important;
-    }
-    
-    .swal2-confirm, .swal2-cancel {
-        font-size: 0.9rem !important;
-        padding: 0.6rem 1.5rem !important;
-        margin: 0 0.3rem !important;
-    }
-    
-    .swal2-timer-progress-bar {
-        height: 3px !important;
-    }
-    
-    .swal2-icon {
-        font-size: 0.7rem !important;
-    }
-    
-    .swal2-close {
-        font-size: 1.2rem !important;
-    }
+    .subject-row { transition: all 0.3s ease; }
+    .subject-row.hidden-row { display: none; }
+    #serieFilterSelect { appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+    #serieFilterSelect::-ms-expand { display: none; }
+    #filteredCoefficientDisplay { transition: all 0.3s ease; }
+    .coefficient-update { animation: pulse 0.3s ease; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     let currentSerieFilter = 'all';
     let totalAllCoefficient = {{ $totalCoefficient ?? 0 }};
-    
-    // Fonction pour attacher les événements aux boutons de suppression
+
+    const swalConfig = {
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white mx-1',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-xs text-gray-500'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    };
+
     function attachDeleteEvents() {
         document.querySelectorAll('.delete-subject-btn').forEach((button) => {
-            // Éviter les doublons d'événements
             if (button.dataset.listenerAttached === 'true') return;
             button.dataset.listenerAttached = 'true';
-            
+
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
                 const form = this.closest('form');
                 if (!form) return;
-                
+
                 Swal.fire({
-                    title: `Supprimer la matière « ${this.dataset.name} » ?`,
+                    ...swalConfig,
+                    title: 'Supprimer cette matière ?',
+                    html: `La matière <strong class="text-rose-600">"${this.dataset.name}"</strong> sera définitivement supprimée.`,
                     icon: 'warning',
                     showCancelButton: true,
-                    cancelButtonText: 'Annuler',
                     confirmButtonText: 'Oui, supprimer',
-                    confirmButtonColor: '#d33',
+                    cancelButtonText: 'Annuler',
+                    iconColor: '#e11d48'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });
     }
-    
+
     function openModal(id) {
         const modal = document.getElementById(id);
         const content = document.getElementById(id + 'Content');
-        
-        modal.classList.remove('hidden');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
     }
 
     function closeModal(id) {
         const modal = document.getElementById(id);
         const content = document.getElementById(id + 'Content');
-        
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }, 300);
+        content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
     }
 
-    // Filtrer par série (AJAX strict)
+    function buildRow(subject, index) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50/50 transition-colors subject-row';
+        tr.dataset.subjectName = (subject.name || '').toLowerCase();
+        tr.dataset.subjectSerie = String(subject.serie_id ?? '');
+        tr.dataset.subjectCoefficient = subject.coefficient ?? 0;
+        tr.innerHTML = `
+            <td class="px-4 py-3 text-xs text-gray-500 font-semibold">${String(index + 1).padStart(2,'0')}</td>
+            <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-[11px] font-bold">${(subject.name || '').substring(0, 1).toUpperCase()}</div>
+                    <span class="text-xs font-semibold text-gray-900 subject-name">${subject.name ?? ''}</span>
+                </div>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs subject-coefficient">${subject.coefficient ?? 0}</span>
+            </td>
+            <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Active
+                </span>
+            </td>
+            <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase subject-serie">${subject.serie_name ?? 'N/A'}</span>
+            </td>
+            <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-1.5">
+                    <button onclick="editMatiere(${subject.id}, '${(subject.name ?? '').replace(/'/g, "\\'")}', ${subject.coefficient ?? 0}, ${subject.serie_id ?? 0})"
+                            class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                            title="Modifier">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+                    <form action="{{ url('/client/matiere') }}/${subject.id}" method="POST" class="inline delete-subject-form">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" data-name="${subject.name ?? ''}"
+                                class="delete-subject-btn w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition"
+                                title="Supprimer">
+                            <span class="material-symbols-outlined text-base">delete</span>
+                        </button>
+                    </form>
+                </div>
+            </td>
+        `;
+        return tr;
+    }
+
     async function filterBySerie(serieId) {
         currentSerieFilter = serieId;
-
-        // Mettre à jour le select
         const select = document.getElementById('serieFilterSelect');
-        if (select) {
-            select.value = serieId;
-        }
+        if (select) select.value = serieId;
 
-        // Vider IMMÉDIATEMENT le tbody pour éviter tout mélange
         const tbody = document.getElementById('subjectsTableBody');
-        if (tbody) {
-            tbody.innerHTML = '';
-        }
+        if (tbody) tbody.innerHTML = '';
 
-        // Mettre à jour l'indicateur de filtre
         const indicator = document.getElementById('activeFilterIndicator');
         const activeFilterName = document.getElementById('activeFilterName');
         const filteredCoeffDisplay = document.getElementById('filteredCoefficientDisplay');
         const coefficientSerieLabel = document.getElementById('coefficientSerieLabel');
 
         if (String(serieId) === 'all') {
-            // Toutes les séries => requête dédiée, pas de filtre.
             if (indicator) indicator.classList.add('hidden');
             if (coefficientSerieLabel) coefficientSerieLabel.classList.add('hidden');
 
-            // Requête AJAX "toutes séries"
             const response = await fetch(`{{ url('/client/matiere/all') }}`, {
                 method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                 credentials: 'same-origin'
             });
-
             const json = await response.json().catch(() => ({ data: [] }));
             const data = Array.isArray(json.data) ? json.data : [];
 
             if (!data.length) {
-                if (tbody) {
-                    tbody.innerHTML = `<tr>
-                        <td colspan="100%" class="text-center text-muted">
-                            Aucune matière créée.
-                        </td>
-                    </tr>`;
-                }
+                if (tbody) tbody.innerHTML = `<tr><td colspan="100%" class="py-16 text-center"><div class="flex flex-col items-center"><div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-2xl text-gray-300">book</span></div><p class="text-sm font-semibold text-gray-700">Aucune matière</p><p class="text-xs text-gray-400 mt-1">Commencez par en créer une.</p></div></td></tr>`;
                 if (filteredCoeffDisplay) filteredCoeffDisplay.textContent = '0';
-                if (document.getElementById('totalCoefficientDisplay')) {
-                    document.getElementById('totalCoefficientDisplay').textContent = '0';
-                }
+                if (document.getElementById('totalCoefficientDisplay')) document.getElementById('totalCoefficientDisplay').textContent = '0';
                 return;
             }
 
             let coeffTotal = 0;
             const frag = document.createDocumentFragment();
-
             data.forEach((subject, index) => {
                 coeffTotal += parseFloat(subject.coefficient) || 0;
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-primary/5 transition-colors group subject-row';
-                tr.dataset.subjectName = (subject.name || '').toLowerCase();
-                tr.dataset.subjectSerie = String(subject.serie_id ?? '');
-                tr.dataset.subjectCoefficient = subject.coefficient ?? 0;
-
-                tr.innerHTML = `
-                    <td class="px-6 py-4 text-on-surface-variant">${String(index + 1).padStart(2,'0')}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                                <span class="material-symbols-outlined text-lg">menu_book</span>
-                            </div>
-                            <span class="font-medium text-on-surface subject-name">${subject.name ?? ''}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="px-3 py-1 bg-surface-container-high text-primary rounded-full font-bold text-xs subject-coefficient">${subject.coefficient ?? 0}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2.5 h-2.5 rounded-full bg-success-green"></div>
-                            <span class="text-sm font-medium text-success-green">Active</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface-container-high/40 text-on-surface subject-serie">
-                            ${subject.serie_name ?? 'Série'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editMatiere(${subject.id}, '${(subject.name ?? '').replace(/'/g, "\\'")}' , ${subject.coefficient ?? 0}, ${subject.serie_id ?? 0})" title="Modifier">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <form action="{{ url('/client/matiere') }}/${subject.id}" method="POST" class="inline delete-subject-form">
-                                @csrf
-                                @method('DELETE')
-                                <button class="p-2 text-alert-red hover:bg-alert-red/10 rounded-lg transition-all delete-subject-btn" data-name="${subject.name ?? ''}" type="button" title="Supprimer">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                `;
-
-                frag.appendChild(tr);
+                frag.appendChild(buildRow(subject, index));
             });
-
             if (tbody) tbody.appendChild(frag);
-
-            // Attacher les événements aux nouveaux boutons
             attachDeleteEvents();
 
-            if (document.getElementById('totalCoefficientDisplay')) {
-                document.getElementById('totalCoefficientDisplay').textContent = String(coeffTotal);
-            }
-
+            if (document.getElementById('totalCoefficientDisplay')) document.getElementById('totalCoefficientDisplay').textContent = String(coeffTotal);
             return;
         }
 
         if (indicator) indicator.classList.remove('hidden');
-
         const selectedOption = select ? select.querySelector(`option[value="${serieId}"]`) : null;
         const serieName = selectedOption ? selectedOption.textContent.replace(/\(\d+\)/, '').trim() : 'Série';
         if (activeFilterName) activeFilterName.textContent = serieName;
 
-        // Requête AJAX strict par série
         const response = await fetch(`{{ url('/client/matiere/by-serie') }}/${serieId}`, {
             method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             credentials: 'same-origin'
         });
-
         const json = await response.json().catch(() => ({ data: [] }));
         const data = Array.isArray(json.data) ? json.data : [];
 
-        // Injecter uniquement les résultats de cette série
         if (!data.length) {
-            if (tbody) {
-                tbody.innerHTML = `<tr>
-                    <td colspan="100%" class="text-center text-muted">
-                        Aucune matière créée pour cette série.
-                    </td>
-                </tr>`;
-            }
-
-            if (document.getElementById('filterResult')) {
-                document.getElementById('filterResult').classList.add('hidden');
-            }
-
+            if (tbody) tbody.innerHTML = `<tr><td colspan="100%" class="py-16 text-center"><div class="flex flex-col items-center"><div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-2xl text-gray-300">book</span></div><p class="text-sm font-semibold text-gray-700">Aucune matière</p><p class="text-xs text-gray-400 mt-1">Aucune matière pour cette série.</p></div></td></tr>`;
             if (filteredCoeffDisplay) filteredCoeffDisplay.textContent = '0';
-
-            if (document.getElementById('totalCoefficientDisplay')) {
-                document.getElementById('totalCoefficientDisplay').textContent = '0';
-            }
+            if (document.getElementById('totalCoefficientDisplay')) document.getElementById('totalCoefficientDisplay').textContent = '0';
             if (coefficientSerieLabel) {
                 coefficientSerieLabel.classList.remove('hidden');
                 coefficientSerieLabel.textContent = `(Série ${serieName})`;
             }
-
-            if (document.getElementById('filterResult')) {
-                document.getElementById('filterResult').classList.add('hidden');
-            }
-
             return;
         }
 
@@ -576,59 +487,9 @@
         const frag = document.createDocumentFragment();
         data.forEach((subject, index) => {
             coeffTotal += parseFloat(subject.coefficient) || 0;
-
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-primary/5 transition-colors group subject-row';
-            tr.dataset.subjectName = (subject.name || '').toLowerCase();
-            tr.dataset.subjectSerie = String(subject.serie_id ?? '');
-            tr.dataset.subjectCoefficient = subject.coefficient ?? 0;
-
-            tr.innerHTML = `
-                <td class="px-6 py-4 text-on-surface-variant">${String(index + 1).padStart(2,'0')}</td>
-                <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined text-lg">menu_book</span>
-                        </div>
-                        <span class="font-medium text-on-surface subject-name">${subject.name ?? ''}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-center">
-                    <span class="px-3 py-1 bg-surface-container-high text-primary rounded-full font-bold text-xs subject-coefficient">${subject.coefficient ?? 0}</span>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2.5 h-2.5 rounded-full bg-success-green"></div>
-                        <span class="text-sm font-medium text-success-green">Active</span>
-                    </div>
-                </td>
-                <td class="px-6 py-4">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface-container-high/40 text-on-surface subject-serie">
-                        ${subject.serie_name ?? 'Série'}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <div class="flex justify-end gap-2">
-                        <button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all" onclick="editMatiere(${subject.id}, '${(subject.name ?? '').replace(/'/g, "\\'")}' , ${subject.coefficient ?? 0}, ${subject.serie_id ?? 0})" title="Modifier">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <form action="{{ url('/client/matiere') }}/${subject.id}" method="POST" class="inline delete-subject-form">
-                            @csrf
-                            @method('DELETE')
-                            <button class="p-2 text-alert-red hover:bg-alert-red/10 rounded-lg transition-all delete-subject-btn" data-name="${subject.name ?? ''}" type="button" title="Supprimer">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            `;
-
-            frag.appendChild(tr);
+            frag.appendChild(buildRow(subject, index));
         });
-
         if (tbody) tbody.appendChild(frag);
-
-        // Attacher les événements aux nouveaux boutons
         attachDeleteEvents();
 
         if (filteredCoeffDisplay) {
@@ -636,51 +497,78 @@
             filteredCoeffDisplay.classList.remove('coefficient-update');
             setTimeout(() => filteredCoeffDisplay.classList.add('coefficient-update'), 10);
         }
-        if (document.getElementById('totalCoefficientDisplay')) {
-            document.getElementById('totalCoefficientDisplay').textContent = String(coeffTotal);
-        }
+        if (document.getElementById('totalCoefficientDisplay')) document.getElementById('totalCoefficientDisplay').textContent = String(coeffTotal);
         if (coefficientSerieLabel) {
             coefficientSerieLabel.classList.remove('hidden');
             coefficientSerieLabel.textContent = `(Série ${serieName})`;
         }
     }
-    
+
     function renderInitialRows() {
-        // Recrée les lignes initiales depuis le HTML serveur (sans recharger DB)
         const template = document.getElementById('initialSubjectsTemplate');
         const tbody = document.getElementById('subjectsTableBody');
         if (!tbody || !template) return;
         tbody.innerHTML = template.innerHTML;
-        
-        // Attacher les événements aux boutons de suppression initiaux
         attachDeleteEvents();
+
+        const mobileBody = document.getElementById('subjectsMobileBody');
+        if (mobileBody) {
+            mobileBody.innerHTML = '';
+            document.querySelectorAll('#subjectsTableBody .subject-row').forEach(row => {
+                const name = row.querySelector('.subject-name')?.textContent || '';
+                const coeff = row.querySelector('.subject-coefficient')?.textContent || '';
+                const serie = row.querySelector('.subject-serie')?.textContent || '—';
+                const editBtn = row.querySelector('button[onclick*="editMatiere"]');
+                const deleteBtn = row.querySelector('.delete-subject-btn');
+                const onclickAttr = editBtn?.getAttribute('onclick') || '';
+                const nameAttr = deleteBtn?.getAttribute('data-name') || '';
+                const formAction = deleteBtn?.closest('form')?.getAttribute('action') || '';
+
+                const card = document.createElement('div');
+                card.className = 'p-4 space-y-3 subject-row';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm font-bold flex-shrink-0">${name.substring(0,1).toUpperCase()}</div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 truncate">${name}</p>
+                                <p class="text-[11px] text-gray-500 truncate">Coeff. ${coeff}</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase flex-shrink-0">${serie}</span>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <button onclick="${onclickAttr.replace(/"/g, '&quot;')}" class="flex-1 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                            <span class="material-symbols-outlined text-sm">edit</span>Modifier
+                        </button>
+                        <form action="${formAction}" method="POST" class="delete-subject-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="button" data-name="${nameAttr}" class="delete-subject-btn w-9 h-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                            </button>
+                        </form>
+                    </div>
+                `;
+                mobileBody.appendChild(card);
+            });
+            attachDeleteEvents();
+        }
+
+        const visibleCountSpan = document.getElementById('visibleCount');
+        if (visibleCountSpan) visibleCountSpan.textContent = document.querySelectorAll('#subjectsTableBody .subject-row').length;
     }
-    
+
     function resetAllFilters() {
-        // Réinitialiser le filtre série
         currentSerieFilter = 'all';
         document.getElementById('serieFilterSelect').value = 'all';
-        
-        // Cacher l'indicateur
         document.getElementById('activeFilterIndicator').classList.add('hidden');
-        
-        // Réinitialiser le coefficient
         document.getElementById('totalCoefficientDisplay').textContent = totalAllCoefficient;
         document.getElementById('coefficientSerieLabel').classList.add('hidden');
-        
-        // Recréer les lignes initiales
         renderInitialRows();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialiser les compteurs
-        const totalRows = document.querySelectorAll('.subject-row').length;
-        const visibleCountSpan = document.getElementById('visibleCount');
-        if (visibleCountSpan) {
-            visibleCountSpan.textContent = totalRows;
-        }
-        
-        // Gestion des formulaires
         ['addSubjectForm', 'editSubjectForm'].forEach((formId) => {
             const form = document.getElementById(formId);
             if (!form) return;
@@ -691,34 +579,17 @@
             }, true);
         });
 
-        // Attacher les événements aux boutons de suppression
         attachDeleteEvents();
-        
-        // Affichage success/error via SweetAlert si dispo
+
         @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: @json(session('success')),
-                timer: 2500,
-                showConfirmButton: false,
-            });
+            Swal.fire({ ...swalConfig, icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
         @endif
-
         @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: @json(session('error')),
-                timer: 3000,
-                showConfirmButton: false,
-            });
+            Swal.fire({ ...swalConfig, icon: 'error', title: 'Erreur', text: @json(session('error')), confirmButtonText: 'OK' });
         @endif
 
-        // Injecter les lignes initiales
         renderInitialRows();
-        
-        // Initialiser le coefficient total
+
         const totalCoefficientDisplay = document.getElementById('totalCoefficientDisplay');
         if (totalCoefficientDisplay) totalCoefficientDisplay.textContent = totalAllCoefficient;
     });
@@ -731,18 +602,12 @@
         openModal('editModal');
     }
 
-    // Fermer le modal avec la touche Echap
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            const addModal = document.getElementById('addModal');
-            const editModal = document.getElementById('editModal');
-            
-            if (addModal && !addModal.classList.contains('hidden')) {
-                closeModal('addModal');
-            }
-            if (editModal && !editModal.classList.contains('hidden')) {
-                closeModal('editModal');
-            }
+            ['addModal', 'editModal'].forEach(id => {
+                const modal = document.getElementById(id);
+                if (modal && modal.classList.contains('flex')) closeModal(id);
+            });
         }
     });
 </script>
