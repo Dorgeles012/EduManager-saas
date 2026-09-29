@@ -306,6 +306,7 @@
             <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-10 h-10 object-contain">
             <div>
                 <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+                <p class="text-xs text-gray-400 tracking-wider font-semibold">Espace personnel</p>
             </div>
         </div>
         
@@ -426,11 +427,6 @@
                         <img alt="Photo de profil" class="w-8 h-8 rounded-full border border-outline-variant object-cover" src="{{ $headerUser?->image ? asset('storage/'.$headerUser->image) : 'https://ui-avatars.com/api/?background=1f108e&color=fff&name='.urlencode($headerUser?->name ?? 'Personnel') }}">
                         <span class="text-sm font-medium text-on-surface hidden sm:inline-block">{{ $headerUser?->name ?? 'Personnel' }}</span>
                     </button>
-                    <div id="profile-menu" class="hidden absolute right-0 top-11 z-50 w-44 rounded-xl border border-outline-variant bg-surface-container-lowest p-1 shadow-xl">
-                        <a class="block rounded-lg px-3 py-2 text-sm text-on-surface hover:bg-surface-container" href="{{ route('personnel.parametres.index') }}">Mon profil</a>
-                        <a class="block rounded-lg px-3 py-2 text-sm text-on-surface hover:bg-surface-container" href="{{ route('personnel.parametres.index') }}">Paramètres</a>
-                        <button class="w-full rounded-lg px-3 py-2 text-left text-sm text-alert-red hover:bg-error-container" type="button" onclick="document.getElementById('logout-form').submit()">Déconnexion</button>
-                    </div>
                 </div>
             </div>
         </header>

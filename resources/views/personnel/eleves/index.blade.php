@@ -52,7 +52,7 @@
     <div class="overflow-x-auto custom-scrollbar">
         <table class="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead class="bg-surface-container-low text-xs uppercase tracking-wider text-text-muted">
-                <tr><th class="px-2 py-2.5 font-semibold">#</th><th class="px-3 py-2.5 font-semibold min-w-[160px]">Nom &amp; Prénoms</th><th class="px-2 py-2.5 font-semibold">Matricule</th><th class="px-2 py-2.5 font-semibold">Sexe</th><th class="px-2 py-2.5 font-semibold">Classe</th><th class="px-2 py-2.5 font-semibold">Niveau</th><th class="px-2 py-2.5 font-semibold min-w-[80px]">Série</th><th class="px-2 py-2.5 font-semibold min-w-[90px]">Date naiss.</th><th class="px-2 py-2.5 font-semibold text-right">Actions</th></tr>
+                <tr><th class="px-2 py-2.5 font-semibold">N°</th><th class="px-3 py-2.5 font-semibold min-w-[160px]">Nom &amp; Prénoms</th><th class="px-2 py-2.5 font-semibold">Matricule</th><th class="px-2 py-2.5 font-semibold">Sexe</th><th class="px-2 py-2.5 font-semibold">Classe</th><th class="px-2 py-2.5 font-semibold">Niveau</th><th class="px-2 py-2.5 font-semibold min-w-[80px]">Série</th><th class="px-2 py-2.5 font-semibold min-w-[90px]">Date naiss.</th><th class="px-2 py-2.5 font-semibold text-right">Actions</th></tr>
             </thead>
             <tbody class="divide-y divide-surface-subtle">
                 @foreach($students as $student)

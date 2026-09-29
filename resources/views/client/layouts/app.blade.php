@@ -119,7 +119,7 @@
             color: #111c2d;
             -webkit-font-smoothing: antialiased;
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 16px;
         }
 
         .ambient-shadow { box-shadow: 0 4px 12px 0 rgba(55, 48, 163, 0.04); }
@@ -132,14 +132,14 @@
         /* ============ ICÔNES MATERIAL — plus grandes ============ */
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            font-size: 26px;
+            font-size: 30px;
             line-height: 1;
             vertical-align: middle;
         }
 
         /* Dans la sidebar : icônes encore plus grandes */
         .sidebar-nav .material-symbols-outlined {
-            font-size: 28px;
+            font-size: 32px;
         }
 
         /* Sidebar scrollbar */
@@ -159,13 +159,13 @@
             position: fixed;
             top: 0;
             right: 0;
-            left: 260px;
+            left: 250px; 
             z-index: 40;
             background-color: #ffffff;
             border-bottom: 1px solid #e5e7eb;
-            height: 72px;
+            height: 76px;
         }
-        .main-content-with-fixed-nav { margin-top: 72px; }
+        .main-content-with-fixed-nav { margin-top: 76px; }
 
         @media (max-width: 768px) {
             .navbar-fixed { left: 0; }
@@ -230,12 +230,12 @@
 <body class="font-body-md text-body-md overflow-x-hidden">
 
 {{-- ============ SIDEBAR ============ --}}
-<aside class="fixed left-0 top-0 h-screen w-[270px] bg-white flex flex-col border-r border-gray-100 z-50">
-    <div class="p-5 flex-shrink-0 flex items-center gap-3 border-b border-gray-100">
-        <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-12 h-12 object-contain">
+<aside class="fixed left-0 top-0 h-screen w-[250px] bg-white flex flex-col border-r border-gray-100 z-50">
+    <div class="p-4 flex-shrink-0 flex items-center gap-2.5 border-b border-gray-100">
+        <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-11 h-11 object-contain">
         <div>
-            <h1 class="font-bold text-2xl text-indigo-600 tracking-tight">EduManager</h1>
-            <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Espace client</p>
+            <h1 class="font-headline-lg text-headline-md font-bold text-indigo-600 tracking-tight">EduManager</h1>
+            <p class="text-sm text-gray-400 tracking-wider font-semibold">Espace client</p>
         </div>
     </div>
 
@@ -247,79 +247,79 @@
             $isLocked = ! $subscriptionActive;
         @endphp
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.dashboard' ? 'nav-active' : '' }}" href="{{ route('client.dashboard') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.dashboard' ? 'nav-active' : '' }}" href="{{ route('client.dashboard') }}">
             <span class="material-symbols-outlined">dashboard</span>
-            <span class="text-base font-semibold">Dashboard</span>
+            <span class="text-lg font-semibold">Dashboard</span>
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 text-gray-600 hover:bg-gray-50 transition-colors {{ str_starts_with($currentRoute, 'client.abonnement') ? 'nav-active' : '' }}" href="{{ route('client.abonnement.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 transition-colors {{ str_starts_with($currentRoute, 'client.abonnement') ? 'nav-active' : '' }}" href="{{ route('client.abonnement.index') }}">
             <span class="material-symbols-outlined">subscriptions</span>
-            <span class="text-base font-semibold">Abonnements</span>
+            <span class="text-lg font-semibold">Abonnements</span>
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ str_starts_with($currentRoute, 'client.annee') ? 'nav-active' : '' }}" href="{{ route('client.annee.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ str_starts_with($currentRoute, 'client.annee') ? 'nav-active' : '' }}" href="{{ route('client.annee.index') }}">
             <span class="material-symbols-outlined">calendar_today</span>
-            <span class="text-base font-semibold">Année académique</span>
+            <span class="text-lg font-semibold">Année académique</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ str_starts_with($currentRoute, 'client.personnel') ? 'nav-active' : '' }}" href="{{ route('client.personnel.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ str_starts_with($currentRoute, 'client.personnel') ? 'nav-active' : '' }}" href="{{ route('client.personnel.index') }}">
             <span class="material-symbols-outlined">badge</span>
-            <span class="text-base font-semibold">Personnel</span>
+            <span class="text-lg font-semibold">Personnel</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ request()->routeIs('client.series.*') ? 'nav-active' : '' }}" href="{{ route('client.series.index') }}">
             <span class="material-symbols-outlined">category</span>
-            <span class="text-base font-semibold">Séries</span>
+            <span class="text-lg font-semibold">Séries</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.niveaux' || str_starts_with($currentRoute, 'client.niveaux') ? 'nav-active' : '' }}" href="{{ route('client.niveaux') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.niveaux' || str_starts_with($currentRoute, 'client.niveaux') ? 'nav-active' : '' }}" href="{{ route('client.niveaux') }}">
             <span class="material-symbols-outlined">leaderboard</span>
-            <span class="text-base font-semibold">Niveau</span>
+            <span class="text-lg font-semibold">Niveau</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.classe' || str_starts_with($currentRoute, 'client.classe') ? 'nav-active' : '' }}" href="{{ route('client.classe') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.classe' || str_starts_with($currentRoute, 'client.classe') ? 'nav-active' : '' }}" href="{{ route('client.classe') }}">
             <span class="material-symbols-outlined">meeting_room</span>
-            <span class="text-base font-semibold">Classe</span>
+            <span class="text-lg font-semibold">Classe</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.eleve' || str_starts_with($currentRoute, 'client.eleve') ? 'nav-active' : '' }}" href="{{ route('client.eleve') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.eleve' || str_starts_with($currentRoute, 'client.eleve') ? 'nav-active' : '' }}" href="{{ route('client.eleve') }}">
             <span class="material-symbols-outlined">group</span>
-            <span class="text-base font-semibold">Élèves</span>
+            <span class="text-lg font-semibold">Élèves</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.matiere' || str_starts_with($currentRoute, 'client.matiere') ? 'nav-active' : '' }}" href="{{ route('client.matiere') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.matiere' || str_starts_with($currentRoute, 'client.matiere') ? 'nav-active' : '' }}" href="{{ route('client.matiere') }}">
             <span class="material-symbols-outlined">menu_book</span>
-            <span class="text-base font-semibold">Matières</span>
+            <span class="text-lg font-semibold">Matières</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.enseignant' || str_starts_with($currentRoute, 'client.enseignant') ? 'nav-active' : '' }}" href="{{ route('client.enseignant') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.enseignant' || str_starts_with($currentRoute, 'client.enseignant') ? 'nav-active' : '' }}" href="{{ route('client.enseignant') }}">
             <span class="material-symbols-outlined">school</span>
-            <span class="text-base font-semibold">Enseignants</span>
+            <span class="text-lg font-semibold">Enseignants</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.note' || str_starts_with($currentRoute, 'client.notes') ? 'nav-active' : '' }}" href="{{ route('client.notes.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.note' || str_starts_with($currentRoute, 'client.notes') ? 'nav-active' : '' }}" href="{{ route('client.notes.index') }}">
             <span class="material-symbols-outlined">rule</span>
-            <span class="text-base font-semibold">Validation Notes</span>
+            <span class="text-lg font-semibold">Validation Notes</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.bulletin.index' || str_starts_with($currentRoute, 'client.bulletin.index') ? 'nav-active' : '' }}" href="{{ route('client.bulletin.index') }}">
             <span class="material-symbols-outlined">description</span>
-            <span class="text-base font-semibold">Bulletins</span>
+            <span class="text-lg font-semibold">Bulletins</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
-        <a class="flex items-center gap-3 px-5 py-3.5 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.comptabilite' || str_starts_with($currentRoute, 'client.comptabilite') ? 'nav-active' : '' }}" href="{{ route('client.comptabilite') }}">
+        <a class="flex items-center gap-3 px-4 py-3 {{ $isLocked ? 'text-gray-400 opacity-50 cursor-not-allowed pointer-events-none' : 'text-gray-600 hover:bg-gray-50' }} transition-colors {{ $currentRoute === 'client.comptabilite' || str_starts_with($currentRoute, 'client.comptabilite') ? 'nav-active' : '' }}" href="{{ route('client.comptabilite') }}">
             <span class="material-symbols-outlined">payments</span>
-            <span class="text-base font-semibold">Comptabilité</span>
+            <span class="text-lg font-semibold">Comptabilité</span>
             @if($isLocked)<span class="material-symbols-outlined ml-auto">lock</span>@endif
         </a>
 
@@ -327,7 +327,7 @@
 </aside>
 
 {{-- ============ MAIN ============ --}}
-<main class="ml-[270px] min-h-screen">
+<main class="ml-[250px] min-h-screen">
     <header class="navbar-fixed flex justify-between items-center px-6">
         <div class="flex items-center gap-4 w-1/2">
             <div class="relative w-full max-w-md">
@@ -341,18 +341,18 @@
             {{-- Notifications --}}
             <div class="relative">
                 <button id="notification-button" type="button"
-                        class="w-11 h-11 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-colors relative"
+                        class="w-12 h-12 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-colors relative"
                         aria-label="Notifications" aria-expanded="false">
                     <span class="material-symbols-outlined">notifications</span>
-                    <span id="notification-badge" class="hidden absolute top-1 right-1 min-w-[20px] h-5 px-1 bg-rose-500 text-white text-xs leading-5 text-center rounded-full border-2 border-white font-bold"></span>
+                    <span id="notification-badge" class="hidden absolute top-1 right-1 min-w-[22px] h-[22px] px-1 bg-rose-500 text-white text-xs leading-[22px] text-center rounded-full border-2 border-white font-bold"></span>
                 </button>
                 <div id="notification-dropdown" class="hidden absolute right-0 top-14 z-50 w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
                         <span class="text-base font-bold text-gray-900">Notifications</span>
-                        <span id="notification-count" class="text-xs text-gray-400 font-semibold"></span>
+                        <span id="notification-count" class="text-sm text-gray-400 font-semibold"></span>
                     </div>
                     <div id="notification-list" class="max-h-96 overflow-y-auto">
-                        <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune notification.</p>
+                        <p class="px-5 py-6 text-base text-gray-400 text-center">Aucune notification.</p>
                     </div>
                 </div>
             </div>
@@ -365,12 +365,12 @@
                         class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                         aria-label="Menu du profil" aria-expanded="false">
                     <img alt="Photo de profil"
-                         class="w-10 h-10 rounded-full border border-gray-200 object-cover"
+                         class="w-11 h-11 rounded-full border border-gray-200 object-cover"
                          src="{{ $headerUser?->image ? asset('storage/'.$headerUser->image) : 'https://ui-avatars.com/api/?background=4f46e5&color=fff&name='.urlencode($headerUser?->name ?? 'Client') }}">
                     <span class="text-base font-semibold text-gray-700 hidden sm:inline-block">{{ $headerUser?->name ?? 'Client' }}</span>
                     <span class="material-symbols-outlined text-gray-400 hidden sm:inline-block">expand_more</span>
                 </button>
-                <div id="profile-menu" class="hidden absolute right-0 top-14 z-50 w-60 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+                <div id="profile-menu" class="hidden absolute right-0 top-14 z-50 w-64 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
                     <a class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-base font-semibold text-gray-700 hover:bg-gray-50 transition" href="{{ route('client.parametres.index') }}">
                         <span class="material-symbols-outlined text-gray-400">settings</span>
                         Paramètres
@@ -387,7 +387,7 @@
 
     <div class="main-content-with-fixed-nav p-6">
         @if($errors->any())
-            <div class="mb-4 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-rose-700 text-sm">
+            <div class="mb-4 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-rose-700 text-base">
                 <ul class="list-disc pl-5 space-y-0.5">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -440,8 +440,8 @@
             ? payload.notifications.map(item => `
                 <div class="flex border-b border-gray-100 hover:bg-gray-50 transition-colors ${item.read ? '' : 'bg-indigo-50/50'}">
                     <a href="${escapeHtml(item.url)}" class="notification-item flex min-w-0 flex-1 gap-3 px-5 py-3.5 text-left">
-                        <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-                            <i class="fa-solid ${icons[item.category] || 'fa-bell'} text-base"></i>
+                        <span class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                            <i class="fa-solid ${icons[item.category] || 'fa-bell'} text-lg"></i>
                         </span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-base font-semibold text-gray-900">${escapeHtml(item.title)}</span>
@@ -450,11 +450,11 @@
                         </span>
                     </a>
                     <button type="button" class="notification-delete px-3 text-gray-400 hover:text-rose-600 transition" data-id="${item.id}" title="Supprimer">
-                        <i class="fa-solid fa-trash text-base"></i>
+                        <i class="fa-solid fa-trash text-lg"></i>
                     </button>
                 </div>
             `).join('')
-            : '<p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune notification.</p>';
+            : '<p class="px-5 py-6 text-base text-gray-400 text-center">Aucune notification.</p>';
     };
 
     const load = () => fetch(@json(route('notifications.index')), {

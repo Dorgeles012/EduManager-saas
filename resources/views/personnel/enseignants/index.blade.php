@@ -66,7 +66,7 @@
         <table class="w-full text-left text-sm border-separate border-spacing-y-1" id="teachersTable">
             <thead class="bg-surface-container-low text-xs uppercase tracking-wider text-text-muted">
                 <tr>
-                    <th class="px-3 py-2.5 font-semibold">#</th>
+                    <th class="px-3 py-2.5 font-semibold">N°</th>
                     <th class="px-3 py-2.5 font-semibold min-w-[180px]">Nom &amp; Prénoms</th>
                     <th class="px-3 py-2.5 font-semibold">Matricule</th>
                     <th class="px-3 py-2.5 font-semibold">Email</th>

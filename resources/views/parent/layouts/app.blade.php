@@ -167,6 +167,7 @@
             <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-10 h-10 object-contain">
             <div>
                 <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+                <p class="text-xs text-gray-400 tracking-wider font-semibold">Espace parent</p>
             </div>
         </div>
 
