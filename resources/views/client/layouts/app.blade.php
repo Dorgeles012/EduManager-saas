@@ -323,6 +323,95 @@
     </script>
 
     @include('partials.compact-styles')
+    <style>
+        /* Client typography: overrides the shared compact stylesheet only in this portal. */
+        body {
+            font-size: 17px !important;
+            line-height: 1.55 !important;
+        }
+
+        .text-4xl { font-size: 1.875rem !important; line-height: 2.35rem !important; }
+        .text-3xl { font-size: 1.625rem !important; line-height: 2.1rem !important; }
+        .text-2xl { font-size: 1.375rem !important; line-height: 1.85rem !important; }
+        .text-xl  { font-size: 1.1875rem !important; line-height: 1.65rem !important; }
+        .text-lg  { font-size: 1.0625rem !important; line-height: 1.5rem !important; }
+        .text-base{ font-size: 1rem !important; line-height: 1.45rem !important; }
+        .text-sm  { font-size: .9375rem !important; line-height: 1.35rem !important; }
+        .text-xs  { font-size: .8125rem !important; line-height: 1.2rem !important; }
+
+        .text-\[10px\] { font-size: .75rem !important; line-height: 1.05rem !important; }
+        .text-\[11px\] { font-size: .78125rem !important; line-height: 1.1rem !important; }
+        .text-\[12px\] { font-size: .8125rem !important; line-height: 1.2rem !important; }
+        .text-\[13px\] { font-size: .875rem !important; line-height: 1.25rem !important; }
+        .text-\[14px\] { font-size: .9375rem !important; line-height: 1.35rem !important; }
+        .text-\[15px\] { font-size: 1rem !important; line-height: 1.45rem !important; }
+        .text-\[16px\] { font-size: 1.0625rem !important; line-height: 1.5rem !important; }
+        .text-\[18px\] { font-size: 1.125rem !important; line-height: 1.6rem !important; }
+        .text-\[20px\] { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+        .text-\[24px\] { font-size: 1.5rem !important; line-height: 2rem !important; }
+
+        .text-headline-xl { font-size: 2rem !important; line-height: 2.5rem !important; }
+        .text-headline-lg { font-size: 1.625rem !important; line-height: 2.1rem !important; }
+        .text-headline-md { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+        .text-headline-lg-mobile { font-size: 1.375rem !important; line-height: 1.85rem !important; }
+        .text-body-lg { font-size: 1.0625rem !important; line-height: 1.55rem !important; }
+        .text-body-md { font-size: 1rem !important; line-height: 1.45rem !important; }
+        .text-body-sm { font-size: .9375rem !important; line-height: 1.35rem !important; }
+        .text-label-md { font-size: .875rem !important; line-height: 1.2rem !important; }
+        .text-label-sm { font-size: .8125rem !important; line-height: 1.1rem !important; }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="time"],
+        input[type="search"],
+        input[type="url"],
+        select,
+        textarea {
+            font-size: .9375rem !important;
+            line-height: 1.35rem !important;
+        }
+
+        button,
+        .btn {
+            font-size: .875rem !important;
+            line-height: 1.25rem !important;
+        }
+
+        table {
+            font-size: .9375rem !important;
+        }
+        table th {
+            font-size: .875rem !important;
+        }
+        table td {
+            font-size: .9375rem !important;
+        }
+
+        .swal2-popup {
+            font-size: 1.125rem !important;
+        }
+        .swal2-title {
+            font-size: 1.625rem !important;
+            line-height: 2rem !important;
+        }
+        .swal2-html-container {
+            font-size: 1.0625rem !important;
+            line-height: 1.55rem !important;
+        }
+        .swal2-confirm,
+        .swal2-cancel,
+        .edu-swal-confirm,
+        .edu-swal-cancel {
+            min-height: 44px !important;
+            padding: 0.7rem 1.15rem !important;
+            font-size: 1rem !important;
+            line-height: 1.35rem !important;
+        }
+    </style>
     @stack('styles')
 </head>
 <body class="font-body-md text-body-md overflow-x-hidden">
