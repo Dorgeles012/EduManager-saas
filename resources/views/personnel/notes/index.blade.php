@@ -1,4 +1,4 @@
-﻿@extends('personnel.layouts.app')
+@extends('personnel.layouts.app')
 @section('title', 'EduManager - Validation des Notes (Personnel)')
 @section('content')
 
@@ -204,18 +204,18 @@
                             </a>
 
                             @if($batch->statut === \App\Models\Note::STATUT_SOUMIS)
-                            <form method="POST" action="{{ route('personnel.notes.approuver') }}" class="inline">
+                            <form method="POST" action="{{ route('personnel.notes.approuver') }}" class="inline" onsubmit="return confirmApproveNotes(event, this);">
                                 @csrf
                                 <input type="hidden" name="classe_id" value="{{ $batch->classe_id }}">
                                 <input type="hidden" name="matiere_id" value="{{ $batch->matiere_id }}">
                                 <input type="hidden" name="periode" value="{{ $batch->periode }}">
-                                <button type="submit" class="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1 transition-colors shadow-sm" onclick="return confirm('Confirmer l\'approbation de ces notes ? Elles seront transmises au Client pour validation finale.');">
+                                <button type="submit" class="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1 transition-colors shadow-sm" title="Approuver les notes">
                                     <span class="material-symbols-outlined text-sm">check</span>
                                     Approuver
                                 </button>
                             </form>
 
-                            <button type="button" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg text-xs font-semibold transition-all flex items-center gap-1" onclick="openRejectModal({{ $batch->classe_id }}, {{ $batch->matiere_id }}, '{{ $batch->periode }}')">
+                            <button type="button" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg text-xs font-semibold transition-all flex items-center gap-1" onclick="openRejectModal({{ $batch->classe_id }}, {{ $batch->matiere_id }}, '{{ $batch->periode }}')" title="Rejeter les notes">
                                 <span class="material-symbols-outlined text-sm">close</span>
                                 Rejeter
                             </button>
@@ -289,6 +289,26 @@
 
 @push('scripts')
 <script>
+function confirmApproveNotes(event, form) {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Approuver ces notes ?',
+        text: 'Ces notes seront validées et transmises à la direction (Client) pour publication finale.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#059669',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Oui, approuver',
+        cancelButtonText: 'Annuler',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+    return false;
+}
+
 function openRejectModal(classeId, matiereId, periode) {
     document.getElementById('rejectClasseId').value = classeId;
     document.getElementById('rejectMatiereId').value = matiereId;

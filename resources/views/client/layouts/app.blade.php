@@ -221,8 +221,106 @@
         .swal2-popup { font-size: 1.0625rem !important; border-radius: 16px !important; }
         .swal2-title { font-size: 1.4rem !important; }
         .swal2-html-container { font-size: 1rem !important; }
-        .swal2-confirm, .swal2-cancel { font-size: 0.9375rem !important; }
+        .swal2-confirm,
+        .swal2-cancel,
+        .edu-swal-confirm,
+        .edu-swal-cancel {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 92px !important;
+            min-height: 38px !important;
+            border: 0 !important;
+            border-radius: 0.5rem !important;
+            padding: 0.55rem 1rem !important;
+            font-size: 0.9375rem !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            color: #ffffff !important;
+            text-decoration: none !important;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12) !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+        }
+        .swal2-confirm:hover,
+        .swal2-cancel:hover,
+        .edu-swal-confirm:hover,
+        .edu-swal-cancel:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16) !important;
+        }
+        .swal2-confirm:focus-visible,
+        .swal2-cancel:focus-visible,
+        .edu-swal-confirm:focus-visible,
+        .edu-swal-cancel:focus-visible {
+            outline: 3px solid rgba(13, 110, 253, 0.28) !important;
+            outline-offset: 2px !important;
+        }
+        .swal2-confirm,
+        .edu-swal-confirm,
+        .edu-swal-confirm-primary { background-color: #0d6efd !important; }
+        .edu-swal-confirm-success { background-color: #198754 !important; }
+        .edu-swal-confirm-danger { background-color: #dc3545 !important; }
+        .edu-swal-confirm-warning { background-color: #d97706 !important; }
+        .swal2-cancel,
+        .edu-swal-cancel { background-color: #6c757d !important; }
+        .swal2-actions { gap: 0.65rem !important; flex-wrap: wrap !important; }
+        @media (max-width: 480px) {
+            .swal2-actions { width: 100% !important; }
+            .swal2-confirm,
+            .swal2-cancel,
+            .edu-swal-confirm,
+            .edu-swal-cancel { flex: 1 1 100% !important; }
+        }
     </style>
+
+    <script>
+        (() => {
+            if (!window.Swal || window.Swal.__eduClientThemeApplied) return;
+
+            const originalFire = window.Swal.fire.bind(window.Swal);
+            const addClass = (current, value) => [current, value].filter(Boolean).join(' ').trim();
+            const actionClassFor = (options) => {
+                const text = [
+                    options.confirmButtonText,
+                    options.title,
+                    options.icon
+                ].filter(Boolean).join(' ').toLowerCase();
+
+                if (/(supprimer|retirer|delete|destruct)/i.test(text)) return 'edu-swal-confirm-danger';
+                if (/(bloquer|désactiver|desactiver|suspendre)/i.test(text)) return 'edu-swal-confirm-warning';
+                if (/(enregistrer|valider|débloquer|debloquer|ajouter|mettre à jour|mis à jour|créé|cree)/i.test(text)) return 'edu-swal-confirm-success';
+                return 'edu-swal-confirm-primary';
+            };
+
+            const normalizeOptions = (args) => {
+                if (!args.length || typeof args[0] !== 'object' || args[0] === null || Array.isArray(args[0])) {
+                    return args;
+                }
+
+                const options = { ...args[0] };
+                const customClass = typeof options.customClass === 'object' && options.customClass !== null
+                    ? { ...options.customClass }
+                    : { popup: typeof options.customClass === 'string' ? options.customClass : '' };
+
+                customClass.popup = addClass(customClass.popup, 'rounded-2xl');
+                customClass.confirmButton = addClass(addClass(customClass.confirmButton, 'edu-swal-confirm'), actionClassFor(options));
+                customClass.cancelButton = addClass(customClass.cancelButton, 'edu-swal-cancel');
+                customClass.title = addClass(customClass.title, 'text-base font-semibold');
+                customClass.htmlContainer = addClass(customClass.htmlContainer, 'text-sm text-gray-500');
+
+                options.customClass = customClass;
+                options.buttonsStyling = false;
+                options.reverseButtons = options.reverseButtons ?? true;
+                options.confirmButtonColor = options.confirmButtonColor ?? '#0d6efd';
+                options.cancelButtonColor = options.cancelButtonColor ?? '#6c757d';
+
+                return [options, ...args.slice(1)];
+            };
+
+            window.Swal.fire = (...args) => originalFire(...normalizeOptions(args));
+            window.Swal.__eduClientThemeApplied = true;
+        })();
+    </script>
 
     @include('partials.compact-styles')
     @stack('styles')
@@ -516,8 +614,49 @@
     load();
     window.setInterval(load, 20000);
 })();
+
+// Global SweetAlert confirmation for deletion across Client portal
+window.confirmDeleteSweet = function(event, form, title = 'Supprimer ?', text = 'Cette action est irréversible.') {
+    event.preventDefault();
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) form.submit();
+    });
+    return false;
+};
+
+// Global session alerts
+@if (session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Succès',
+        text: @json(session('success')),
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+@if (session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: @json(session('error')),
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#4f46e5'
+    });
+@endif
 </script>
 
+@yield('scripts')
 @stack('scripts')
 </body>
 </html>

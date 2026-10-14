@@ -307,7 +307,6 @@
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     let currentSerieFilter = 'all';
     let totalAllCoefficient = {{ $totalCoefficient ?? 0 }};

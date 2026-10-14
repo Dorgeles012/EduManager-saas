@@ -96,7 +96,7 @@
                             <span class="font-medium whitespace-nowrap text-sm text-on-surface">{{ ucfirst($teacher['firstname']) }} {{ ucfirst($teacher['lastname']) }}</span>
                         </div>
                     </td>
-                    <td class="px-3 py-2.5 text-text-muted align-middle text-sm font-mono">{{ $teacher['matricule'] ?? 'N/A' }}</td>
+                    <td class="px-3 py-2.5 text-text-muted align-middle text-sm">{{ $teacher['matricule'] ?? 'N/A' }}</td>
                     <td class="px-3 py-2.5 text-text-muted align-middle text-sm">{{ $teacher['email'] }}</td>
                     <td class="px-3 py-2.5 text-text-muted align-middle text-sm">{{ $teacher['phone'] }}</td>
                     <td class="px-3 py-2.5 align-middle">

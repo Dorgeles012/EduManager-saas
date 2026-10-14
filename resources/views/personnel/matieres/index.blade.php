@@ -211,7 +211,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-    /* Supprimer la flèche native de tous les navigateurs */
     select.custom-select {
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
@@ -223,9 +222,23 @@
         display: none !important;
     }
     
-    /* Pour Internet Explorer 10-11 */
     select.custom-select::-ms-value {
         background: transparent !important;
+    }
+
+    /* Taille de police du SweetAlert2 */
+    .swal2-popup {
+        font-size: 13px !important;
+    }
+    .swal2-title {
+        font-size: 18px !important;
+    }
+    .swal2-html-container {
+        font-size: 13px !important;
+    }
+    .swal2-confirm,
+    .swal2-cancel {
+        font-size: 13px !important;
     }
 </style>
 <script>

@@ -310,7 +310,6 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function() {
     'use strict';
@@ -586,6 +585,37 @@
             }
         });
     }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-teacher-btn');
+        if (!btn) return;
+        e.preventDefault();
+        const id = btn.dataset.id;
+        const name = btn.dataset.name || 'cet enseignant';
+        Swal.fire({
+            ...swalConfig,
+            title: 'Supprimer cet enseignant ?',
+            html: `L'enseignant <strong class="text-rose-600">"${name}"</strong> ainsi que ses affectations seront définitivement supprimés.<br><span class="text-xs text-gray-500">Cette action est irréversible.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#ba1a1a',
+            cancelButtonColor: '#64748B'
+        }).then(r => {
+            if (r.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/client/enseignant/${id}`;
+                form.innerHTML = `
+                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'}">
+                    <input type="hidden" name="_method" value="DELETE">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
 })();
 </script>
 @endpush

@@ -93,7 +93,7 @@
                             </form>
 
                             @if(($client->statut ?? null) === 'actif')
-                                <form method="POST" action="{{ route('sadmin.clients.block', $client) }}" class="m-0">
+                                <form method="POST" action="{{ route('sadmin.clients.block', $client) }}" class="m-0" onsubmit="return confirmBlockClient(event, this, '{{ addslashes($client->nom) }}')">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="p-2 rounded-lg bg-surface-subtle hover:bg-surface-container-high transition-colors" title="Bloquer">
@@ -101,7 +101,7 @@
                                     </button>
                                 </form>
                             @else
-                                <form method="POST" action="{{ route('sadmin.clients.unblock', $client) }}" class="m-0">
+                                <form method="POST" action="{{ route('sadmin.clients.unblock', $client) }}" class="m-0" onsubmit="return confirmUnblockClient(event, this, '{{ addslashes($client->nom) }}')">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="p-2 rounded-lg bg-surface-subtle hover:bg-surface-container-high transition-colors" title="Débloquer">
@@ -129,6 +129,42 @@
 
 @section('scripts')
 <script>
+    window.confirmBlockClient = function(event, form, name) {
+        event.preventDefault();
+        Swal.fire({
+            title: `Bloquer le client « ${name} » ?`,
+            text: "L'accès de cet établissement et de ses utilisateurs sera suspendu.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d97706',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, bloquer',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) form.submit();
+        });
+        return false;
+    };
+
+    window.confirmUnblockClient = function(event, form, name) {
+        event.preventDefault();
+        Swal.fire({
+            title: `Débloquer le client « ${name} » ?`,
+            text: "L'accès de cet établissement sera immédiatement rétabli.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, débloquer',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) form.submit();
+        });
+        return false;
+    };
+
     window.confirmActivateSweet = function(event, form) {
         event.preventDefault();
         Swal.fire({

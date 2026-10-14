@@ -203,14 +203,14 @@
                             </a>
 
                             @if(in_array($batch->statut, [\App\Models\Note::STATUT_APPROUVE_PERSONNEL, \App\Models\Note::STATUT_SOUMIS]))
-                            <form method="POST" action="{{ route('client.notes.publier') }}" class="inline">
+                            <form method="POST" action="{{ route('client.notes.publier') }}" class="inline" onsubmit="return confirmPublishNotes(event, this);">
                                 @csrf
                                 <input type="hidden" name="classe_id" value="{{ $batch->classe_id }}">
                                 <input type="hidden" name="matiere_id" value="{{ $batch->matiere_id }}">
                                 <input type="hidden" name="periode" value="{{ $batch->periode }}">
                                 <button type="submit"
                                         class="h-8 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition shadow-sm"
-                                        onclick="return confirm('Valider définitivement et publier ces notes ? Les bulletins seront générés automatiquement.');">
+                                        title="Publier les notes">
                                     <span class="material-symbols-outlined text-sm">publish</span>
                                     Publier
                                 </button>
@@ -303,14 +303,14 @@
                 </a>
 
                 @if(in_array($batch->statut, [\App\Models\Note::STATUT_APPROUVE_PERSONNEL, \App\Models\Note::STATUT_SOUMIS]))
-                <form method="POST" action="{{ route('client.notes.publier') }}" class="flex-1">
+                <form method="POST" action="{{ route('client.notes.publier') }}" class="flex-1" onsubmit="return confirmPublishNotes(event, this);">
                     @csrf
                     <input type="hidden" name="classe_id" value="{{ $batch->classe_id }}">
                     <input type="hidden" name="matiere_id" value="{{ $batch->matiere_id }}">
                     <input type="hidden" name="periode" value="{{ $batch->periode }}">
                     <button type="submit"
                             class="w-full h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
-                            onclick="return confirm('Valider définitivement et publier ces notes ?');">
+                            title="Publier les notes">
                         <span class="material-symbols-outlined text-sm">publish</span>
                         Publier
                     </button>
@@ -396,6 +396,26 @@
 
 @push('scripts')
 <script>
+function confirmPublishNotes(event, form) {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Publier définitivement ces notes ?',
+        text: 'Les bulletins de notes seront mis à jour automatiquement.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Oui, publier',
+        cancelButtonText: 'Annuler',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+    return false;
+}
+
 function openRejectModal(classeId, matiereId, periode) {
     document.getElementById('rejectClasseId').value = classeId;
     document.getElementById('rejectMatiereId').value = matiereId;

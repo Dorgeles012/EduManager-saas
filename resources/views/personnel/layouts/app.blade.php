@@ -176,6 +176,7 @@
         .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #a09eb0; }
     </style>
     @include('partials.compact-styles')
+    @stack('styles')
 </head>
 <body class="bg-background text-on-surface font-body-md">
 
@@ -397,5 +398,6 @@
     })();
 </script>
 @yield('scripts')
+@stack('scripts')
 </body>
 </html>

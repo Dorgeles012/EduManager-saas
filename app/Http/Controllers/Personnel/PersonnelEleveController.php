@@ -21,17 +21,19 @@ class PersonnelEleveController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $searchTerms = preg_split('/\s+/', trim((string) $request->input('search', '')), -1, PREG_SPLIT_NO_EMPTY);
 
         $query = Eleve::with(['classe.niveau', 'niveau', 'serie', 'parent', 'user'])
             ->where('tenant_id', $user->tenant_id)
             ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $search = $request->string('search');
-                $q->where(function ($sub) use ($search) {
-                    $sub->where('nom', 'like', "%{$search}%")
-                        ->orWhere('prenom', 'like', "%{$search}%")
-                        ->orWhere('matricule', 'like', "%{$search}%");
-                });
+            ->when($searchTerms, function ($q) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    $q->where(function ($sub) use ($term) {
+                        $sub->where('nom', 'like', "%{$term}%")
+                            ->orWhere('prenom', 'like', "%{$term}%")
+                            ->orWhere('matricule', 'like', "%{$term}%");
+                    });
+                }
             })
             ->when($request->filled('niveau_id'), fn ($q) => $q->where('niveau_id', $request->integer('niveau_id')))
             ->when($request->filled('classe_id'), fn ($q) => $q->where('classe_id', $request->integer('classe_id')))
@@ -412,4 +414,3 @@ $user = auth()->user();
         return null;
     }
 }
-

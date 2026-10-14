@@ -891,7 +891,6 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @php
     $availableClassesForJs = collect($classes ?? [])->values();
     $availableSeriesForJs = ($series ?? collect())->map(function ($serie) {
@@ -1237,6 +1236,25 @@
         $('#birthdate-std').on('change', function() {
             validateAge($(this).val(), 'age-warning-std');
         });
+
+        $(document).on('click', '.delete-student-btn', function(e) {
+            e.preventDefault();
+            const form = $(this).closest('form')[0];
+            const name = $(this).data('name') || 'cet élève';
+            Swal.fire({
+                title: 'Supprimer cet élève ?',
+                html: `L'élève <strong class="text-rose-600">"${name}"</strong> sera définitivement supprimé.<br><span class="text-xs text-gray-500">Cette action est irréversible.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ba1a1a',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then(r => {
+                if (r.isConfirmed && form) form.submit();
+            });
+        });
+
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
                 ['modal-standard', 'modal-view', 'modal-edit'].forEach(id => {

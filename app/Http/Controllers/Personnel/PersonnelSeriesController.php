@@ -143,7 +143,7 @@ class PersonnelSeriesController extends Controller
 
         $series->load(['matieres' => fn ($query) => $query->orderBy('nom')]);
 
-        return view('personnel.series.disciplines', [
+        return view('personnel.series-disciplines', [
             'serie' => $series,
             'disciplines' => $series->matieres,
             'matieres' => Matiere::query()
@@ -207,4 +207,3 @@ class PersonnelSeriesController extends Controller
         abort_unless($series->tenant_id === auth()->user()->tenant_id, 403);
     }
 }
-
