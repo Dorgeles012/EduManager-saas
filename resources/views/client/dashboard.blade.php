@@ -65,7 +65,7 @@
                     <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                         <span class="material-symbols-outlined text-lg">payments</span>
                     </div>
-                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Revenu</span>
+                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Encaissements validés</span>
                 </div>
                 <h3 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ number_format($counts['revenu_total'] ?? 0, 0, ',', ' ') }}</h3>
                 <p class="text-xs text-gray-500 mt-0.5">FCFA total</p>

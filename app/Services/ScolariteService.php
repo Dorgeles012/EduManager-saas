@@ -131,7 +131,7 @@ class ScolariteService
                 ->get()
             : collect();
 
-        $montantPaye = $versements->sum('montant');
+        $montantPaye = $versements->where('statut', 'valide')->sum('montant');
 
         $reste = max($montantTotal - $montantPaye, 0);
 

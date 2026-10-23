@@ -897,9 +897,7 @@
         event.preventDefault();
         Swal.fire({
             title: 'Refuser le paiement ?',
-            text: 'Indiquez un motif de refus (optionnel) :',
-            input: 'text',
-            inputPlaceholder: 'Ex: Référence introuvable, montant incorrect...',
+            text: 'Refuser le paiement et marquer l\'abonnement comme non validé ?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ba1a1a',

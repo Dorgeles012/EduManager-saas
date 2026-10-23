@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sadmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sadmin\StoreSystemNotificationRequest;
 use App\Models\SystemNotification;
+use App\Models\Enseignant;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -73,7 +74,14 @@ class SystemNotificationController extends Controller
             'clients' => $query->whereRaw('LOWER(role) = ?', ['client'])->get(),
             'parents' => $query->whereRaw('LOWER(role) = ?', ['parent'])->get(),
             'personnel' => $query->whereRaw('LOWER(role) = ?', ['personnel'])->get(),
-            'enseignants' => $query->whereRaw('LOWER(role) = ?', ['enseignant'])->get(),
+            'enseignants' => Enseignant::query()
+                ->where('tenant_id', $tenantId)
+                ->whereNotNull('user_id')
+                ->with('user')
+                ->get()
+                ->pluck('user')
+                ->filter()
+                ->values(),
             'users' => $query->whereIn('id', $recipientIds)->get(),
             default => $query->get(),
         };

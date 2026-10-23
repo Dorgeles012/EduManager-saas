@@ -62,6 +62,7 @@ Route::middleware(['auth', 'status', 'role:eleve', 'must.change.password', 'subs
 
         // Mes notifications
         Route::get('/notifications', [EleveNotificationController::class, 'index'])->name('notifications');
+        Route::delete('/notifications/all', [EleveNotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
         Route::post('/notifications/{notificationRecipient}/read', [EleveNotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [EleveNotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::delete('/notifications/{notificationRecipient}', [EleveNotificationController::class, 'destroy'])->name('notifications.destroy');

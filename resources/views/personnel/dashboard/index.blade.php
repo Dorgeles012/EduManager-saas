@@ -4,17 +4,17 @@
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Tableau de bord</h2>
-    <p class="text-sm text-gray-500 mt-1">Bienvenue, voici la performance de votre établissement.</p>
+    <p class="text-sm text-gray-500 mt-1">Bienvenue, voici la performance de votre Ã©tablissement.</p>
 </div>
 
 @php
     $stats = [
-        ['label' => 'Revenu total',         'value' => number_format($counts['revenu_total'] ?? 0, 0, ',', ' '), 'suffix' => 'FCFA', 'icon' => 'payments',      'color' => 'primary'],
-        ['label' => 'Étudiants',            'value' => $counts['eleves'] ?? 0,                                  'suffix' => null,   'icon' => 'group',         'color' => 'blue'],
-        ['label' => 'Établissements',       'value' => $counts['etablissements'] ?? 0,                          'suffix' => null,   'icon' => 'domain',        'color' => 'emerald'],
-        ['label' => 'Factures en attente',  'value' => $counts['factures_impayees'] ?? 0,                       'suffix' => null,   'icon' => 'receipt_long',  'color' => 'rose'],
+        ['label' => 'Encaissements validÃ©s',         'value' => number_format($counts['revenu_total'] ?? 0, 0, ',', ' '), 'suffix' => 'FCFA', 'icon' => 'payments',      'color' => 'primary'],
+        ['label' => 'Ã‰tudiants',            'value' => $counts['eleves'] ?? 0,                                  'suffix' => null,   'icon' => 'group',         'color' => 'blue'],
+        ['label' => 'Ã‰tablissements',       'value' => $counts['etablissements'] ?? 0,                          'suffix' => null,   'icon' => 'domain',        'color' => 'emerald'],
+        ['label' => 'Factures impayÃ©es',  'value' => $counts['factures_impayees'] ?? 0,                       'suffix' => null,   'icon' => 'receipt_long',  'color' => 'rose'],
         ['label' => 'Enseignants',          'value' => $counts['enseignants'] ?? 0,                             'suffix' => null,   'icon' => 'school',        'color' => 'violet'],
-        ['label' => 'Matières',             'value' => $counts['matieres'] ?? 0,                                'suffix' => null,   'icon' => 'menu_book',     'color' => 'teal'],
+        ['label' => 'MatiÃ¨res',             'value' => $counts['matieres'] ?? 0,                                'suffix' => null,   'icon' => 'menu_book',     'color' => 'teal'],
         ['label' => 'Niveaux',              'value' => $counts['niveaux'] ?? 0,                                 'suffix' => null,   'icon' => 'layers',        'color' => 'blue'],
         ['label' => 'Classes',              'value' => $counts['classes'] ?? 0,                                 'suffix' => null,   'icon' => 'meeting_room',  'color' => 'emerald'],
     ];

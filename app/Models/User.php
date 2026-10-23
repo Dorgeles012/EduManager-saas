@@ -147,6 +147,21 @@ return [
     protected static function booted()
     {
         static::creating(function ($user) {
+            $role = strtolower(trim((string) $user->role));
+
+            if (in_array($role, ['eleve', 'enseignant'], true)) {
+                throw new \InvalidArgumentException('Les élèves et enseignants doivent être enregistrés dans leurs tables dédiées.');
+            }
+
+            if ($role === 'admin') {
+                $user->role = 'SADMIN';
+                $role = 'sadmin';
+            }
+
+            if (! in_array($role, ['sadmin', 'client', 'personnel', 'parent'], true)) {
+                throw new \InvalidArgumentException('Le rôle demandé ne peut pas être enregistré dans users.');
+            }
+
             if (empty($user->tenant_id)) {
                 $user->tenant_id = 1;
             }
@@ -154,6 +169,12 @@ return [
             // Par défaut : toujours actif lors de la création (sauf si explicitement fourni)
             if (empty($user->statut)) {
                 $user->statut = self::STATUT_ACTIF;
+            }
+        });
+
+        static::updating(function ($user) {
+            if ($user->isDirty('role') && in_array(strtolower(trim((string) $user->role)), ['eleve', 'enseignant'], true)) {
+                throw new \InvalidArgumentException('Les élèves et enseignants ne peuvent pas être enregistrés dans users.');
             }
         });
     }

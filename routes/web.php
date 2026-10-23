@@ -131,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'status', 'subscription.active'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
     Route::get('/notifications/{notificationRecipient}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::patch('/notifications/{notificationRecipient}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::delete('/notifications/{notificationRecipient}', [NotificationController::class, 'destroy'])->name('notifications.destroy');

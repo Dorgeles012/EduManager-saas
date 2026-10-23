@@ -5,7 +5,21 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/edumanager-logo.svg') }}">
-    <title>{{ $title ?? 'EduManager | Tableau de bord' }}</title>
+    @php
+        $routeName = request()->route()?->getName() ?? '';
+        $pageTitle = match (true) {
+            in_array($routeName, ['dashboard', 'sadmin.dashboard'], true) => 'Accueil',
+            $routeName === 'sadmin.index' || str_starts_with($routeName, 'sadmin.sadmin.') => 'Super Administrateur',
+            $routeName === 'sadmin.etablissement' || str_starts_with($routeName, 'sadmin.etablissements') => 'Établissements',
+            str_starts_with($routeName, 'sadmin.clients') => 'Clients',
+            $routeName === 'sadmin.abonnement' || str_starts_with($routeName, 'plans.') => 'Abonnements',
+            str_starts_with($routeName, 'sadmin.notifications') => 'Notifications',
+            str_starts_with($routeName, 'sadmin.parametres') => 'Paramètres',
+            $routeName === 'sadmin.compte' => 'Mon compte',
+            default => null,
+        };
+    @endphp
+    <title>{{ $pageTitle ? 'EduManager | '.$pageTitle : ($title ?? 'EduManager | Espace administrateur') }}</title>
 
     <!-- Polices -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -254,7 +268,7 @@
                     <span class="material-symbols-outlined">notifications</span>
                     <span id="notification-badge" class="hidden absolute top-0 right-0 min-w-4 h-4 px-1 bg-alert-red text-white text-[10px] leading-4 rounded-full"></span>
                 </button>
-                <div id="notification-dropdown" class="hidden absolute right-0 top-12 z-50 w-96 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl"><div class="flex justify-between border-b border-surface-container px-4 py-3"><span class="font-semibold">Notifications</span><span id="notification-count" class="text-xs text-text-muted"></span></div><div id="notification-list" class="max-h-96 overflow-y-auto"></div></div>
+                <div id="notification-dropdown" class="hidden absolute right-0 top-12 z-50 w-96 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl"><div class="flex items-center justify-between border-b border-surface-container px-4 py-3"><div class="flex items-center gap-3"><span class="font-semibold">Notifications</span><span id="notification-count" class="text-xs text-text-muted"></span></div><button id="notification-delete-all" type="button" class="rounded-lg p-2 text-text-muted hover:bg-alert-red/10 hover:text-alert-red disabled:cursor-not-allowed disabled:opacity-40" title="Supprimer toutes les notifications" aria-label="Supprimer toutes les notifications" disabled><i class="fa-solid fa-trash"></i></button></div><div id="notification-list" class="max-h-96 overflow-y-auto"></div></div>
                 </div>
                 
                 <!-- Séparateur vertical -->
@@ -343,12 +357,25 @@
 
     <script>
         (() => {
-            const button = document.getElementById('notification-button'), dropdown = document.getElementById('notification-dropdown'), list = document.getElementById('notification-list'), badge = document.getElementById('notification-badge'), count = document.getElementById('notification-count');
+            const button = document.getElementById('notification-button'), dropdown = document.getElementById('notification-dropdown'), list = document.getElementById('notification-list'), badge = document.getElementById('notification-badge'), count = document.getElementById('notification-count'), deleteAllButton = document.getElementById('notification-delete-all');
             const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]));
             const icons = { payment: 'fa-credit-card', subscription: 'fa-calendar-check', bulletin: 'fa-file-lines', school_year: 'fa-graduation-cap', update: 'fa-arrows-rotate', staff: 'fa-users', teacher: 'fa-chalkboard-user', student: 'fa-user-plus', establishment: 'fa-school', security: 'fa-lock' };
-            const render = payload => { const unread = payload.unread_count || 0; badge.textContent = unread > 99 ? '99+' : unread; badge.classList.toggle('hidden', unread === 0); count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour'; list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<div class="flex border-b border-surface-container hover:bg-surface-container-low ${item.read ? '' : 'bg-primary-fixed/30 font-semibold'}"><a href="${escapeHtml(item.url)}" class="flex min-w-0 flex-1 gap-3 px-4 py-3"><span class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><i class="fa-solid ${icons[item.category] || 'fa-bell'}"></i></span><span class="min-w-0"><span class="block truncate text-sm">${escapeHtml(item.title)}</span><span class="mt-1 block truncate text-xs font-normal text-text-muted">${escapeHtml(item.preview)}</span><span class="mt-1 block text-[11px] font-normal text-text-muted">${escapeHtml(item.date)}${item.read ? '' : ' · Non lu'}</span></span></a><button type="button" class="notification-delete px-3 text-text-muted hover:text-alert-red" data-id="${item.id}" title="Supprimer"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="px-4 py-6 text-center text-sm text-text-muted">Aucune notification.</p>'; };
+            const render = payload => { const unread = payload.unread_count || 0; badge.textContent = unread > 99 ? '99+' : unread; badge.classList.toggle('hidden', unread === 0); count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour'; deleteAllButton.disabled = payload.notifications.length === 0; list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<div class="flex border-b border-surface-container hover:bg-surface-container-low ${item.read ? '' : 'bg-primary-fixed/30 font-semibold'}"><a href="${escapeHtml(item.url)}" class="flex min-w-0 flex-1 gap-3 px-4 py-3"><span class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><i class="fa-solid ${icons[item.category] || 'fa-bell'}"></i></span><span class="min-w-0"><span class="block truncate text-sm">${escapeHtml(item.title)}</span><span class="mt-1 block truncate text-xs font-normal text-text-muted">${escapeHtml(item.preview)}</span><span class="mt-1 block text-[11px] font-normal text-text-muted">${escapeHtml(item.date)}${item.read ? '' : ' · Non lu'}</span></span></a><button type="button" class="notification-delete px-3 text-text-muted hover:text-alert-red" data-id="${item.id}" title="Supprimer"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="px-4 py-6 text-center text-sm text-text-muted">Aucune notification.</p>'; };
             const load = () => fetch(@json(route('notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(p => p && render(p)).catch(() => {});
-            button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); load(); }); list?.addEventListener('click', event => { const deleteButton = event.target.closest('.notification-delete'); if (!deleteButton) return; Swal.fire({ title: 'Supprimer cette notification ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => { if (!result.isConfirmed) return; fetch(`/notifications/${deleteButton.dataset.id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' }, credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(() => { Swal.fire({ icon: 'success', title: 'Notification supprimée avec succès.', timer: 1800, showConfirmButton: false }); load(); }).catch(() => Swal.fire({ icon: 'error', title: 'Une erreur est survenue lors de la suppression de la notification.' })); }); }); document.addEventListener('click', e => { if (!dropdown?.contains(e.target) && !button?.contains(e.target)) dropdown?.classList.add('hidden'); }); load(); window.setInterval(load, 20000);
+            button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); load(); });
+            deleteAllButton?.addEventListener('click', () => {
+                Swal.fire({ title: 'Supprimer toutes les notifications ?', text: 'Cette action supprimera toutes vos notifications et ne peut pas être annulée.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Tout supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => {
+                    if (!result.isConfirmed) return;
+                    fetch(@json(route('notifications.destroy-all')), { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' }, credentials: 'same-origin' })
+                        .then(response => { if (!response.ok) throw new Error(); return response.json(); })
+                        .then(() => { load(); Swal.fire({ icon: 'success', title: 'Toutes les notifications ont été supprimées.', timer: 1800, showConfirmButton: false }); })
+                        .catch(() => Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de supprimer les notifications.' }));
+                });
+            });
+            list?.addEventListener('click', event => { const deleteButton = event.target.closest('.notification-delete'); if (!deleteButton) return; Swal.fire({ title: 'Supprimer cette notification ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => { if (!result.isConfirmed) return; fetch(`/notifications/${deleteButton.dataset.id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, Accept: 'application/json' }, credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(() => { Swal.fire({ icon: 'success', title: 'Notification supprimée avec succès.', timer: 1800, showConfirmButton: false }); load(); }).catch(() => Swal.fire({ icon: 'error', title: 'Une erreur est survenue lors de la suppression de la notification.' })); }); });
+            document.addEventListener('click', e => { if (!dropdown?.contains(e.target) && !button?.contains(e.target)) dropdown?.classList.add('hidden'); });
+            load();
+            window.setInterval(load, 20000);
         })();
     </script>
     @yield('scripts')

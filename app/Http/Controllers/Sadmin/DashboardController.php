@@ -14,9 +14,13 @@ class DashboardController extends Controller
     {
         $tenantId = auth()->user()?->tenant_id ?? 1;
 
-        // Revenu total = somme des payments (montant)
+        // Seuls les paiements validés par le super administrateur sont comptés.
         $revenueTotal = DB::table('payments')
             ->where('tenant_id', $tenantId)
+            ->where(function ($query) {
+                $query->where('statut', 'paid')
+                    ->orWhere('status', 'paid');
+            })
             ->sum('montant');
 
 
@@ -46,4 +50,3 @@ class DashboardController extends Controller
         ]);
     }
 }
-

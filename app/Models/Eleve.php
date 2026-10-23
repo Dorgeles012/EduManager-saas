@@ -34,6 +34,7 @@ class Eleve extends Model
         'affecte',
         'photo',
         'statut',
+        'montant_inscription',
     ];
 
     protected $casts = [
@@ -46,6 +47,7 @@ class Eleve extends Model
         'date_naissance' => 'date',
         'interne' => 'boolean',
         'affecte' => 'boolean',
+        'montant_inscription' => 'integer',
     ];
 
     public function classe(): BelongsTo

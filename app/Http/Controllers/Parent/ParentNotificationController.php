@@ -62,6 +62,15 @@ class ParentNotificationController extends Controller
         return back()->with('success', 'Toutes les notifications ont été marquées comme lues.');
     }
 
+    public function destroyAll(Request $request): RedirectResponse
+    {
+        NotificationRecipient::query()
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        return back()->with('success', 'Toutes les notifications ont été supprimées.');
+    }
+
     /**
      * Supprime une notification.
      */

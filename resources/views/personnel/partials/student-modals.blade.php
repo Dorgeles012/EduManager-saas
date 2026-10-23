@@ -52,6 +52,10 @@
                         <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Série</p><p class="font-body-md text-[16px]" id="viewStudentSerie">—</p></div>
                     </div>
                     <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
+                        <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">payments</span></div>
+                        <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Montant de l'inscription</p><p class="font-body-md text-[16px]" id="viewStudentMontantInscription">0 FCFA</p></div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low/30">
                         <div class="p-2 bg-primary-fixed/20 rounded-lg"><span class="material-symbols-outlined text-primary">wc</span></div>
                         <div><p class="text-label-sm text-[12px] text-text-muted uppercase">Sexe</p><p class="font-body-md text-[16px] text-on-surface" id="viewStudentSexeDetail">-</p></div>
                     </div>
@@ -207,6 +211,10 @@
                         <div id="stdSerieWrapper">
                             <label class="block text-label-sm text-on-surface mb-1.5">Série</label>
                             <select class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" id="stdSerie" name="id_serie"><option value="">Aucune série</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-label-sm text-on-surface mb-1.5">Montant de l'inscription</label>
+                            <input class="w-full rounded-lg border-outline-variant focus:ring-primary focus:border-primary" name="montant_inscription" type="number" min="0" step="1" value="{{ old('montant_inscription', 0) }}">
                         </div>
                         <div>
                             <label class="block text-label-sm text-on-surface mb-1.5">Photo de l'élève</label>

@@ -41,7 +41,7 @@
         </div>
         <div>
             <p class="text-xs text-text-muted uppercase tracking-wider">Archives</p>
-            <h3 class="font-headline-md text-headline-md text-on-surface">{{ $academicYears?->where('statut','inactive')->count() ?? 0 }}</h3>
+            <h3 class="font-headline-md text-headline-md text-on-surface">{{ $academicYears?->filter(fn ($year) => ! $year->isEffectivelyActive())->count() ?? 0 }}</h3>
         </div>
     </div>
 
@@ -183,8 +183,8 @@
                             </div>
                         </td>
                         <td class="px-4 py-2.5">
-                            @php $isActive = $year->statut === 'active'; @endphp
-                            <span class="px-2 py-0.5 {{ $isActive ? 'bg-green-500/20 text-green-700' : 'bg-gray-500/20 text-gray-600' }} text-xs font-bold rounded-full">
+                            @php $isActive = $year->isEffectivelyActive(); @endphp
+                            <span class="px-2 py-0.5 {{ $isActive ? 'bg-green-500/20 text-green-700' : ($year->isExpired() ? 'bg-red-500/20 text-red-700' : 'bg-gray-500/20 text-gray-600') }} text-xs font-bold rounded-full">
                                 {{ $isActive ? 'Active' : 'Inactive' }}
                             </span>
                         </td>

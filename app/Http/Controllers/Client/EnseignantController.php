@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Classe, EmploiTemps, Enseignant, Etablissement, Matiere, Series, User};
+use App\Models\{Classe, EmploiTemps, Enseignant, Etablissement, Matiere, Note, Series};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
@@ -62,20 +61,6 @@ class EnseignantController extends Controller
             $teacher = Enseignant::create($attrs);
 
             // Créer l'utilisateur correspondant dans la table users pour permettre la connexion
-            $appUser = User::create([
-                'tenant_id' => $attrs['tenant_id'],
-                'etablissement_id' => $attrs['etablissement_id'],
-                'nom' => $validated['nom'],
-                'prenom' => $validated['prenoms'],
-                'email' => $validated['email'],
-                'telephone' => $validated['telephone'],
-                'password' => Hash::make('12345678'),
-                'role' => 'enseignant',
-                'statut' => 'actif',
-                'client_id' => $user->client_id ?? $user->id,
-            ]);
-
-            $teacher->update(['user_id' => $appUser->id]);
             $teacher->matieres()->sync($validated['matiere_ids']);
             $teacher->classes()->sync($validated['classe_ids']);
             $teacher->series()->sync($validated['serie_ids'] ?? []);
@@ -97,15 +82,6 @@ class EnseignantController extends Controller
             $enseignant->update($this->attributes($validated, null, $request, $enseignant));
 
             // Synchroniser aussi l'utilisateur lié
-            if ($enseignant->user_id) {
-                User::where('id', $enseignant->user_id)->update([
-                    'nom' => $validated['nom'],
-                    'prenom' => $validated['prenoms'],
-                    'email' => $validated['email'],
-                    'telephone' => $validated['telephone'],
-                ]);
-            }
-
             $enseignant->matieres()->sync($validated['matiere_ids']);
             $enseignant->classes()->sync($validated['classe_ids']);
             $enseignant->series()->sync($validated['serie_ids'] ?? []);
@@ -120,17 +96,20 @@ class EnseignantController extends Controller
     {
         $this->authorizeTenant($enseignant);
 
-        $enseignant->matieres()->detach();
-        $enseignant->classes()->detach();
-        $enseignant->series()->detach();
-
-        $appUserId = $enseignant->user_id;
-        $enseignant->delete();
-
-        // Supprimer aussi l'utilisateur lié
-        if ($appUserId) {
-            User::where('id', $appUserId)->delete();
+        if ($enseignant->user_id) {
+            abort(409, 'Cet enseignant est lié à un ancien compte utilisateur. Vérifiez cette liaison avant de supprimer sa fiche.');
         }
+        if (Note::where('enseignant_id', $enseignant->id)->exists()
+            || EmploiTemps::where('enseignant_id', $enseignant->id)->exists()) {
+            abort(409, 'Cet enseignant est associé à des notes ou emplois du temps. Transférez ces références avant de supprimer sa fiche.');
+        }
+
+        DB::transaction(function () use ($enseignant) {
+            $enseignant->matieres()->detach();
+            $enseignant->classes()->detach();
+            $enseignant->series()->detach();
+            $enseignant->delete();
+        });
 
         return request()->expectsJson()
             ? response()->json(['success' => true, 'message' => 'Enseignant supprimé avec succès.'])
@@ -157,7 +136,6 @@ class EnseignantController extends Controller
             $data += [
                 'tenant_id' => $user->tenant_id,
                 'etablissement_id' => $user->etablissement_id ?? Etablissement::where('tenant_id', $user->tenant_id)->value('id'),
-                'password' => Hash::make('12345678'),
                 'statut' => 'active',
             ];
         }
@@ -177,7 +155,7 @@ class EnseignantController extends Controller
         return $request->validate([
             'nom' => ['required', 'string', 'max:255'],
             'prenoms' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('enseignants', 'email')->ignore($ignoreId), Rule::unique('users', 'email')->ignore($teacher?->user_id)],
+            'email' => ['required', 'email', 'max:255', Rule::unique('enseignants', 'email')->ignore($ignoreId)],
             'telephone' => ['required', 'string', 'max:50'],
             'matricule' => ['required', 'string', 'max:100', Rule::unique('enseignants', 'matricule')->ignore($ignoreId)],
             'nombre_annees_enseignement' => ['required', 'integer', 'min:0', 'max:80'],

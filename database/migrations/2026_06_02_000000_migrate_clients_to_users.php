@@ -129,39 +129,6 @@ return new class extends Migration
             }
         }
 
-        // 4) enseignants -> users (role=ENSEIGNANT)
-        if (Schema::hasTable('enseignants')) {
-            $rows = DB::table('enseignants')->whereNotNull('email')->get([
-                'tenant_id',
-                'nom',
-                DB::raw('prenoms as prenom'),
-                'email',
-                'telephone',
-                'password',
-                DB::raw('NULL as image'),
-                'statut as statut',
-                'created_at',
-                'updated_at',
-            ]);
-
-            foreach ($rows as $row) {
-                DB::table('users')->updateOrInsert(
-                    ['email' => $row->email],
-                    [
-                        'tenant_id' => $row->tenant_id ?? 1,
-                        'nom' => $row->nom,
-                        'prenom' => $row->prenom,
-                        'telephone' => $row->telephone,
-                        'password' => $row->password,
-                        'image' => $row->image,
-                        'role' => 'ENSEIGNANT',
-                        'statut' => $mapStatut($row->statut),
-                        'created_at' => $row->created_at,
-                        'updated_at' => $row->updated_at,
-                    ]
-                );
-            }
-        }
     }
 
     public function down(): void

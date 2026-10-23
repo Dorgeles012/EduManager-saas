@@ -82,7 +82,7 @@
             </thead>
             <tbody class="divide-y divide-surface-subtle">
                 @forelse($academicYears ?? collect() as $year)
-                    <tr class="hover:bg-surface-subtle/20 transition-colors {{ $year->statut === 'active' ? 'bg-green-50/50' : 'opacity-70' }}" id="row-{{ $year->id }}">
+                    <tr class="hover:bg-surface-subtle/20 transition-colors {{ $year->isEffectivelyActive() ? 'bg-green-50/50' : ($year->isExpired() ? 'bg-red-50/50' : 'opacity-70') }}" id="row-{{ $year->id }}">
                         <td class="px-6 py-4 font-body-sm text-body-sm text-on-surface">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
@@ -93,8 +93,8 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            @php $isActive = $year->statut === 'active'; @endphp
-                            <span class="px-3 py-1 {{ $isActive ? 'bg-green-500/20 text-green-700' : 'bg-gray-500/20 text-gray-600' }} text-[12px] font-bold rounded-full">
+                            @php $isActive = $year->isEffectivelyActive(); @endphp
+                            <span class="px-3 py-1 {{ $isActive ? 'bg-green-500/20 text-green-700' : ($year->isExpired() ? 'bg-red-500/20 text-red-700' : 'bg-gray-500/20 text-gray-600') }} text-[12px] font-bold rounded-full">
                                 {{ $isActive ? 'Active' : 'Inactive' }}
                             </span>
                         </td>

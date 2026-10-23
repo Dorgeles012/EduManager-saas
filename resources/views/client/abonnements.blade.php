@@ -242,20 +242,29 @@
                             $payment = $subscription->payment ?? $subscription->payments->first();
                             $amount = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
                             $methode = $payment?->methode_paiement ?? $payment?->payment_method ?? '-';
-                            $paiementStatut = $payment?->statut ?? $payment?->status ?? 'paid';
+                            $paymentStatuses = [$payment?->statut, $payment?->status];
                             $aboStatus = $subscription->abonnement_status ?? 'en_attente';
-                            $aboLabel = [
+                            $isAwaitingValidation = $aboStatus === 'paye';
+                            $isPaymentApproved = $aboStatus === 'actif' || in_array('paid', $paymentStatuses, true);
+                            $isPaymentRejected = ! $isAwaitingValidation && ! $isPaymentApproved && in_array('failed', $paymentStatuses, true);
+                            $aboLabel = $isAwaitingValidation
+                                ? 'En attente'
+                                : ($isPaymentRejected
+                                    ? 'Refusé'
+                                    : ($isPaymentApproved ? 'Payé' : ([
                                 'en_attente' => 'En attente',
-                                'paye'       => 'Payé',
                                 'actif'      => 'Actif',
                                 'expire'     => 'Expiré',
-                            ][$aboStatus] ?? ucfirst($aboStatus);
-                            $aboColor = match ($aboStatus) {
+                            ][$aboStatus] ?? ucfirst($aboStatus))));
+                            $aboColor = $isAwaitingValidation
+                                ? 'bg-amber-50 text-amber-700'
+                                : ($isPaymentRejected
+                                    ? 'bg-rose-50 text-rose-700'
+                                    : ($isPaymentApproved ? 'bg-emerald-50 text-emerald-700' : match ($aboStatus) {
                                 'actif'   => 'bg-emerald-50 text-emerald-700',
-                                'paye'    => 'bg-blue-50 text-blue-700',
                                 'expire'  => 'bg-rose-50 text-rose-700',
                                 default   => 'bg-amber-50 text-amber-700',
-                            };
+                            }));
                         @endphp
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-4 py-3 text-xs font-semibold text-gray-500">#{{ $subscription->id }}</td>
@@ -298,19 +307,29 @@
                     $payment = $subscription->payment ?? $subscription->payments->first();
                     $amount = $payment?->montant ?? $payment?->amount ?? $subscription->amount ?? $subscription->price ?? 0;
                     $methode = $payment?->methode_paiement ?? $payment?->payment_method ?? '-';
+                    $paymentStatuses = [$payment?->statut, $payment?->status];
                     $aboStatus = $subscription->abonnement_status ?? 'en_attente';
-                    $aboLabel = [
+                    $isAwaitingValidation = $aboStatus === 'paye';
+                    $isPaymentApproved = $aboStatus === 'actif' || in_array('paid', $paymentStatuses, true);
+                    $isPaymentRejected = ! $isAwaitingValidation && ! $isPaymentApproved && in_array('failed', $paymentStatuses, true);
+                    $aboLabel = $isAwaitingValidation
+                        ? 'En attente'
+                        : ($isPaymentRejected
+                            ? 'Refusé'
+                            : ($isPaymentApproved ? 'Payé' : ([
                         'en_attente' => 'En attente',
-                        'paye'       => 'Payé',
                         'actif'      => 'Actif',
                         'expire'     => 'Expiré',
-                    ][$aboStatus] ?? ucfirst($aboStatus);
-                    $aboColor = match ($aboStatus) {
+                    ][$aboStatus] ?? ucfirst($aboStatus))));
+                    $aboColor = $isAwaitingValidation
+                        ? 'bg-amber-50 text-amber-700'
+                        : ($isPaymentRejected
+                            ? 'bg-rose-50 text-rose-700'
+                            : ($isPaymentApproved ? 'bg-emerald-50 text-emerald-700' : match ($aboStatus) {
                         'actif'   => 'bg-emerald-50 text-emerald-700',
-                        'paye'    => 'bg-blue-50 text-blue-700',
                         'expire'  => 'bg-rose-50 text-rose-700',
                         default   => 'bg-amber-50 text-amber-700',
-                    };
+                    }));
                 @endphp
                 <div class="p-4 space-y-3">
                     <div class="flex items-start justify-between gap-3">
@@ -373,14 +392,7 @@
                     title: 'Méthode requise',
                     text: 'Veuillez sélectionner une méthode de paiement.',
                     icon: 'warning',
-                    confirmButtonColor: '#4f46e5',
-                    customClass: {
-                        popup: 'rounded-2xl',
-                        confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold',
-                        title: 'text-base font-semibold',
-                        htmlContainer: 'text-xs text-gray-500'
-                    },
-                    buttonsStyling: false
+                    confirmButtonText: 'OK'
                 });
                 return;
             }
@@ -390,18 +402,9 @@
                 html: `Voulez-vous confirmer le paiement de <strong>${amount} FCFA</strong> pour <strong>${planName}</strong> ?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#4f46e5',
-                cancelButtonColor: '#e11d48',
-                confirmButtonText: 'Oui, confirmer',
                 cancelButtonText: 'Annuler',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white',
-                    cancelButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white',
-                    title: 'text-base font-semibold',
-                    htmlContainer: 'text-xs text-gray-500'
-                },
-                buttonsStyling: false
+                confirmButtonText: 'Oui, confirmer',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -415,14 +418,13 @@
             title: 'Paiement enregistré !',
             text: @json(session('success')),
             icon: 'success',
-            confirmButtonColor: '#4f46e5',
-            customClass: {
-                popup: 'rounded-2xl',
-                confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white',
-                title: 'text-base font-semibold',
-                htmlContainer: 'text-xs text-gray-500'
-            },
-            buttonsStyling: false
+            showCancelButton: false,
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
+            didOpen: () => {
+                const cancelBtn = document.querySelector('.swal2-cancel');
+                if (cancelBtn) cancelBtn.remove();
+            }
         });
     @endif
 
@@ -431,14 +433,9 @@
             title: 'Erreur',
             text: @json(session('error')),
             icon: 'error',
-            confirmButtonColor: '#e11d48',
-            customClass: {
-                popup: 'rounded-2xl',
-                confirmButton: 'px-4 py-2 rounded-lg text-xs font-semibold text-white',
-                title: 'text-base font-semibold',
-                htmlContainer: 'text-xs text-gray-500'
-            },
-            buttonsStyling: false
+            showCancelButton: false,
+            showConfirmButton: true,
+            confirmButtonText: 'OK'
         });
     @endif
 </script>

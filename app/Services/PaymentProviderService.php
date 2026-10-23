@@ -37,18 +37,34 @@ class PaymentProviderService
     {
         $methode = $data['methode'] ?? 'especes';
 
+        if (! empty($data['idempotency_key'])) {
+            $existing = Versement::where('idempotency_key', $data['idempotency_key'])->first();
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         // Ici, on pourra appeler les API de paiement mobile selon $methode
         // (Orange/MTN/Moov/Wave) avant de confirmer le versement.
         $this->executeProvider($methode, $data['montant']);
 
-        return Versement::create([
+        $attributes = [
             'tenant_id' => $data['tenant_id'],
             'scolarite_id' => $data['scolarite_id'],
             'montant' => $data['montant'],
             'date_versement' => $data['date'],
             'methode' => $this->label($methode),
             'reference' => $this->generateReference(),
-        ]);
+            'type' => $data['type'] ?? 'scolarite',
+            'statut' => 'valide',
+            'enregistre_par' => $data['enregistre_par'] ?? null,
+        ];
+
+        if (! empty($data['idempotency_key'])) {
+            return Versement::firstOrCreate(['idempotency_key' => $data['idempotency_key']], $attributes);
+        }
+
+        return Versement::create($attributes);
     }
 
     /**

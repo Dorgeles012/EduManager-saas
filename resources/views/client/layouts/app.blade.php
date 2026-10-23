@@ -137,9 +137,9 @@
             vertical-align: middle;
         }
 
-        /* Dans la sidebar : icônes encore plus grandes */
+        /* Icônes de la sidebar alignées sur celles du portail sadmin */
         .sidebar-nav .material-symbols-outlined {
-            font-size: 32px;
+            font-size: 24px;
         }
 
         /* Sidebar scrollbar */
@@ -173,40 +173,46 @@
 
         /* ============ SIDEBAR STYLES ============ */
         .sidebar-nav a.nav-active {
-            background: linear-gradient(to right, rgba(79, 70, 229, 0.12), rgba(79, 70, 229, 0.02)) !important;
-            border-right: 4px solid #4f46e5 !important;
-            color: #4f46e5 !important;
-            font-weight: 700 !important;
+            background: linear-gradient(to right, rgba(31, 16, 142, 0.08), rgba(31, 16, 142, 0.03)) !important;
+            border-right: 4px solid #1f108e !important;
+            color: #1f108e !important;
+            font-weight: 600 !important;
             border-radius: 0 12px 12px 0 !important;
             margin-right: 8px !important;
             transition: all 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08) !important;
         }
         .sidebar-nav a.nav-active span.material-symbols-outlined {
-            color: #4f46e5 !important;
+            color: #1f108e !important;
             font-variation-settings: 'FILL' 1, 'wght' 500 !important;
         }
         .sidebar-nav a.nav-active span:not(.material-symbols-outlined) {
-            color: #4f46e5 !important;
-            font-weight: 700 !important;
+            color: #1f108e !important;
+            font-weight: 600 !important;
         }
         .sidebar-nav a.nav-active span.material-symbols-outlined.ml-auto {
-            color: #4f46e5 !important;
+            color: #1f108e !important;
             font-variation-settings: 'FILL' 1, 'wght' 400 !important;
         }
 
         .sidebar-nav a {
             position: relative;
-            transition: all 0.25s ease !important;
-            border-radius: 0 12px 12px 0 !important;
-            margin-right: 4px !important;
-            border-right: 4px solid transparent !important;
+            padding-left: 24px !important;
+            padding-right: 24px !important;
+            color: #464553;
+            transition: all 0.25s ease;
+            border-radius: 0 12px 12px 0;
+            margin-right: 4px;
         }
-        .sidebar-nav a:hover:not(.nav-active):not(.pointer-events-none) {
-            background-color: rgba(79, 70, 229, 0.05) !important;
-            transform: translateX(4px) !important;
+        .sidebar-nav a:hover:not(.pointer-events-none) {
+            background-color: rgba(31, 16, 142, 0.06);
+            transform: translateX(4px);
         }
-        .sidebar-nav a:active { transform: scale(0.97) !important; }
+        .sidebar-nav a:active { transform: scale(0.97); }
+        .sidebar-nav a span:not(.material-symbols-outlined) {
+            font-size: 14px !important;
+            line-height: 16px !important;
+            font-weight: 600 !important;
+        }
         .sidebar-nav a.pointer-events-none {
             opacity: 0.5 !important;
             cursor: not-allowed !important;
@@ -536,7 +542,12 @@
                 <div id="notification-dropdown" class="hidden absolute right-0 top-14 z-50 w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
                         <span class="text-base font-bold text-gray-900">Notifications</span>
-                        <span id="notification-count" class="text-sm text-gray-400 font-semibold"></span>
+                        <div class="flex items-center gap-2">
+                            <span id="notification-count" class="text-sm text-gray-400 font-semibold"></span>
+                            <button id="notification-delete-all" type="button" class="rounded-lg p-2 text-gray-400 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40" title="Supprimer toutes les notifications" aria-label="Supprimer toutes les notifications" disabled>
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div id="notification-list" class="max-h-96 overflow-y-auto">
                         <p class="px-5 py-6 text-base text-gray-400 text-center">Aucune notification.</p>
@@ -601,6 +612,7 @@
     const list = document.getElementById('notification-list');
     const badge = document.getElementById('notification-badge');
     const count = document.getElementById('notification-count');
+    const deleteAllButton = document.getElementById('notification-delete-all');
     const profileButton = document.getElementById('profile-menu-button');
     const profileMenu = document.getElementById('profile-menu');
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -611,6 +623,7 @@
         badge.textContent = unread > 99 ? '99+' : unread;
         badge.classList.toggle('hidden', unread === 0);
         count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour';
+        deleteAllButton.disabled = payload.notifications.length === 0;
         const icons = {
             payment: 'fa-credit-card',
             subscription: 'fa-calendar-check',
@@ -656,6 +669,30 @@
         dropdown.classList.toggle('hidden');
         button.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
         load();
+    });
+    deleteAllButton?.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Supprimer toutes les notifications ?',
+            text: 'Cette action supprimera toutes vos notifications et ne peut pas être annulée.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Tout supprimer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc2626'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            fetch(@json(route('notifications.destroy-all')), {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(response => { if (!response.ok) throw new Error(); return response.json(); })
+            .then(() => {
+                load();
+                Swal.fire({ icon: 'success', title: 'Toutes les notifications ont été supprimées.', timer: 1800, showConfirmButton: false });
+            })
+            .catch(() => Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de supprimer les notifications.' }));
+        });
     });
     profileButton?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
 

@@ -50,7 +50,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->text('image')->nullable();
-            $table->enum('role', ['SADMIN', 'CLIENT', 'PERSONNEL', 'ENSEIGNANT', 'PARENT']);
+            $table->enum('role', ['SADMIN', 'CLIENT', 'PERSONNEL', 'PARENT']);
             $table->enum('statut', ['active', 'inactive', 'blocked'])->default('active');
             $table->timestamps();
         });

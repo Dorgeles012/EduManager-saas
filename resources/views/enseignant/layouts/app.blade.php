@@ -371,7 +371,7 @@
                         <span id="notification-badge" class="hidden absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-alert-red text-white text-[10px] leading-4 rounded-full border border-surface"></span>
                     </button>
                     <div id="notification-dropdown" class="hidden absolute right-0 top-11 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl overflow-hidden">
-                        <div class="px-4 py-3 border-b border-surface-container flex items-center justify-between"><span class="font-semibold text-on-surface">Notifications</span><span id="notification-count" class="text-xs text-text-muted"></span></div>
+                        <div class="px-4 py-3 border-b border-surface-container flex items-center justify-between"><span class="font-semibold text-on-surface">Notifications</span><div class="flex items-center gap-2"><span id="notification-count" class="text-xs text-text-muted"></span><button id="notification-delete-all" type="button" class="rounded-lg p-2 text-text-muted hover:bg-alert-red/10 hover:text-alert-red disabled:cursor-not-allowed disabled:opacity-40" title="Supprimer toutes les notifications" aria-label="Supprimer toutes les notifications" disabled><i class="fa-solid fa-trash"></i></button></div></div>
                         <div id="notification-list" class="max-h-96 overflow-y-auto"><p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p></div>
                     </div>
                 </div>
@@ -417,6 +417,7 @@
             const list = document.getElementById('notification-list');
             const badge = document.getElementById('notification-badge');
             const count = document.getElementById('notification-count');
+            const deleteAllButton = document.getElementById('notification-delete-all');
             const profileButton = document.getElementById('profile-menu-button');
             const profileMenu = document.getElementById('profile-menu');
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -427,12 +428,22 @@
                 badge.textContent = unread > 99 ? '99+' : unread;
                 badge.classList.toggle('hidden', unread === 0);
                 count.textContent = unread ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'À jour';
+                deleteAllButton.disabled = payload.notifications.length === 0;
                 const icons = { payment: 'fa-credit-card', subscription: 'fa-calendar-check', bulletin: 'fa-file-lines', school_year: 'fa-graduation-cap', update: 'fa-arrows-rotate', staff: 'fa-users', teacher: 'fa-chalkboard-user', student: 'fa-user-plus', establishment: 'fa-school', security: 'fa-lock' };
                 list.innerHTML = payload.notifications.length ? payload.notifications.map(item => `<div class="flex border-b border-surface-container hover:bg-surface-container-low transition-colors ${item.read ? '' : 'bg-primary-fixed/30 font-semibold'}"><a href="${escapeHtml(item.url)}" class="notification-item flex min-w-0 flex-1 gap-3 px-4 py-3 text-left"><span class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><i class="fa-solid ${icons[item.category] || 'fa-bell'}"></i></span><span class="min-w-0"><span class="block truncate text-sm text-on-surface">${escapeHtml(item.title)}</span><span class="mt-1 block truncate text-xs font-normal text-on-surface-variant">${escapeHtml(item.preview)}</span><span class="mt-1 block text-[11px] font-normal text-text-muted">${escapeHtml(item.date)}${item.read ? '' : ' · Non lu'}</span></span></a><button type="button" class="notification-delete px-3 text-text-muted hover:text-alert-red" data-id="${item.id}" title="Supprimer"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="px-4 py-6 text-sm text-text-muted text-center">Aucune notification.</p>';
             };
             const load = () => fetch(@json(route('notifications.index')), { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(response => response.ok ? response.json() : null).then(payload => payload && render(payload)).catch(() => {});
             button?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); button.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden'))); load(); });
             profileButton?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
+            deleteAllButton?.addEventListener('click', () => {
+                Swal.fire({ title: 'Supprimer toutes les notifications ?', text: 'Cette action supprimera toutes vos notifications et ne peut pas être annulée.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Tout supprimer', cancelButtonText: 'Annuler', confirmButtonColor: '#dc2626' }).then(result => {
+                    if (!result.isConfirmed) return;
+                    fetch(@json(route('notifications.destroy-all')), { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, credentials: 'same-origin' })
+                        .then(response => { if (!response.ok) throw new Error(); return response.json(); })
+                        .then(() => { load(); Swal.fire({ icon: 'success', title: 'Toutes les notifications ont été supprimées.', timer: 1800, showConfirmButton: false }); })
+                        .catch(() => Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de supprimer les notifications.' }));
+                });
+            });
             list?.addEventListener('click', event => {
                 const deleteButton = event.target.closest('.notification-delete');
                 if (!deleteButton) return;

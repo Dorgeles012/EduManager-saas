@@ -43,7 +43,7 @@
             </div>
             <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Archives</span>
         </div>
-        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $academicYears?->where('statut','inactive')->count() ?? 0 }}</h3>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $academicYears?->filter(fn ($year) => ! $year->isEffectivelyActive())->count() ?? 0 }}</h3>
         <p class="text-xs text-gray-500 mt-0.5">Inactives</p>
     </div>
 
@@ -189,7 +189,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($academicYears ?? collect() as $year)
-                    @php $isActive = $year->statut === 'active'; @endphp
+                    @php $isActive = $year->isEffectivelyActive(); @endphp
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="px-4 py-3 text-xs text-gray-500 font-semibold">{{ $loop->iteration }}</td>
                         <td class="px-4 py-3">
@@ -214,8 +214,8 @@
                                     Active
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold {{ $year->isExpired() ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-600' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $year->isExpired() ? 'bg-red-500' : 'bg-gray-400' }}"></span>
                                     Inactive
                                 </span>
                             @endif
@@ -254,7 +254,7 @@
 
     <div class="md:hidden divide-y divide-gray-100">
         @forelse($academicYears ?? collect() as $year)
-            @php $isActive = $year->statut === 'active'; @endphp
+            @php $isActive = $year->isEffectivelyActive(); @endphp
             <div class="p-4 space-y-3">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2.5 min-w-0">
@@ -278,8 +278,8 @@
                             Active
                         </span>
                     @else
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 flex-shrink-0">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold {{ $year->isExpired() ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-600' }} flex-shrink-0">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $year->isExpired() ? 'bg-red-500' : 'bg-gray-400' }}"></span>
                             Inactive
                         </span>
                     @endif

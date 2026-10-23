@@ -111,7 +111,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
             'statut' => 'actif',
         ]);
 
-        $this->enseignantUser = User::create([
+        $this->enseignantUser = User::withoutEvents(fn () => User::create([
             'tenant_id' => $tenantId,
             'etablissement_id' => $this->etablissement->id,
             'name' => 'Professeur Diop',
@@ -119,7 +119,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
             'password' => bcrypt('password'),
             'role' => 'enseignant',
             'statut' => 'actif',
-        ]);
+        ]));
 
         $this->parentUser = User::create([
             'tenant_id' => $tenantId,
@@ -159,7 +159,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
             'statut' => 'actif',
         ]);
 
-        $this->eleveUser = User::create([
+        $this->eleveUser = User::withoutEvents(fn () => User::create([
             'tenant_id' => $tenantId,
             'etablissement_id' => $this->etablissement->id,
             'eleve_id' => $this->eleve->id,
@@ -168,7 +168,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
             'password' => bcrypt('password'),
             'role' => 'eleve',
             'statut' => 'actif',
-        ]);
+        ]));
     }
 
     /**
@@ -382,7 +382,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
     public function test_teacher_cannot_enter_modify_or_submit_notes_for_unassigned_subject(): void
     {
         // Créer l'enseignant de Français (M. Yao)
-        $yaoUser = User::create([
+        $yaoUser = User::withoutEvents(fn () => User::create([
             'tenant_id' => $this->etablissement->tenant_id,
             'etablissement_id' => $this->etablissement->id,
             'name' => 'Professeur Yao',
@@ -390,7 +390,7 @@ class NotesAndBulletinsWorkflowTest extends TestCase
             'password' => bcrypt('password'),
             'role' => 'enseignant',
             'statut' => 'actif',
-        ]);
+        ]));
 
         $enseignantYao = Enseignant::create([
             'tenant_id' => $this->etablissement->tenant_id,

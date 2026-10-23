@@ -7,10 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Ajoute le rôle ELEVE et la colonne eleve_id sur users
-     * pour permettre la connexion des élèves à leur espace.
-     */
+    /** Ajoute une clé de compatibilité en lecture seule pour auditer les anciens comptes élèves. */
     public function up(): void
     {
         // 1. Colonne eleve_id (nullable) pour lier un compte élève à un élève
@@ -20,7 +17,6 @@ return new class extends Migration
             });
         }
 
-        // 2. Étendre l'enum role avec 'ELEVE'
         if (! Schema::hasTable('users')) {
             return;
         }
@@ -28,13 +24,15 @@ return new class extends Migration
         $driver = Schema::getConnection()->getDriverName();
 
         if (in_array($driver, ['mysql', 'mariadb'], true)) {
-            // Assainir les valeurs existantes avant de modifier l'ENUM
-            DB::statement("UPDATE users SET role = 'PARENT' WHERE role IS NULL OR role = ''");
-            DB::statement("UPDATE users SET role = UPPER(TRIM(role)) WHERE role NOT IN ('SADMIN','CLIENT','PERSONNEL','ENSEIGNANT','PARENT','ELEVE')");
+            $legacyCount = DB::table('users')
+                ->whereRaw('UPPER(TRIM(role)) IN (?, ?)', ['ELEVE', 'ENSEIGNANT'])
+                ->count();
 
-            DB::statement("ALTER TABLE users MODIFY role ENUM('SADMIN','CLIENT','PERSONNEL','ENSEIGNANT','PARENT','ELEVE') NOT NULL DEFAULT 'PARENT'");
-        } else {
-            // SQLite / autres : pas de vrai ENUM, rien à faire
+            if ($legacyCount > 0) {
+                throw new RuntimeException("{$legacyCount} ancien(s) compte(s) élève/enseignant dans users. Exécutez users:audit-legacy-school-accounts et résolvez les comptes avant de réduire l'ENUM.");
+            }
+
+            DB::statement("ALTER TABLE users MODIFY role ENUM('SADMIN','CLIENT','PERSONNEL','PARENT') NOT NULL DEFAULT 'PARENT'");
         }
     }
 
@@ -49,7 +47,7 @@ return new class extends Migration
         $driver = Schema::getConnection()->getDriverName();
 
         if (in_array($driver, ['mysql', 'mariadb'], true)) {
-            DB::statement("ALTER TABLE users MODIFY role ENUM('SADMIN','CLIENT','PERSONNEL','ENSEIGNANT','PARENT') NOT NULL DEFAULT 'PARENT'");
+            DB::statement("ALTER TABLE users MODIFY role ENUM('SADMIN','CLIENT','PERSONNEL','PARENT','ENSEIGNANT','ELEVE') NOT NULL DEFAULT 'PARENT'");
         }
     }
 };

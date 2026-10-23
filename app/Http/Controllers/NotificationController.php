@@ -46,6 +46,15 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function destroyAll(Request $request): JsonResponse
+    {
+        NotificationRecipient::query()
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        return response()->json(['ok' => true, 'unread_count' => 0]);
+    }
+
     private function recipients(Request $request)
     {
         return NotificationRecipient::query()

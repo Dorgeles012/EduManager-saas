@@ -1,11 +1,11 @@
 @extends('personnel.layouts.app')
-@section('title', 'EduManager - Comptabilité')
+@section('title', 'EduManager - ComptabilitÃ©')
 @section('content')
-<!-- En-tête simplifié -->
+<!-- En-tÃªte simplifiÃ© -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financière</h2>
-        <p class="text-body-md text-on-surface-variant">Gérez les finances de votre établissement avec précision et clarté.</p>
+        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financiÃ¨re</h2>
+        <p class="text-body-md text-on-surface-variant">GÃ©rez les finances de votre Ã©tablissement avec prÃ©cision et clartÃ©.</p>
     </div>
     <div class="flex gap-2 flex-wrap">
         <button class="flex items-center gap-1.5 bg-success-green text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">
@@ -14,7 +14,7 @@
         </button>
         <button class="flex items-center gap-1.5 bg-alert-red text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalDepense')">
             <span class="material-symbols-outlined text-[18px]">payments</span>
-            Dépense
+            DÃ©pense
         </button>
     </div>
 </div>
@@ -26,15 +26,15 @@
         <p class="font-headline-md text-headline-md text-primary mt-1">{{ number_format($currentBalance ?? 0, 0, ',', ' ') }} FCFA</p>
     </div>
     <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Total encaissé</p>
+        <p class="text-label-sm text-on-surface-variant">Total encaissÃ©</p>
         <p class="font-headline-md text-headline-md text-success-green mt-1">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</p>
     </div>
     <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Total dépensé</p>
+        <p class="text-label-sm text-on-surface-variant">Total dÃ©pensÃ©</p>
         <p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalExpense ?? 0, 0, ',', ' ') }} FCFA</p>
     </div>
     <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Paiements effectués</p>
+        <p class="text-label-sm text-on-surface-variant">Paiements effectuÃ©s</p>
         <p class="font-headline-md text-headline-md text-on-surface mt-1">{{ $paymentCount ?? 0 }}</p>
     </div>
 </div>
@@ -43,7 +43,7 @@
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mb-8">
     <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-3">
         <span class="material-symbols-outlined text-primary">search</span>
-        <h4 class="font-headline-md text-headline-md">Rechercher un élève par matricule</h4>
+        <h4 class="font-headline-md text-headline-md">Rechercher un Ã©lÃ¨ve par matricule</h4>
     </div>
     <div class="p-6">
         <div class="flex flex-col md:flex-row gap-4">
@@ -55,10 +55,10 @@
             </button>
         </div>
 
-        <!-- Résultat de la recherche -->
+        <!-- RÃ©sultat de la recherche -->
         <div id="eleveResult" class="hidden mt-6">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Infos élève + situation -->
+                <!-- Infos Ã©lÃ¨ve + situation -->
                 <div class="bg-surface-container-low rounded-xl p-5">
                     <div class="flex items-center gap-4 mb-4">
                         <img id="resultPhoto" src="" alt="Photo" class="w-16 h-16 rounded-full object-cover border border-outline-variant hidden">
@@ -73,13 +73,13 @@
                     <div class="bg-surface-container-lowest rounded-lg p-4 border border-outline-variant">
                         <p class="text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Frais du niveau</p>
                         <div class="flex justify-between text-sm"><span>Inscription</span><span id="fraisInscription" class="font-semibold"></span></div>
-                        <div class="flex justify-between text-sm"><span>Scolarité</span><span id="fraisScolarite" class="font-semibold"></span></div>
+                        <div class="flex justify-between text-sm"><span>ScolaritÃ©</span><span id="fraisScolarite" class="font-semibold"></span></div>
                         <div class="flex justify-between text-sm"><span>Autres</span><span id="fraisAutres" class="font-semibold"></span></div>
                         <div class="flex justify-between text-sm font-bold border-t border-outline-variant mt-2 pt-2"><span>Total</span><span id="fraisTotal" class="text-primary"></span></div>
                     </div>
                     <div class="mt-3 text-sm bg-surface-container-lowest rounded-lg p-3 border border-outline-variant">
-                        <div class="flex justify-between"><span>Total payé</span><span id="scolaritePaye" class="font-semibold text-success-green"></span></div>
-                        <div class="flex justify-between"><span>Reste à payer</span><span id="scolariteReste" class="font-semibold text-alert-red"></span></div>
+                        <div class="flex justify-between"><span>Total payÃ©</span><span id="scolaritePaye" class="font-semibold text-success-green"></span></div>
+                        <div class="flex justify-between"><span>Reste Ã  payer</span><span id="scolariteReste" class="font-semibold text-alert-red"></span></div>
                         <div id="statutBadge" class="mt-2"></div>
                     </div>
                 </div>
@@ -92,9 +92,11 @@
                             <thead class="border-b border-outline-variant text-on-surface-variant">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Date</th>
+                                    <th class="px-3 py-2 text-left">Type</th>
                                     <th class="px-3 py-2 text-right">Montant</th>
                                     <th class="px-3 py-2 text-left">Mode</th>
-                                    <th class="px-3 py-2 text-left">Référence</th>
+                                    <th class="px-3 py-2 text-left">RÃ©fÃ©rence</th>
+                                    <th class="px-3 py-2 text-left">Statut / EnregistrÃ© par</th>
                                 </tr>
                             </thead>
                             <tbody id="versementsList"></tbody>
@@ -108,55 +110,61 @@
     </div>
 </div>
 
-<!-- Tableau Scolarités récentes -->
+<!-- Tableau ScolaritÃ©s rÃ©centes -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mb-8">
     <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
-        <h4 class="font-headline-md text-headline-md">Scolarités</h4>
+        <h4 class="font-headline-md text-headline-md">ScolaritÃ©s</h4>
         <span class="text-label-sm text-on-surface-variant">{{ count($payments ?? []) }} enregistrement(s)</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead class="bg-surface-container-low">
                 <tr>
-                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Élève</th>
+                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Ã‰lÃ¨ve / Matricule</th>
                     <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Classe</th>
+                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Type / Mode</th>
                     <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Montant</th>
+                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">RÃ©fÃ©rence / Statut</th>
+                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">EnregistrÃ© par</th>
                     <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Date</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
                 @forelse($payments ?? [] as $payment)
                 <tr class="hover:bg-surface-container-low/30 transition-colors">
-                    <td class="px-6 py-4 font-body-md text-body-md text-on-surface">{{ $payment['student'] }}</td>
+                    <td class="px-6 py-4 font-body-md text-body-md text-on-surface">{{ $payment['student'] }}<br><span class="text-xs">{{ $payment['matricule'] }}</span></td>
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['class'] }}</td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['type'] === 'inscription' ? 'Inscription' : ($payment['type'] === 'scolarite' ? 'Scolarite' : 'Non classe') }}<br>{{ $payment['method'] }}</td>
                     <td class="px-6 py-4 font-body-md font-semibold text-success-green text-right">{{ number_format($payment['amount'], 0, ',', ' ') }} FCFA</td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['reference'] ?? '—' }}<br>{{ $payment['status'] ?? 'A verifier' }}</td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['recorded_by'] ?: '—' }}</td>
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">{{ $payment['date'] }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">Aucune scolarité enregistrée</td></tr>
+                <tr><td colspan="7" class="px-6 py-8 text-center text-on-surface-variant">Aucun paiement enregistrÃ©</td></tr>
                 @endforelse
             </tbody>
             <tfoot class="bg-surface-container-low font-bold border-t border-outline-variant">
                 <tr>
-                    <td class="px-6 py-4 text-on-surface" colspan="2">Total</td>
-                    <td class="px-6 py-4 text-success-green text-headline-md text-right" colspan="2">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</td>
+                    <td class="px-6 py-4 text-on-surface" colspan="3">Total encaissÃ©</td>
+                    <td class="px-6 py-4 text-success-green text-headline-md text-right" colspan="4">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</td>
                 </tr>
             </tfoot>
         </table>
     </div>
 </div>
 
-<!-- Tableau Dépenses -->
+<!-- Tableau DÃ©penses -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
     <div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
-        <h4 class="font-headline-md text-headline-md">Dépenses</h4>
+        <h4 class="font-headline-md text-headline-md">DÃ©penses</h4>
         <span class="text-label-sm text-on-surface-variant">{{ count($expenses ?? []) }} enregistrement(s)</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead class="bg-surface-container-low">
                 <tr>
-                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Libellé</th>
+                    <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">LibellÃ©</th>
                     <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Montant</th>
                     <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Date</th>
                 </tr>
@@ -169,7 +177,7 @@
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">{{ $expense['date'] }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="3" class="px-6 py-8 text-center text-on-surface-variant">Aucune dépense enregistrée</td></tr>
+                <tr><td colspan="3" class="px-6 py-8 text-center text-on-surface-variant">Aucune dÃ©pense enregistrÃ©e</td></tr>
                 @endforelse
             </tbody>
             <tfoot class="bg-surface-container-low font-bold border-t border-outline-variant">
@@ -182,7 +190,7 @@
     </div>
 </div>
 
-<!-- Modal Scolarité (paiement par matricule) -->
+<!-- Modal ScolaritÃ© (paiement par matricule) -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalScolarite">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalScolarite')"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalScolariteContent">
@@ -198,19 +206,24 @@
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Matricule</label>
                 <div class="flex gap-2">
                     <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="paymentMatricule" name="matricule" placeholder="Saisissez le matricule" required>
-                    <button type="button" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg shrink-0" onclick="searchEleveForPayment()">Vérifier</button>
+                    <button type="button" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg shrink-0" onclick="searchEleveForPayment()">VÃ©rifier</button>
                 </div>
                 <p id="paymentEleveInfo" class="text-sm text-on-surface-variant mt-2"></p>
             </div>
+            <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
             <input type="hidden" name="annee_scolaire" value="{{ $currentYear ?? '2024-2025' }}">
             <div>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">CatÃ©gorie</label>
+                <select class="w-full rounded-lg border-outline-variant text-body-sm" name="type" required><option value="scolarite">Frais de scolaritÃ©</option><option value="inscription">Inscription</option></select>
+            </div>
+            <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant (FCFA)</label>
-                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" name="montant_versement" step="100" type="number" placeholder="Montant à payer">
+                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" name="montant_versement" min="1" step="1" type="number" required placeholder="Montant Ã  payer">
             </div>
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Moyen de paiement</label>
                 <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" name="methode" required>
-                    <option value="">Sélectionner</option>
+                    <option value="">SÃ©lectionner</option>
                     @foreach($paymentMethods ?? [] as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>
                     @endforeach
@@ -228,12 +241,12 @@
     </div>
 </div>
 
-<!-- Modal Dépense -->
+<!-- Modal DÃ©pense -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalDepense">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalDepense')"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDepenseContent">
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-alert-red text-white">
-            <h3 class="font-headline-md text-headline-md">Enregistrer une dépense</h3>
+            <h3 class="font-headline-md text-headline-md">Enregistrer une dÃ©pense</h3>
             <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalDepense')">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -241,8 +254,8 @@
         <form class="p-6 space-y-4" action="{{ route('personnel.comptabilite.depense.store') }}" method="POST">
             @csrf
             <div>
-                <label class="block text-label-sm text-on-surface-variant mb-1.5">Libellé</label>
-                <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" name="libel_depense" placeholder="Décrivez la dépense..." rows="3" required></textarea>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">LibellÃ©</label>
+                <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" name="libel_depense" placeholder="DÃ©crivez la dÃ©pense..." rows="3" required></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -294,7 +307,7 @@
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
             if (!ok) {
-                errorBox.textContent = data.error || 'Aucun élève trouvé.';
+                errorBox.textContent = data.error || 'Aucun Ã©lÃ¨ve trouvÃ©.';
                 errorBox.classList.remove('hidden');
                 return;
             }
@@ -310,10 +323,10 @@
     function renderResult(data) {
         const e = data.eleve || {};
         document.getElementById('resultNom').textContent = (e.nom || '') + ' ' + (e.prenom || '');
-        document.getElementById('resultMatricule').textContent = 'Matricule : ' + (e.matricule || '—');
-        document.getElementById('resultClasse').textContent = 'Classe : ' + (e.classe || '—');
-        document.getElementById('resultNiveau').textContent = 'Niveau : ' + (e.niveau || '—');
-        document.getElementById('resultEtablissement').textContent = 'Établissement : ' + (e.etablissement || '—');
+        document.getElementById('resultMatricule').textContent = 'Matricule : ' + (e.matricule || 'â€”');
+        document.getElementById('resultClasse').textContent = 'Classe : ' + (e.classe || 'â€”');
+        document.getElementById('resultNiveau').textContent = 'Niveau : ' + (e.niveau || 'â€”');
+        document.getElementById('resultEtablissement').textContent = 'Ã‰tablissement : ' + (e.etablissement || 'â€”');
 
         const f = data.frais;
         if (f) {
@@ -323,28 +336,33 @@
             document.getElementById('fraisAutres').textContent = fmt(f.autres_frais);
             document.getElementById('fraisTotal').textContent = fmt(f.montant_total);
         } else {
-            ['fraisInscription', 'fraisScolarite', 'fraisAutres'].forEach(id => document.getElementById(id).textContent = '—');
+            ['fraisInscription', 'fraisScolarite', 'fraisAutres'].forEach(id => document.getElementById(id).textContent = 'â€”');
             document.getElementById('fraisTotal').textContent = 'Aucun frais';
         }
 
         const list = document.getElementById('versementsList');
         const versements = data.versements || [];
+        const escapeHtml = value => String(value ?? '—').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
         list.innerHTML = versements.length ? versements.map(v => `<tr>
-            <td class="px-3 py-2">${v.date}</td>
+            <td class="px-3 py-2">${escapeHtml(v.date)}</td>
+            <td class="px-3 py-2">${v.type === 'inscription' ? 'Inscription' : (v.type === 'scolarite' ? 'Scolarite' : 'Non classe')}</td>
             <td class="px-3 py-2 text-right font-semibold">${Number(v.montant).toLocaleString('fr-FR')} FCFA</td>
-            <td class="px-3 py-2">${v.methode || '—'}</td>
-            <td class="px-3 py-2">${v.reference || '—'}</td>
-        </tr>`).join('') : '<tr><td colspan="4" class="px-3 py-4 text-center text-on-surface-variant">Aucun paiement</td></tr>';
+            <td class="px-3 py-2">${escapeHtml(v.methode)}</td>
+            <td class="px-3 py-2">${escapeHtml(v.reference)}</td>
+            <td class="px-3 py-2">${escapeHtml(v.statut || 'A verifier')} / ${escapeHtml(v.enregistre_par)}</td>
+        </tr>`).join('') : '<tr><td colspan="6" class="px-3 py-4 text-center text-on-surface-variant">Aucun paiement</td></tr>';
 
         const s = data.scolarite;
-        document.getElementById('scolaritePaye').textContent = s ? Number(s.montant_paye).toLocaleString('fr-FR') + ' FCFA' : '—';
-        document.getElementById('scolariteReste').textContent = s ? Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : '—';
+        document.getElementById('scolaritePaye').textContent = s ? Number(s.montant_paye).toLocaleString('fr-FR') + ' FCFA' : 'â€”';
+        document.getElementById('scolariteReste').textContent = s ? Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : 'â€”';
 
         const badge = document.getElementById('statutBadge');
         if (s && s.statut === 'paye') {
-            badge.innerHTML = '<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm bg-success-green/10 text-success-green"><span class="material-symbols-outlined text-[14px]">check_circle</span> SCOLARITÉ SOLDÉE</span>';
+            badge.innerHTML = '<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm bg-success-green/10 text-success-green"><span class="material-symbols-outlined text-[14px]">check_circle</span> SCOLARITÃ‰ SOLDÃ‰E</span>';
+        } else if (s && s.statut === 'solde') {
+            badge.innerHTML = '<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm bg-success-green/10 text-success-green">SOLDE</span>';
         } else if (s) {
-            badge.innerHTML = '<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm ' + (s.statut === 'partiel' ? 'bg-warning-amber/10 text-warning-amber' : 'bg-alert-red/10 text-alert-red') + '">Reste à payer</span>';
+            badge.innerHTML = '<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm ' + (s.statut === 'partiel' ? 'bg-warning-amber/10 text-warning-amber' : 'bg-alert-red/10 text-alert-red') + '">Reste Ã  payer</span>';
         } else {
             badge.innerHTML = '';
         }
@@ -364,13 +382,13 @@
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
             if (!ok) {
-                info.textContent = data.error || 'Élève introuvable.';
+                info.textContent = data.error || 'Ã‰lÃ¨ve introuvable.';
                 info.className = 'text-sm text-alert-red mt-2';
                 return;
             }
             const f = data.frais;
             const s = data.scolarite;
-            info.textContent = (data.eleve.nom + ' ' + data.eleve.prenom) + (s ? ' — Reste : ' + Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : (f ? ' — Total : ' + Number(f.montant_total).toLocaleString('fr-FR') + ' FCFA' : ''));
+            info.textContent = (data.eleve.nom + ' ' + data.eleve.prenom) + (s ? ' â€” Reste : ' + Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : (f ? ' â€” Total : ' + Number(f.montant_total).toLocaleString('fr-FR') + ' FCFA' : ''));
             info.className = 'text-sm text-success-green mt-2';
         });
     }
@@ -409,4 +427,3 @@
     });
 </script>
 @endpush
-

@@ -1,11 +1,11 @@
 @extends('client.layouts.app')
-@section('title', 'EduManager - Comptabilité')
+@section('title', 'EduManager - ComptabilitÃƒÂ©')
 @section('content')
 <!-- Header Actions & Welcome -->
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
     <div>
-        <h2 class="font-headline-lg text-headline-lg text-primary">Gestion financière</h2>
-        <p class="font-body-md text-text-muted mt-1">Gérez les finances de votre établissement avec précision et clarté.</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">SystÃƒÂ¨me de ComptabilitÃƒÂ©</h2>
+        <p class="text-sm text-gray-500 mt-1">GÃƒÂ©rez les finances de votre ÃƒÂ©tablissement avec prÃƒÂ©cision et clartÃƒÂ©.</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
         <button class="flex items-center gap-1.5 bg-success-green text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">
@@ -14,7 +14,7 @@
         </button>
         <button class="flex items-center gap-1.5 bg-alert-red text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalDepense')">
             <span class="material-symbols-outlined text-[18px]">payments</span>
-            Dépense
+            DÃƒÂ©pense
         </button>
         <button class="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalFrais')">
             <span class="material-symbols-outlined text-[18px]">tune</span>
@@ -24,30 +24,20 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Solde actuel</p>
-        <p class="font-headline-md text-headline-md text-primary mt-1">{{ number_format($currentBalance ?? -12166200, 0, ',', ' ') }} FCFA</p>
-    </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Total encaissé</p>
-        <p class="font-headline-md text-headline-md text-success-green mt-1">{{ number_format($totalIncome ?? 5000, 0, ',', ' ') }} FCFA</p>
-    </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Total dépensé</p>
-        <p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalExpense ?? 12171200, 0, ',', ' ') }} FCFA</p>
-    </div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
-        <p class="text-label-sm text-on-surface-variant">Paiements</p>
-        <p class="font-headline-md text-headline-md text-on-surface mt-1">{{ $paymentCount ?? 1 }}</p>
-    </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Solde actuel</p><p class="font-headline-md text-headline-md text-primary mt-1">{{ number_format($currentBalance ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Total encaisse</p><p class="font-headline-md text-headline-md text-success-green mt-1">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Total depense</p><p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalExpense ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Paiements valides</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ $paymentCount ?? 0 }}</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Frais restant a recouvrer</p><p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalOutstanding ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Inscriptions encaissees</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ number_format($registrationIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Scolarite encaissee</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ number_format($tuitionIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
 </div>
-
 <!-- Recherche par matricule -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mb-8">
     <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-3">
         <span class="material-symbols-outlined text-primary">search</span>
-        <h4 class="font-headline-md text-headline-md">Rechercher un élève</h4>
+        <h4 class="font-headline-md text-headline-md">Rechercher un ÃƒÂ©lÃƒÂ¨ve</h4>
     </div>
     <div class="p-6">
         <div class="flex flex-col md:flex-row gap-4">
@@ -59,10 +49,10 @@
             </button>
         </div>
 
-        <!-- Résultat de la recherche -->
+        <!-- RÃƒÂ©sultat de la recherche -->
         <div id="eleveResult" class="hidden mt-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Infos élève -->
+                <!-- Infos ÃƒÂ©lÃƒÂ¨ve -->
                 <div class="bg-surface-container-low rounded-xl p-5">
                     <div class="flex items-center gap-4 mb-4">
                         <img id="resultPhoto" src="" alt="Photo" class="w-16 h-16 rounded-full object-cover border border-outline-variant hidden">
@@ -76,7 +66,7 @@
                     <div class="bg-surface-container-lowest rounded-lg p-4 border border-outline-variant">
                         <p class="text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Frais du niveau</p>
                         <div class="flex justify-between text-sm"><span>Inscription</span><span id="fraisInscription" class="font-semibold"></span></div>
-                        <div class="flex justify-between text-sm"><span>Scolarité</span><span id="fraisScolarite" class="font-semibold"></span></div>
+                        <div class="flex justify-between text-sm"><span>ScolaritÃƒÂ©</span><span id="fraisScolarite" class="font-semibold"></span></div>
                         <div class="flex justify-between text-sm"><span>Autres</span><span id="fraisAutres" class="font-semibold"></span></div>
                         <div class="flex justify-between text-sm font-bold border-t border-outline-variant mt-2 pt-2"><span>Total</span><span id="fraisTotal" class="text-primary"></span></div>
                     </div>
@@ -90,16 +80,22 @@
                             <thead class="border-b border-outline-variant text-on-surface-variant">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Date</th>
+                                    <th class="px-3 py-2 text-left">Type</th>
                                     <th class="px-3 py-2 text-right">Montant</th>
-                                    <th class="px-3 py-2 text-left">Méthode</th>
+                                    <th class="px-3 py-2 text-left">RÃƒÂ©fÃƒÂ©rence</th>
+                                    <th class="px-3 py-2 text-left">Statut</th>
+                                    <th class="px-3 py-2 text-left">EnregistrÃƒÂ© par</th>
+                                    <th class="px-3 py-2 text-left">MÃƒÂ©thode</th>
                                 </tr>
                             </thead>
                             <tbody id="versementsList"></tbody>
                         </table>
                     </div>
                     <div class="mt-3 text-sm bg-surface-container-lowest rounded-lg p-3 border border-outline-variant">
-                        <div class="flex justify-between"><span>Total payé</span><span id="scolaritePaye" class="font-semibold text-success-green"></span></div>
+                        <div class="flex justify-between"><span>Total dÃƒÂ»</span><span id="scolariteTotal" class="font-semibold"></span></div>
+                        <div class="flex justify-between"><span>Total payÃƒÂ©</span><span id="scolaritePaye" class="font-semibold text-success-green"></span></div>
                         <div class="flex justify-between"><span>Reste</span><span id="scolariteReste" class="font-semibold text-alert-red"></span></div>
+                        <div class="flex justify-between"><span>Statut</span><span id="scolariteStatut" class="font-semibold"></span></div>
                     </div>
                 </div>
             </div>
@@ -111,55 +107,67 @@
 
 <!-- Tables -->
 <div class="space-y-8">
-    <!-- Scolarités -->
+    <!-- ScolaritÃƒÂ©s -->
     <section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
         <div class="px-6 py-4 border-b border-outline-variant">
-            <h4 class="font-headline-md text-headline-md">Scolarités</h4>
+            <h4 class="font-headline-md text-headline-md">ScolaritÃƒÂ©s</h4>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-surface-container-low">
                     <tr>
-                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Élève</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Ãƒâ€°lÃƒÂ¨ve</th>
                         <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Classe</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Matricule</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Type</th>
                         <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Montant</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Methode</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Reference</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Statut</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Enregistre par</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Solde apres paiement</th>
                         <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Date</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
-                    @forelse($payments ?? [
-                        ['student' => 'Jean Dupont', 'class' => 'Terminal C1', 'amount' => 5000, 'date' => '15/10/2023']
-                    ] as $payment)
+                    @forelse($payments ?? [] as $payment)
                     <tr class="hover:bg-surface-container-low/30 transition-colors">
                         <td class="px-6 py-4 font-body-md text-body-md text-on-surface">{{ $payment['student'] }}</td>
                         <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['class'] }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['matricule'] ?? 'Ã¢â‚¬â€' }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ ($payment['type'] ?? null) === 'inscription' ? 'Inscription' : (($payment['type'] ?? null) === 'scolarite' ? 'Scolarite' : 'Non classe') }}</td>
                         <td class="px-6 py-4 font-body-md font-semibold text-success-green">{{ number_format($payment['amount'], 0, ',', ' ') }} FCFA</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['method'] ?? 'Ã¢â‚¬â€' }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['reference'] ?? 'Ã¢â‚¬â€' }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['status'] ?? 'A verifier' }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ $payment['recorded_by'] ?? 'Ã¢â‚¬â€' }}</td>
+                        <td class="px-6 py-4 text-body-sm text-on-surface-variant">{{ isset($payment['remaining']) ? number_format($payment['remaining'], 0, ',', ' ') . ' FCFA' : 'Ã¢â‚¬â€' }}</td>
                         <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">{{ $payment['date'] }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">Aucune scolarité</td></tr>
+                    <tr><td colspan="11" class="px-6 py-8 text-center text-on-surface-variant">Aucune scolaritÃƒÂ©</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot class="bg-surface-container-low font-bold">
                     <tr>
                         <td class="px-6 py-4" colspan="2">Total</td>
-                        <td class="px-6 py-4 text-success-green text-headline-md" colspan="2">{{ number_format($totalIncome ?? 5000, 0, ',', ' ') }} FCFA</td>
+                        <td class="px-6 py-4 text-success-green text-headline-md" colspan="9">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </section>
 
-    <!-- Dépenses -->
+    <!-- DÃƒÂ©penses -->
     <section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
         <div class="px-6 py-4 border-b border-outline-variant">
-            <h4 class="font-headline-md text-headline-md">Dépenses</h4>
+            <h4 class="font-headline-md text-headline-md">DÃƒÂ©penses</h4>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-surface-container-low">
                     <tr>
-                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Libellé</th>
+                        <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">LibellÃƒÂ©</th>
                         <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant">Montant</th>
                         <th class="px-6 py-3 font-label-sm text-label-sm uppercase text-on-surface-variant text-right">Date</th>
                     </tr>
@@ -174,13 +182,13 @@
                         <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">{{ $expense['date'] }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" class="px-6 py-8 text-center text-on-surface-variant">Aucune dépense</td></tr>
+                    <tr><td colspan="3" class="px-6 py-8 text-center text-on-surface-variant">Aucune dÃƒÂ©pense</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot class="bg-surface-container-low font-bold">
                     <tr>
                         <td class="px-6 py-4">Total</td>
-                        <td class="px-6 py-4 text-alert-red text-headline-md" colspan="2">{{ number_format($totalExpense ?? 12171200, 0, ',', ' ') }} FCFA</td>
+                        <td class="px-6 py-4 text-alert-red text-headline-md" colspan="2">{{ number_format($totalExpense ?? 0, 0, ',', ' ') }} FCFA</td>
                     </tr>
                 </tfoot>
             </table>
@@ -189,7 +197,7 @@
 </div>
 
 <!-- Modals (same as before, kept for functionality) -->
-<!-- Modal Scolarité -->
+<!-- Modal ScolaritÃƒÂ© -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalScolarite">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalScolarite')"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalScolariteContent">
@@ -201,33 +209,40 @@
         </div>
         @if(session('showRecu'))
             <div class="p-6 border-b border-outline-variant bg-primary-fixed/20">
-                <p class="text-sm text-on-surface mb-3">Paiement enregistré.</p>
+                <p class="text-sm text-on-surface mb-3">Paiement enregistrÃƒÂ©.</p>
                 <a href="{{ route('client.comptabilite.recu') }}" target="_blank" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md">
                     <span class="material-symbols-outlined text-[18px]">print</span>
-                    Imprimer le reçu
+                    Imprimer le reÃƒÂ§u
                 </a>
             </div>
         @endif
         <form class="p-6 space-y-4" action="{{ route('client.comptabilite.scolarite.store') }}" method="POST">
             @csrf
-            <input type="hidden" name="montant_versement" id="amountVersementHidden">
+            <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
             <input type="hidden" name="annee_scolaire" value="{{ $currentYear ?? '2024-2025' }}">
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Matricule</label>
                 <div class="flex gap-2">
                     <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="paymentMatricule" name="matricule" placeholder="Saisissez le matricule" required>
-                    <button type="button" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg shrink-0" onclick="searchEleveForPayment()">Vérifier</button>
+                    <button type="button" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg shrink-0" onclick="searchEleveForPayment()">VÃƒÂ©rifier</button>
                 </div>
                 <p id="paymentEleveInfo" class="text-sm text-on-surface-variant mt-2"></p>
             </div>
             <div>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">CatÃƒÂ©gorie de paiement</label>
+                <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" name="type" required>
+                    <option value="inscription">Inscription</option>
+                    <option value="scolarite">Frais de scolaritÃƒÂ©</option>
+                </select>
+            </div>
+            <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Montant (FCFA)</label>
-                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" name="montant_versement" step="100" type="number" placeholder="Montant à payer">
+                <input class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" id="amountInput" name="montant_versement" min="1" step="1" type="number" placeholder="Montant ÃƒÂ  payer" required>
             </div>
             <div>
                 <label class="block text-label-sm text-on-surface-variant mb-1.5">Moyen de paiement</label>
                 <select class="w-full rounded-lg border-outline-variant focus:border-success-green focus:ring-success-green text-body-sm" name="methode" required>
-                    <option value="">Sélectionner</option>
+                    <option value="">SÃƒÂ©lectionner</option>
                     @foreach($paymentMethods ?? [] as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>
                     @endforeach
@@ -257,7 +272,7 @@
         </div>
 <div class="p-6">
             <div class="mb-4">
-                <label class="block text-label-sm text-on-surface-variant mb-1.5">Année académique</label>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">AnnÃƒÂ©e acadÃƒÂ©mique</label>
                 <select class="w-full rounded-lg border-outline-variant text-body-sm" id="fraisAnneeId" onchange="filterFraisByAnnee(this.value)">
                     @foreach($anneesAcademiques ?? [] as $annee)
                         <option value="{{ $annee->id }}" @if(($annee->statut ?? '') === 'active') selected @endif>{{ $annee->libelle }}</option>
@@ -270,7 +285,7 @@
                         <tr>
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">Niveau</th>
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">Inscription</th>
-                            <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">Scolarité</th>
+                            <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">ScolaritÃƒÂ©</th>
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">Autres</th>
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant">Total</th>
                             <th class="px-4 py-3 font-label-sm uppercase text-on-surface-variant text-right">Action</th>
@@ -283,10 +298,10 @@
                             @endphp
                             <tr>
                                 <td class="px-4 py-3 font-label-md">{{ $level['name'] }}</td>
-                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->inscription, 0, ',', ' ') : '—' }}</td>
-                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->scolarite, 0, ',', ' ') : '—' }}</td>
-                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->autres_frais, 0, ',', ' ') : '—' }}</td>
-                                <td class="px-4 py-3 font-bold text-primary">{{ $frais ? number_format((int) $frais->montant_total, 0, ',', ' ') : '—' }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->inscription, 0, ',', ' ') : 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->scolarite, 0, ',', ' ') : 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-4 py-3">{{ $frais ? number_format((int) $frais->autres_frais, 0, ',', ' ') : 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-4 py-3 font-bold text-primary">{{ $frais ? number_format((int) $frais->montant_total, 0, ',', ' ') : 'Ã¢â‚¬â€' }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <button class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors" onclick="openEditFrais({{ $level['id'] }}, {{ $frais?->inscription ?? 0 }}, {{ $frais?->scolarite ?? 0 }}, {{ $frais?->autres_frais ?? 0 }})">
                                         <span class="material-symbols-outlined text-[18px]">{{ $frais ? 'edit' : 'add' }}</span>
@@ -309,7 +324,7 @@
                         <input class="w-full rounded-lg border-outline-variant text-body-sm" name="inscription" id="fraisInscriptionInput" type="number" min="0" value="0">
                     </div>
                     <div>
-                        <label class="block text-label-sm text-on-surface-variant mb-1.5">Scolarité</label>
+                        <label class="block text-label-sm text-on-surface-variant mb-1.5">ScolaritÃƒÂ©</label>
                         <input class="w-full rounded-lg border-outline-variant text-body-sm" name="scolarite" id="fraisScolariteInput" type="number" min="0" value="0">
                     </div>
                     <div>
@@ -323,12 +338,12 @@
     </div>
 </div>
 
-<!-- Modal Dépense -->
+<!-- Modal DÃƒÂ©pense -->
 <div class="fixed inset-0 z-[100] hidden items-center justify-center p-4" id="modalDepense">
     <div class="absolute inset-0 modal-overlay backdrop-blur-md bg-black/30" onclick="closeModal('modalDepense')"></div>
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDepenseContent">
         <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-alert-red text-white">
-            <h3 class="font-headline-md text-headline-md">Enregistrer une dépense</h3>
+            <h3 class="font-headline-md text-headline-md">Enregistrer une dÃƒÂ©pense</h3>
             <button class="text-white/80 hover:text-white transition-colors" onclick="closeModal('modalDepense')">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -336,8 +351,8 @@
         <form class="p-6 space-y-4" action="{{ route('client.comptabilite.depense.store') }}" method="POST">
             @csrf
             <div>
-                <label class="block text-label-sm text-on-surface-variant mb-1.5">Libellé</label>
-                <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseLabel" name="libel_depense" placeholder="Décrivez la dépense..." rows="3" required></textarea>
+                <label class="block text-label-sm text-on-surface-variant mb-1.5">LibellÃƒÂ©</label>
+                <textarea class="w-full rounded-lg border-outline-variant focus:border-alert-red focus:ring-alert-red text-body-sm" id="expenseLabel" name="libel_depense" placeholder="DÃƒÂ©crivez la dÃƒÂ©pense..." rows="3" required></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -389,7 +404,7 @@
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
             if (!ok) {
-                errorBox.textContent = data.error || 'Aucun élève trouvé.';
+                errorBox.textContent = data.error || 'Aucun ÃƒÂ©lÃƒÂ¨ve trouvÃƒÂ©.';
                 errorBox.classList.remove('hidden');
                 return;
             }
@@ -405,9 +420,9 @@
     function renderResult(data) {
         const e = data.eleve || {};
         document.getElementById('resultNom').textContent = (e.nom || '') + ' ' + (e.prenom || '');
-        document.getElementById('resultMatricule').textContent = 'Matricule : ' + (e.matricule || '—');
-        document.getElementById('resultClasse').textContent = 'Classe : ' + (e.classe || '—');
-        document.getElementById('resultNiveau').textContent = 'Niveau : ' + (e.niveau || '—');
+        document.getElementById('resultMatricule').textContent = 'Matricule : ' + (e.matricule || 'Ã¢â‚¬â€');
+        document.getElementById('resultClasse').textContent = 'Classe : ' + (e.classe || 'Ã¢â‚¬â€');
+        document.getElementById('resultNiveau').textContent = 'Niveau : ' + (e.niveau || 'Ã¢â‚¬â€');
 
         const f = data.frais;
         if (f) {
@@ -417,7 +432,7 @@
             document.getElementById('fraisAutres').textContent = fmt(f.autres_frais);
             document.getElementById('fraisTotal').textContent = fmt(f.montant_total);
         } else {
-            ['fraisInscription', 'fraisScolarite', 'fraisAutres'].forEach(id => document.getElementById(id).textContent = '—');
+            ['fraisInscription', 'fraisScolarite', 'fraisAutres'].forEach(id => document.getElementById(id).textContent = 'Ã¢â‚¬â€');
             document.getElementById('fraisTotal').textContent = 'Aucun frais';
         }
 
@@ -425,13 +440,19 @@
         const versements = data.versements || [];
         list.innerHTML = versements.length ? versements.map(v => `<tr>
             <td class="px-3 py-2">${v.date}</td>
+            <td class="px-3 py-2">${v.type === 'inscription' ? 'Inscription' : (v.type === 'scolarite' ? 'Scolarite' : 'Non classe')}</td>
             <td class="px-3 py-2 text-right font-semibold">${Number(v.montant).toLocaleString('fr-FR')} FCFA</td>
-            <td class="px-3 py-2">${v.methode || '—'}</td>
+            <td class="px-3 py-2">${v.reference || 'Ã¢â‚¬â€'}</td>
+            <td class="px-3 py-2">${v.statut || 'A verifier'}</td>
+            <td class="px-3 py-2">${v.enregistre_par || 'Ã¢â‚¬â€'}</td>
+            <td class="px-3 py-2">${v.methode || 'Ã¢â‚¬â€'}</td>
         </tr>`).join('') : '<tr><td colspan="3" class="px-3 py-4 text-center text-on-surface-variant">Aucun paiement</td></tr>';
 
         const s = data.scolarite;
-        document.getElementById('scolaritePaye').textContent = s ? Number(s.montant_paye).toLocaleString('fr-FR') + ' FCFA' : '—';
-        document.getElementById('scolariteReste').textContent = s ? Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : '—';
+        document.getElementById('scolariteStatut').textContent = s?.statut === 'solde' ? 'SoldÃƒÂ©' : (s?.statut || 'ImpayÃƒÂ©');
+        document.getElementById('scolariteTotal').textContent = Number(s?.montant_total || 0).toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('scolaritePaye').textContent = s ? Number(s.montant_paye).toLocaleString('fr-FR') + ' FCFA' : 'Ã¢â‚¬â€';
+        document.getElementById('scolariteReste').textContent = s ? Number(s.reste).toLocaleString('fr-FR') + ' FCFA' : 'Ã¢â‚¬â€';
     }
 
     function searchEleveForPayment() {
@@ -448,12 +469,12 @@
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
             if (!ok) {
-                info.textContent = data.error || 'Élève introuvable.';
+                info.textContent = data.error || 'Ãƒâ€°lÃƒÂ¨ve introuvable.';
                 info.className = 'text-sm text-alert-red mt-2';
                 return;
             }
             const f = data.frais;
-            info.textContent = (data.eleve.nom + ' ' + data.eleve.prenom) + (f ? ' — Total : ' + Number(f.montant_total).toLocaleString('fr-FR') + ' FCFA' : '');
+            info.textContent = (data.eleve.nom + ' ' + data.eleve.prenom) + (f ? ' Ã¢â‚¬â€ Total : ' + Number(f.montant_total).toLocaleString('fr-FR') + ' FCFA' : '');
             info.className = 'text-sm text-success-green mt-2';
         });
     }
@@ -490,7 +511,7 @@ function openModal(modalId) {
         }, 10);
     }
 
-    // Frais par niveau et par année (JSON généré côté serveur)
+    // Frais par niveau et par annÃƒÂ©e (JSON gÃƒÂ©nÃƒÂ©rÃƒÂ© cÃƒÂ´tÃƒÂ© serveur)
     @php
         $fraisJsonList = ($fraisParNiveau ?? collect())->map(fn ($f) => [
             'niveau_id' => $f->niveau_id,
@@ -509,15 +530,15 @@ function openModal(modalId) {
         document.getElementById('fraisAnneeIdHidden').value = anneeId;
         const tbody = document.getElementById('fraisTableBody');
         const selected = String(anneeId);
-        const fmt = n => n ? Number(n).toLocaleString('fr-FR') : '—';
+        const fmt = n => n ? Number(n).toLocaleString('fr-FR') : 'Ã¢â‚¬â€';
         tbody.innerHTML = levelsData.map(level => {
             const f = fraisData.find(item => String(item.annee_academique_id) === selected && item.niveau_id === level.id);
             return `<tr>
                 <td class="px-4 py-3 font-label-md">${level.name}</td>
-                <td class="px-4 py-3">${f ? fmt(f.inscription) : '—'}</td>
-                <td class="px-4 py-3">${f ? fmt(f.scolarite) : '—'}</td>
-                <td class="px-4 py-3">${f ? fmt(f.autres_frais) : '—'}</td>
-                <td class="px-4 py-3 font-bold text-primary">${f ? fmt(f.montant_total) : '—'}</td>
+                <td class="px-4 py-3">${f ? fmt(f.inscription) : 'Ã¢â‚¬â€'}</td>
+                <td class="px-4 py-3">${f ? fmt(f.scolarite) : 'Ã¢â‚¬â€'}</td>
+                <td class="px-4 py-3">${f ? fmt(f.autres_frais) : 'Ã¢â‚¬â€'}</td>
+                <td class="px-4 py-3 font-bold text-primary">${f ? fmt(f.montant_total) : 'Ã¢â‚¬â€'}</td>
                 <td class="px-4 py-3 text-right">
                     <button class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors" onclick="openEditFrais(${level.id}, ${f ? f.inscription : 0}, ${f ? f.scolarite : 0}, ${f ? f.autres_frais : 0})">
                         <span class="material-symbols-outlined text-[18px]">${f ? 'edit' : 'add'}</span>

@@ -81,6 +81,7 @@ Route::get('/comptabilite', [ComptabiliteController::class, 'index'])->name('com
         Route::delete('/classe/{classe}', [ClasseController::class, 'destroy'])->name('classe.destroy');
 
         Route::get('/eleve', [EleveController::class, 'index'])->name('eleve');
+        Route::get('/eleve/tarifs', [EleveController::class, 'getTarifs'])->name('eleve.tarifs');
         Route::get('/eleve/{eleve}/photo', [EleveController::class, 'photo'])->name('eleve.photo');
         Route::post('/eleve', [EleveController::class, 'store'])->name('eleve.store');
         Route::put('/eleve/{eleve}', [EleveController::class, 'update'])->name('eleve.update');

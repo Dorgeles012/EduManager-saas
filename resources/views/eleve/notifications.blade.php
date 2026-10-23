@@ -8,14 +8,25 @@
         <h2 class="font-headline-lg text-headline-lg text-primary">Mes notifications</h2>
         <p class="text-sm text-on-surface-variant">Retrouvez toutes les notifications qui vous concernent</p>
     </div>
-    @if($unreadCount > 0)
-        <form method="POST" action="{{ route('eleve.notifications.read-all') }}">
-            @csrf
-            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-medium hover:opacity-90">
-                <span class="material-symbols-outlined">mark_all_read</span> Tout marquer comme lu
-            </button>
-        </form>
-    @endif
+    <div class="flex items-center gap-2">
+        @if($unreadCount > 0)
+            <form method="POST" action="{{ route('eleve.notifications.read-all') }}">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-medium hover:opacity-90">
+                    <span class="material-symbols-outlined">mark_all_read</span> Tout marquer comme lu
+                </button>
+            </form>
+        @endif
+        @if($notifications->total() > 0)
+            <form method="POST" action="{{ route('eleve.notifications.destroy-all') }}" onsubmit="return confirm('Supprimer toutes vos notifications ? Cette action est irréversible.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-alert-red text-white text-sm font-medium hover:opacity-90" title="Supprimer toutes les notifications" aria-label="Supprimer toutes les notifications">
+                    <span class="material-symbols-outlined">delete</span> Tout supprimer
+                </button>
+            </form>
+        @endif
+    </div>
 </div>
 
 <div class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant overflow-hidden">

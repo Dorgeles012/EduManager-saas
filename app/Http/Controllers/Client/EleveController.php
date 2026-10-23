@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
+use App\Models\AnneeAcademique;
 use App\Models\Eleve;
 use App\Models\Etablissement;
+use App\Models\FraisScolarite;
 use App\Models\Niveau;
 use App\Models\Series;
 use App\Models\User;
@@ -76,6 +78,7 @@ class EleveController extends Controller
                 'parent_phone' => $student->parent?->telephone ?? '',
                 'parent_email' => $student->parent?->email ?? '',
                 'status' => $student->statut,
+                'montant_inscription' => (int) $student->montant_inscription,
                 'sexe' => $student->sexe,
                 'nationalite' => $student->nationalite,
                 'interne' => $student->interne,
@@ -170,9 +173,9 @@ $eleve = Eleve::create([
                 'ancien_etablissement' => $validated['ancien_etablissement'] ?? null,
                 'photo' => $photoPath,
                 'statut' => ($validated['type_eleve'] ?? 'nouveau') === 'transfere' ? 'transfert' : 'actif',
+                'montant_inscription' => $validated['montant_inscription'] ?? 0,
             ]);
 
-            $this->syncEleveAccount($eleve, $user->etablissement_id);
         });
 
         return back()->with('success', 'Élève enregistré avec succès.');
@@ -223,9 +226,9 @@ $eleve->update([
                 'ancien_etablissement' => $validated['ancien_etablissement'] ?? null,
                 'photo' => $photoPath,
                 'statut' => ($validated['type_eleve'] ?? 'nouveau') === 'transfere' ? 'transfert' : 'actif',
+                'montant_inscription' => $validated['montant_inscription'] ?? $eleve->montant_inscription,
             ]);
 
-            $this->syncEleveAccount($eleve, $user->etablissement_id);
         });
 
         return back()->with('success', 'Élève mis à jour avec succès.');
@@ -235,15 +238,15 @@ $eleve->update([
     {
         $this->authorizeTenant($eleve);
 
+        if ($eleve->user()->exists()) {
+            abort(409, 'Cet élève possède encore un ancien compte de connexion. Vérifiez ce compte avant de supprimer son dossier.');
+        }
+
+        if ($eleve->notes()->exists() || $eleve->bulletins()->exists() || $eleve->scolarites()->exists()) {
+            abort(409, 'Ce dossier possède des notes, bulletins ou données de scolarité. Archivez ou transférez ces historiques avant de supprimer l’élève.');
+        }
+
         DB::transaction(function () use ($eleve) {
-            // Parent lié à l'élève (filtré sur role = 'parent' dans la relation Eloquent)
-            $parent = $eleve->parent;
-
-            // Cas 2 (parent partagé) : on vérifie avant suppression si d'autres élèves utilisent encore ce parent.
-            $remainingStudentsForParent = $parent
-                ? $parent->eleves()->count()
-                : 0;
-
             // Supprimer le fichier photo de l'élève si présent
             if ($eleve->photo) {
                 $oldPath = $this->normalizePhotoPath($eleve->photo);
@@ -253,17 +256,45 @@ $eleve->update([
             }
 
             $eleve->delete();
-
-            // Si le parent n'a plus aucun élève rattaché, on le supprime.
-
-            if ($parent && $remainingStudentsForParent <= 1 && strtolower($parent->role) === 'parent') {
-                $parent->delete();
-            }
         });
 
         return back()->with('success', 'Élève supprimé avec succès.');
     }
 
+
+    /**
+     * Endpoint AJAX : retourne les frais de scolarité pour un niveau donné.
+     * Utilisé pour la validation dynamique du montant d'inscription.
+     */
+    public function getTarifs(Request $request)
+    {
+        $user = auth()->user();
+        $niveauId = $request->integer('niveau_id');
+
+        if (! $niveauId) {
+            return response()->json(['frais' => null]);
+        }
+
+        $frais = $this->fraisDuNiveau($user, $niveauId);
+
+        if (! $frais) {
+            return response()->json(['frais' => null]);
+        }
+
+        // La règle de marge : le montant d'inscription doit être entre 50% et 100% du tarif d'inscription configuré.
+        // Si aucun tarif n'est configuré (inscription = 0), aucune vérification n'est appliquée.
+        $reference = (int) $frais->inscription;
+        $min = $reference;
+
+        return response()->json([
+            'frais' => [
+                'inscription'   => $reference,
+                'scolarite'     => (int) $frais->scolarite,
+                'autres_frais'  => (int) $frais->autres_frais,
+                'montant_min'   => $min,
+            ],
+        ]);
+    }
 
     public function photo(Eleve $eleve)
     {
@@ -274,43 +305,6 @@ $eleve->update([
         abort_unless(Storage::disk('public')->exists($path), 404);
 
         return Storage::disk('public')->response($path);
-    }
-
-/**
-     * Crée ou synchronise le compte utilisateur (rôle élève) lié à cet élève.
-     * Utilisé pour permettre à l'élève de se connecter à son espace.
-     */
-    private function syncEleveAccount(Eleve $eleve, ?int $etablissementId): void
-    {
-        $user = auth()->user();
-        $email = $eleve->matricule . '@eleve.local';
-
-        $account = User::where('tenant_id', $user->tenant_id)
-            ->where('eleve_id', $eleve->id)
-            ->whereRaw('LOWER(role) = ?', ['eleve'])
-            ->first();
-
-if (! $account) {
-            User::create([
-                'tenant_id' => $user->tenant_id,
-                'etablissement_id' => $etablissementId,
-                'eleve_id' => $eleve->id,
-                'nom' => $eleve->nom,
-                'prenom' => $eleve->prenom,
-                'email' => $email,
-                'telephone' => null,
-                'password' => Hash::make('12345678'),
-                'must_change_password' => true,
-                'role' => 'eleve',
-                'statut' => 'actif',
-            ]);
-        } else {
-            $account->update([
-                'nom' => $eleve->nom,
-                'prenom' => $eleve->prenom,
-                'etablissement_id' => $etablissementId,
-            ]);
-        }
     }
 
     private function validateEleve(Request $request, ?Eleve $eleve = null): array
@@ -339,6 +333,8 @@ if (! $account) {
             'interne' => ['required', 'boolean'],
             'affecte' => ['required', 'boolean'],
             'ancien_etablissement' => ['nullable', 'string', 'max:255'],
+            'montant_inscription' => ['nullable', 'integer', 'min:0'],
+            'bypass_tarif_check' => ['nullable', 'boolean'],
             'photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
             'niveau_id' => [
 
@@ -362,7 +358,52 @@ if (! $account) {
 
         $validated['etablissement_id'] = $etablissementId;
 
+        // Validation côté serveur : vérifier la conformité du montant par rapport aux frais configurés.
+        $niveauId = $validated['niveau_id'] ?? null;
+        $frais = $this->fraisDuNiveau($user, (int) $niveauId);
+        if (! $frais) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'niveau_id' => "Aucun tarif d'inscription n'est configuré pour ce niveau et l'année académique active.",
+            ]);
+        }
+        $montantSaisi = (int) ($validated['montant_inscription'] ?? $frais->inscription);
+        $validated['montant_inscription'] = $montantSaisi;
+        if ($niveauId && $montantSaisi !== null) {
+            $frais = $this->fraisDuNiveau($user, (int) $niveauId);
+
+            if ($frais && $frais->inscription > 0) {
+                $reference = (int) $frais->inscription;
+                $min = $reference;
+                $max = max($reference, $montantSaisi);
+                if ($montantSaisi < $min || $montantSaisi > $max) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'montant_inscription' => "Le montant d'inscription doit être compris entre "
+                            . number_format($min, 0, ',', ' ') . " FCFA et "
+                            . number_format($max, 0, ',', ' ') . " FCFA pour ce niveau.",
+                    ]);
+                }
+            }
+        }
+
         return $validated;
+    }
+
+    private function fraisDuNiveau($user, int $niveauId): ?FraisScolarite
+    {
+        $anneeId = AnneeAcademique::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->where('statut', 'active')
+            ->orderByDesc('date_debut')
+            ->value('id');
+
+        return FraisScolarite::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->where('niveau_id', $niveauId)
+            ->when($user->etablissement_id, fn ($q) => $q->where('etablissement_id', $user->etablissement_id))
+            ->when($anneeId, fn ($q) => $q->where('annee_academique_id', $anneeId))
+            ->latest()
+            ->first();
     }
 
     private function generateMatricule(int $tenantId): string

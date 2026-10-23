@@ -3,18 +3,18 @@
 @section('content')
 <div class="flex justify-between items-start mb-6">
     <div>
-        <h2 class="font-headline-md text-headline-md text-primary mb-0.5">Gestion des Élèves</h2>
-        <p class="text-body-sm text-text-muted text-sm">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
+        <h2 class="font-headline-md text-headline-md text-primary mb-0.5">Gestion des Ã‰lÃ¨ves</h2>
+        <p class="text-body-sm text-text-muted text-sm">GÃ©rez l'ensemble des Ã©lÃ¨ves inscrits dans votre Ã©tablissement</p>
     </div>
     <button class="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-lg text-sm hover:opacity-90 active:scale-95 transition-all card-shadow" onclick="openModal('modal-standard')" type="button">
-        <span class="material-symbols-outlined text-base">person_add</span>Nouvel élève
+        <span class="material-symbols-outlined text-base">person_add</span>Nouvel Ã©lÃ¨ve
     </button>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
     <div class="glass-card p-4 rounded-xl flex items-center gap-4 shadow-[4px_4px_12px_rgba(55,48,163,0.04)]">
         <div class="w-11 h-11 rounded-full bg-primary-fixed flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">school</span></div>
-        <div><h3 class="text-xs text-text-muted">Élèves inscrits</h3><p class="text-headline-lg font-headline-lg text-on-surface">{{ $totalStudents ?? 0 }}</p></div>
+        <div><h3 class="text-xs text-text-muted">Ã‰lÃ¨ves inscrits</h3><p class="text-headline-lg font-headline-lg text-on-surface">{{ $totalStudents ?? 0 }}</p></div>
     </div>
     <div class="glass-card p-4 rounded-xl flex items-center gap-4 shadow-[4px_4px_12px_rgba(55,48,163,0.04)]">
         <div class="w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-2xl">meeting_room</span></div>
@@ -24,7 +24,7 @@
 
 <div class="glass-card rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(55,48,163,0.04)]">
     <div class="px-4 py-2.5 border-b border-surface-subtle bg-surface-container-low flex justify-between items-center">
-        <h4 class="font-headline-sm text-headline-sm text-primary text-base">Liste des élèves</h4>
+        <h4 class="font-headline-sm text-headline-sm text-primary text-base">Liste des Ã©lÃ¨ves</h4>
     </div>
     <form method="GET" action="{{ route('personnel.eleves.index') }}" id="search-form" class="px-4 py-3 border-b border-surface-subtle grid grid-cols-1 md:grid-cols-5 gap-2 bg-white">
         <input type="text" name="search" id="search-input" value="{{ request('search') }}" class="rounded-lg border-outline-variant text-sm px-3 py-1.5" placeholder="Rechercher nom ou matricule" autocomplete="off">
@@ -33,7 +33,7 @@
             @foreach($levels ?? [] as $level)<option value="{{ $level['id'] }}" @selected((string)request('niveau_id')===(string)$level['id'])>{{ $level['name'] }}</option>@endforeach
         </select>
         <select name="id_serie" id="filter-serie" class="rounded-lg border-outline-variant text-sm px-3 py-1.5">
-            <option value="">Toutes les séries</option>
+            <option value="">Toutes les sÃ©ries</option>
             @foreach($series ?? [] as $serie)<option value="{{ $serie->id }}" @selected((string)request('id_serie')===(string)$serie->id)>{{ $serie->nom_serie }}</option>@endforeach
         </select>
         <select name="classe_id" id="filter-classe" class="rounded-lg border-outline-variant text-sm px-3 py-1.5">
@@ -42,7 +42,7 @@
         </select>
         <div class="flex gap-2">
             <button class="flex-1 bg-primary text-white rounded-lg px-4 py-1.5 text-sm hover:opacity-90 transition" type="submit">Filtrer</button>
-            <a href="{{ route('personnel.eleves.index') }}" id="btn-reset-filters" class="flex items-center justify-center px-3 py-1.5 border border-outline-variant text-text-muted rounded-lg text-sm hover:bg-surface-container transition" title="Réinitialiser">
+            <a href="{{ route('personnel.eleves.index') }}" id="btn-reset-filters" class="flex items-center justify-center px-3 py-1.5 border border-outline-variant text-text-muted rounded-lg text-sm hover:bg-surface-container transition" title="RÃ©initialiser">
                 <span class="material-symbols-outlined text-base">restart_alt</span>
             </a>
         </div>
@@ -52,25 +52,25 @@
         @if(($students ?? collect())->isEmpty())
         <div class="min-h-[160px] flex flex-col items-center justify-center text-center p-6">
             <div class="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-3"><span class="material-symbols-outlined text-primary text-4xl">school</span></div>
-            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-1 text-base">Aucun élève enregistré</h3>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-1 text-base">Aucun Ã©lÃ¨ve enregistrÃ©</h3>
             @if(request('search'))
-            <p class="text-sm text-text-muted">Aucun résultat pour « {{ request('search') }} »</p>
+            <p class="text-sm text-text-muted">Aucun rÃ©sultat pour Â« {{ request('search') }} Â»</p>
             @endif
         </div>
         @else
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-left text-sm border-separate border-spacing-y-1">
                 <thead class="bg-surface-container-low text-xs uppercase tracking-wider text-text-muted">
-                    <tr><th class="px-2 py-2.5 font-semibold">N°</th><th class="px-3 py-2.5 font-semibold min-w-[160px]">Nom &amp; Prénoms</th><th class="px-2 py-2.5 font-semibold">Matricule</th><th class="px-2 py-2.5 font-semibold">Sexe</th><th class="px-2 py-2.5 font-semibold">Classe</th><th class="px-2 py-2.5 font-semibold">Niveau</th><th class="px-2 py-2.5 font-semibold min-w-[80px]">Série</th><th class="px-2 py-2.5 font-semibold min-w-[90px]">Date naiss.</th><th class="px-2 py-2.5 font-semibold text-right">Actions</th></tr>
+                    <tr><th class="px-2 py-2.5 font-semibold">NÂ°</th><th class="px-3 py-2.5 font-semibold min-w-[160px]">Nom &amp; PrÃ©noms</th><th class="px-2 py-2.5 font-semibold">Matricule</th><th class="px-2 py-2.5 font-semibold">Sexe</th><th class="px-2 py-2.5 font-semibold">Classe</th><th class="px-2 py-2.5 font-semibold">Niveau</th><th class="px-2 py-2.5 font-semibold min-w-[80px]">SÃ©rie</th><th class="px-2 py-2.5 font-semibold min-w-[90px]">Date naiss.</th><th class="px-2 py-2.5 font-semibold text-right">Actions</th></tr>
                 </thead>
                 <tbody class="divide-y divide-surface-subtle">
                     @foreach($students as $student)
                     @php
                         $sexe = strtolower(trim($student['sexe'] ?? ''));
                         $isMale = in_array($sexe, ['m','masculin','male','homme','h']);
-                        $isFemale = in_array($sexe, ['f','féminin','feminin','female','femme']);
+                        $isFemale = in_array($sexe, ['f','fÃ©minin','feminin','female','femme']);
                         $badge = $isMale ? 'bg-blue-100 text-blue-700' : ($isFemale ? 'bg-pink-100 text-pink-700' : 'bg-gray-100 text-gray-700');
-                        $display = $isMale ? 'Masculin' : ($isFemale ? 'Féminin' : 'N/A');
+                        $display = $isMale ? 'Masculin' : ($isFemale ? 'FÃ©minin' : 'N/A');
                     @endphp
                     <tr class="hover:bg-surface-container-low transition-colors rounded-lg shadow-sm bg-white student-row" 
                         data-student-id="{{ $student['id'] }}"
@@ -82,7 +82,7 @@
                         <td class="px-2 py-2.5 align-middle"><span class="px-2 py-1 rounded-full text-xs font-medium {{ $badge }}">{{ $display }}</span></td>
                         <td class="px-2 py-2.5 text-text-muted align-middle text-sm">{{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</td>
                         <td class="px-2 py-2.5 align-middle"><span class="px-2 py-1 rounded-full text-xs font-medium bg-secondary-container/20 text-on-secondary-container">{{ $student['level'] }}</span></td>
-                        <td class="px-2 py-2.5 text-text-muted align-middle min-w-[80px] text-sm">{{ $student['serie'] ?? '—' }}</td>
+                        <td class="px-2 py-2.5 text-text-muted align-middle min-w-[80px] text-sm">{{ $student['serie'] ?? 'â€”' }}</td>
                         <td class="px-2 py-2.5 text-text-muted align-middle min-w-[90px] text-sm">{{ $student['birthdate'] }}</td>
                         <td class="px-2 py-2.5 text-right align-middle">
                             <div class="flex justify-end items-center gap-0.5">
@@ -106,7 +106,7 @@
             </table>
         </div>
         <div class="px-4 py-2.5 border-t border-surface-subtle bg-surface-container-low/30 flex items-center justify-between text-sm">
-            <span class="text-text-muted text-xs">Affichage de {{ $students->firstItem() ?? 0 }} à {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }} élèves</span>
+            <span class="text-text-muted text-xs">Affichage de {{ $students->firstItem() ?? 0 }} Ã  {{ $students->lastItem() ?? 0 }} sur {{ $students->total() ?? 0 }} Ã©lÃ¨ves</span>
             <div class="flex gap-1 text-sm">{{ $students->appends(request()->query())->links() ?? '' }}</div>
         </div>
         @endif
@@ -147,7 +147,7 @@ function populateClasses(l, c, s, w, sc = '', ss = '') {
     const sel = document.getElementById(c);
     if (!sel) return;
     const m = availableClasses.filter(cls => String(cls.level_id) === String(id));
-    sel.innerHTML = '<option value="">Sélectionner une classe</option>' +
+    sel.innerHTML = '<option value="">SÃ©lectionner une classe</option>' +
         m.map(cls => `<option value="${cls.id}">${cls.name}</option>`).join('');
     sel.disabled = !id || m.length === 0;
     sel.value = m.some(cls => String(cls.id) === String(sc)) ? String(sc) : '';
@@ -160,7 +160,7 @@ function populateSeries(c, s, w, id = '') {
     const wr  = document.getElementById(w);
     if (!sel || !wr) return;
     const m = availableSeries.filter(serie => (serie.class_ids ?? []).map(String).includes(String(classId)));
-    sel.innerHTML = `<option value="">${m.length ? 'Sélectionner une série' : 'Aucune série pour cette classe'}</option>` +
+    sel.innerHTML = `<option value="">${m.length ? 'SÃ©lectionner une sÃ©rie' : 'Aucune sÃ©rie pour cette classe'}</option>` +
         m.map(serie => `<option value="${serie.id}">${serie.nom_serie}</option>`).join('');
     wr.classList.remove('hidden');
     sel.disabled = !classId || m.length === 0;
@@ -226,15 +226,16 @@ function openViewModal(s) {
     set('viewStudentBirthplace',   s.birthplace);
     set('viewStudentClasse',       s.classe ?? s.class);
     set('viewStudentNiveau',       s.level);
-    set('viewStudentSerie',        s.serie ?? '—');
+    set('viewStudentSerie',        s.serie ?? 'â€”');
+    set('viewStudentMontantInscription', `${Number(s.montant_inscription ?? 0).toLocaleString('fr-FR')} FCFA`);
     set('viewStudentNationalite',  s.nationalite);
     set('viewStudentInterne',      s.interne ? 'Oui' : 'Non');
     set('viewStudentAffecte',      s.affecte ? 'Oui' : 'Non');
 
     const sexe = (s.sexe ?? '').toString().trim().toLowerCase();
     const sexeLabel = ['m','masculin','male','homme','h'].includes(sexe) ? 'Masculin'
-                    : ['f','féminin','feminin','female','femme'].includes(sexe) ? 'Féminin'
-                    : 'Non renseigné';
+                    : ['f','fÃ©minin','feminin','female','femme'].includes(sexe) ? 'FÃ©minin'
+                    : 'Non renseignÃ©';
     set('viewStudentSexeDetail', sexeLabel);
 
     set('viewStudentParentLastname',  s.parent_lastname);
@@ -245,8 +246,8 @@ function openViewModal(s) {
     if (s.has_account) {
         set('viewStudentAccountEmail', s.eleve_email);
         setHTML('viewStudentAccountPassword', s.eleve_must_change_pwd
-            ? '<span class="font-mono bg-primary-fixed/30 px-2 py-0.5 rounded text-primary">12345678</span> <span class="text-text-muted text-[12px]">(par défaut)</span>'
-            : '<span class="text-text-muted">•••••••• <span class="text-[12px]">(modifié par l\'élève)</span></span>');
+            ? '<span class="font-mono bg-primary-fixed/30 px-2 py-0.5 rounded text-primary">12345678</span> <span class="text-text-muted text-[12px]">(par dÃ©faut)</span>'
+            : '<span class="text-text-muted">â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢ <span class="text-[12px]">(modifiÃ© par l\'Ã©lÃ¨ve)</span></span>');
     } else {
         set('viewStudentAccountEmail', 'Aucun compte');
         set('viewStudentAccountPassword', '-');
@@ -271,7 +272,7 @@ function openEditModal(s) {
 
     const sexeVal = (s.sexe ?? '').toString().trim().toLowerCase();
     const sexeToSet = ['m','masculin','male','homme','h'].includes(sexeVal) ? 'Masculin'
-                    : ['f','féminin','feminin','female','femme'].includes(sexeVal) ? 'Féminin'
+                    : ['f','fÃ©minin','feminin','female','femme'].includes(sexeVal) ? 'FÃ©minin'
                     : '';
     document.querySelectorAll('#form-edit input[name="sexe"]').forEach(r => {
         r.checked = (r.value === sexeToSet);
@@ -297,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let searchAbortController = null;
     let searchDebounceTimer   = null;
 
-    // Filtrage instantané côté client (latence 0ms)
+    // Filtrage instantanÃ© cÃ´tÃ© client (latence 0ms)
     function filterCurrentRows(query) {
         const tableBody = document.querySelector('#students-table-container tbody');
         if (!tableBody) return;
@@ -366,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
             signal: searchAbortController.signal
         })
         .then(response => {
-            if (!response.ok) throw new Error('Erreur réseau');
+            if (!response.ok) throw new Error('Erreur rÃ©seau');
             return response.text();
         })
         .then(html => {
@@ -384,13 +385,13 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => {
             if (err.name !== 'AbortError') {
-                console.error('Erreur chargement élèves:', err);
+                console.error('Erreur chargement Ã©lÃ¨ves:', err);
             }
         });
     }
 
     if (searchInput && searchForm) {
-        // Recherche instantanée dès la saisie (0ms) + fetch en arrière-plan
+        // Recherche instantanÃ©e dÃ¨s la saisie (0ms) + fetch en arriÃ¨re-plan
         searchInput.addEventListener('input', function () {
             filterCurrentRows(this.value);
 
@@ -415,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Filtres déroulants : mise à jour instantanée sans rechargement
+    // Filtres dÃ©roulants : mise Ã  jour instantanÃ©e sans rechargement
     document.querySelectorAll('#filter-niveau, #filter-serie, #filter-classe').forEach(select => {
         select.addEventListener('change', () => {
             clearTimeout(searchDebounceTimer);
@@ -423,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Bouton réinitialiser
+    // Bouton rÃ©initialiser
     if (btnReset) {
         btnReset.addEventListener('click', function (e) {
             e.preventDefault();
@@ -446,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Délégation d'événements pour les boutons d'actions (Voir, Modifier, Supprimer)
+    // DÃ©lÃ©gation d'Ã©vÃ©nements pour les boutons d'actions (Voir, Modifier, Supprimer)
     document.addEventListener('click', function (e) {
         const viewBtn = e.target.closest('.btn-view');
         if (viewBtn) {
@@ -455,8 +456,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const student = JSON.parse(viewBtn.dataset.student);
                 openViewModal(student);
             } catch (err) {
-                console.error('Erreur parsing étudiant (view):', err);
-                Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible d\'ouvrir la fiche de l\'élève.' });
+                console.error('Erreur parsing Ã©tudiant (view):', err);
+                Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible d\'ouvrir la fiche de l\'Ã©lÃ¨ve.' });
             }
             return;
         }
@@ -468,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const student = JSON.parse(editBtn.dataset.student);
                 openEditModal(student);
             } catch (err) {
-                console.error('Erreur parsing étudiant (edit):', err);
+                console.error('Erreur parsing Ã©tudiant (edit):', err);
                 Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible d\'ouvrir le formulaire de modification.' });
             }
             return;
@@ -478,23 +479,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (deleteBtn) {
             e.preventDefault();
             const form = deleteBtn.closest('form');
-            const name = deleteBtn.dataset.name || 'cet élève';
-            Swal.fire({
-                title: 'Êtes-vous sûr ?',
-                html: `L'élève <strong>${name}</strong> sera définitivement supprimé.<br><span class="text-sm text-gray-500">Cette action est irréversible.</span>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ba1a1a',
-                cancelButtonColor: '#64748B',
-                confirmButtonText: 'Oui, supprimer',
-                cancelButtonText: 'Annuler'
-            }).then(r => {
-                if (r.isConfirmed && form) form.submit();
-            });
+            if (!form || deleteBtn.disabled) return;
+            deleteBtn.disabled = true;
+            form.requestSubmit();
             return;
         }
     });
-
+    const standardForm = document.getElementById('form-standard');
+    standardForm?.addEventListener('submit', function (event) {
+        if (standardForm.dataset.submitting === '1') {
+            event.preventDefault();
+            return;
+        }
+        standardForm.dataset.submitting = '1';
+        const submitButton = standardForm.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+    });
     document.getElementById('stdLevel')?.addEventListener('change', () =>
         populateClasses('stdLevel', 'stdClasse', 'stdSerie', 'stdSerieWrapper'));
     document.getElementById('stdClasse')?.addEventListener('change', () =>
@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
         populateSeries('editClasse', 'editSerie', 'editSerieWrapper'));
 
     @if(session('success'))
-        Swal.fire({ icon: 'success', title: 'Succès', text: @json(session('success')), timer: 2500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: 'SuccÃ¨s', text: @json(session('success')), timer: 2500, showConfirmButton: false });
     @endif
     @if(session('error'))
         Swal.fire({ icon: 'error', title: 'Erreur', text: @json(session('error')), timer: 3000, showConfirmButton: false });

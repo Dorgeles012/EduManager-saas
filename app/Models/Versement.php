@@ -19,6 +19,10 @@ protected $fillable = [
         'date_versement',
         'methode',
         'reference',
+        'type',
+        'statut',
+        'enregistre_par',
+        'idempotency_key',
     ];
 
     protected $casts = [
@@ -31,5 +35,10 @@ protected $fillable = [
     public function scolarite(): BelongsTo
     {
         return $this->belongsTo(Scolarite::class, 'scolarite_id');
+    }
+
+    public function enregistrePar(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'enregistre_par');
     }
 }

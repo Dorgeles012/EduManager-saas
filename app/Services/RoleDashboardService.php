@@ -9,7 +9,7 @@ class RoleDashboardService
     public function routeNameFor(?User $user): ?string
     {
         return match (strtolower(trim((string) $user?->role))) {
-            'sadmin' => 'sadmin.dashboard',
+            'sadmin', 'admin' => 'sadmin.dashboard',
             'client' => 'client.dashboard',
             'personnel' => 'personnel.dashboard',
             'enseignant' => 'enseignant.dashboard',

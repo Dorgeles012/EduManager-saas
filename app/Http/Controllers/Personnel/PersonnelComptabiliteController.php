@@ -22,7 +22,7 @@ class PersonnelComptabiliteController extends Controller
     {
         $user = auth()->user();
 
-        $versements = Versement::with('scolarite.eleve.classe')
+        $versements = Versement::with(['scolarite.eleve.classe', 'enregistrePar'])
             ->where('tenant_id', $user->tenant_id)
             ->when($user->etablissement_id, fn ($q) => $q->whereHas('scolarite.eleve', fn ($sq) => $sq->where('etablissement_id', $user->etablissement_id)))
             ->latest()
@@ -33,7 +33,8 @@ class PersonnelComptabiliteController extends Controller
             ->latest('id_depense')
             ->get();
 
-        $totalIncome = $versements->sum('montant');
+        $validVersements = $versements->where('statut', 'valide');
+        $totalIncome = $validVersements->sum('montant');
         $totalExpense = $expenses->sum('montant');
 
         return view('personnel.comptabilite.index', [
@@ -42,6 +43,12 @@ class PersonnelComptabiliteController extends Controller
                 'class' => $versement->scolarite?->eleve?->classe?->nom ?? 'N/A',
                 'amount' => $versement->montant,
                 'date' => $versement->date_versement?->format('d/m/Y') ?? $versement->created_at?->format('d/m/Y'),
+                'matricule' => $versement->scolarite?->eleve?->matricule,
+                'method' => $versement->methode,
+                'reference' => $versement->reference,
+                'type' => $versement->type,
+                'status' => $versement->statut,
+                'recorded_by' => trim(($versement->enregistrePar?->nom ?? '') . ' ' . ($versement->enregistrePar?->prenom ?? '')),
             ]),
             'expenses' => $expenses->map(fn ($depense) => [
                 'id' => $depense->id_depense,
@@ -53,14 +60,16 @@ class PersonnelComptabiliteController extends Controller
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'currentBalance' => $totalIncome - $totalExpense,
-            'paymentCount' => $versements->count(),
+            'paymentCount' => $validVersements->count(),
+            'registrationIncome' => $validVersements->where('type', 'inscription')->sum('montant'),
+            'tuitionIncome' => $validVersements->where('type', 'scolarite')->sum('montant'),
             'paymentMethods' => PaymentProviderService::METHODS,
             'currentYear' => now()->year . '-' . now()->addYear()->year,
         ]);
     }
 
     /**
-     * Recherche un élève par matricule (AJAX). Respecte tenant + établissement.
+     * Recherche un Ã©lÃ¨ve par matricule (AJAX). Respecte tenant + Ã©tablissement.
      */
     public function searchByMatricule(Request $request, ScolariteService $scolariteService)
     {
@@ -78,7 +87,7 @@ class PersonnelComptabiliteController extends Controller
             ->first();
 
         if (! $eleve) {
-            return response()->json(['error' => 'Aucun élève trouvé avec ce matricule.'], 404);
+            return response()->json(['error' => 'Aucun Ã©lÃ¨ve trouvÃ© avec ce matricule.'], 404);
         }
 
         $situation = $scolariteService->situation($eleve);
@@ -111,12 +120,15 @@ class PersonnelComptabiliteController extends Controller
                 'montant' => (int) $v->montant,
                 'date' => $v->date_versement?->format('d/m/Y') ?? $v->created_at?->format('d/m/Y'),
                 'methode' => $v->methode,
+                'type' => $v->type,
+                'statut' => $v->statut,
+                'enregistre_par' => trim(($v->enregistrePar?->nom ?? '') . ' ' . ($v->enregistrePar?->prenom ?? '')),
             ]),
         ]);
     }
 
     /**
-     * Enregistre un paiement par matricule, basé sur les frais configurés.
+     * Enregistre un paiement par matricule, basÃ© sur les frais configurÃ©s.
      */
     public function storeScolarite(Request $request, NotificationService $notifications, PaymentProviderService $paymentProvider, ScolariteService $scolariteService)
     {
@@ -124,10 +136,12 @@ class PersonnelComptabiliteController extends Controller
 
         $validated = $request->validate([
             'matricule' => ['required', 'string', 'max:255'],
-            'montant_versement' => ['nullable', 'integer', 'min:1'],
+            'montant_versement' => ['required', 'integer', 'min:1'],
             'annee_scolaire' => ['nullable', 'string', 'max:100'],
             'date_versement' => ['nullable', 'date'],
-            'methode' => ['nullable', 'string', 'max:50'],
+            'methode' => ['required', 'string', 'in:' . implode(',', array_keys(PaymentProviderService::METHODS))],
+            'type' => ['required', 'in:inscription,scolarite'],
+            'idempotency_key' => ['required', 'uuid'],
         ]);
 
         $eleve = Eleve::with('niveau', 'classe')
@@ -137,49 +151,80 @@ class PersonnelComptabiliteController extends Controller
             ->first();
 
         if (! $eleve) {
-            return back()->with('error', 'Élève introuvable avec ce matricule.');
+            return back()->with('error', 'Ã‰lÃ¨ve introuvable avec ce matricule.');
         }
 
         $frais = $scolariteService->fraisPour($eleve);
 
         if (! $frais) {
-            return back()->with('error', 'Aucun frais configuré pour le niveau de cet élève. Le client doit d\'abord configurer les frais.');
+            return back()->with('error', 'Aucun frais configurÃ© pour le niveau de cet Ã©lÃ¨ve. Le client doit d\'abord configurer les frais.');
         }
 
-        $montantTotal = $frais->montant_total;
-        $versementMontant = $validated['montant_versement'] ?? $montantTotal;
+        if (Versement::where('idempotency_key', $validated['idempotency_key'])->exists()) {
+            return back()->with('success', 'Cette operation de paiement a deja ete enregistree.');
+        }
 
-        DB::transaction(function () use ($validated, $user, $eleve, $frais, $montantTotal, $versementMontant, $notifications, $paymentProvider) {
-            $scolarite = Scolarite::firstOrCreate(
-                [
+        $montantTotal = (int) $frais->montant_total;
+        $versementMontant = (int) $validated['montant_versement'];
+        $anneeScolaire = $frais->anneeAcademique()->value('libelle') ?? $validated['annee_scolaire'] ?? null;
+
+        DB::transaction(function () use ($validated, $user, $eleve, $frais, $montantTotal, $versementMontant, $anneeScolaire, $notifications, $paymentProvider) {
+            Eleve::whereKey($eleve->id)->lockForUpdate()->firstOrFail();
+            if (Versement::where('idempotency_key', $validated['idempotency_key'])->exists()) {
+                return;
+            }
+            $baseQuery = Scolarite::where('tenant_id', $user->tenant_id)->where('eleve_id', $eleve->id);
+            $scolarite = $anneeScolaire
+                ? (clone $baseQuery)->where('annee_scolaire', $anneeScolaire)->lockForUpdate()->first()
+                : (clone $baseQuery)->whereNull('annee_scolaire')->lockForUpdate()->first();
+            if (! $scolarite) {
+                $scolarite = Scolarite::create([
                     'tenant_id' => $user->tenant_id,
                     'eleve_id' => $eleve->id,
-                    'annee_scolaire' => $validated['annee_scolaire'] ?? null,
-                ],
-                [
+                    'annee_scolaire' => $anneeScolaire,
                     'montant_total' => $montantTotal,
                     'montant_paye' => 0,
                     'reste' => $montantTotal,
                     'statut' => 'impaye',
-                ]
-            );
+                ]);
+            }
 
             $scolarite->montant_total = $montantTotal;
-            $scolarite->montant_paye += $versementMontant;
-            $scolarite->reste = max($scolarite->montant_total - $scolarite->montant_paye, 0);
-            $scolarite->statut = $scolarite->reste === 0 ? 'paye' : 'partiel';
-            $scolarite->save();
+            $alreadyPaid = (int) Versement::where('tenant_id', $user->tenant_id)->where('scolarite_id', $scolarite->id)->where('statut', 'valide')->sum('montant');
+            if ($validated['type'] === 'inscription') {
+                $registrationPaid = (int) Versement::where('tenant_id', $user->tenant_id)->where('scolarite_id', $scolarite->id)->where('statut', 'valide')->where('type', 'inscription')->sum('montant');
+                $registrationRemaining = max((int) $frais->inscription - $registrationPaid, 0);
+                if ($versementMontant > $registrationRemaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'montant_versement' => 'Le paiement dÃ©passe les frais dâ€™inscription restants (' . number_format($registrationRemaining, 0, ',', ' ') . ' FCFA).',
+                    ]);
+                }
+            }
+            $remaining = max($montantTotal - $alreadyPaid, 0);
+            if ($versementMontant > $remaining) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'montant_versement' => 'Le paiement depasse le solde du de ' . number_format($remaining, 0, ',', ' ') . ' FCFA.',
+                ]);
+            }
 
             $versement = $paymentProvider->charge([
                 'tenant_id' => $user->tenant_id,
                 'scolarite_id' => $scolarite->id,
                 'montant' => $versementMontant,
                 'date' => $validated['date_versement'] ?? now()->toDateString(),
-                'methode' => $validated['methode'] ?? 'especes',
+                'methode' => $validated['methode'],
+                'type' => $validated['type'],
+                'enregistre_par' => $user->id,
+                'idempotency_key' => $validated['idempotency_key'],
             ]);
 
+            $scolarite->montant_paye = (int) Versement::where('tenant_id', $user->tenant_id)->where('scolarite_id', $scolarite->id)->where('statut', 'valide')->sum('montant');
+            $scolarite->reste = max($montantTotal - $scolarite->montant_paye, 0);
+            $scolarite->statut = $scolarite->reste === 0 ? 'paye' : 'partiel';
+            $scolarite->save();
+
             $recipients = User::query()->where('tenant_id', $user->tenant_id)->where('id', $eleve->parent_id)->get();
-            $notifications->sendToUsers($user, $recipients, 'Paiement de scolarité enregistré', 'Un versement de '.number_format($versementMontant, 0, ',', ' ').' a été enregistré pour '.trim($eleve->nom.' '.$eleve->prenom).'.', 'payment');
+            $notifications->sendToUsers($user, $recipients, 'Paiement de scolaritÃ© enregistrÃ©', 'Un versement de '.number_format($versementMontant, 0, ',', ' ').' a Ã©tÃ© enregistrÃ© pour '.trim($eleve->nom.' '.$eleve->prenom).'.', 'payment');
 
             session()->flash('recu', [
                 'reference' => $versement->reference,
@@ -193,7 +238,7 @@ class PersonnelComptabiliteController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Paiement enregistré avec succès.');
+        return back()->with('success', 'Paiement enregistrÃ© avec succÃ¨s.');
     }
 
     public function storeDepense(Request $request)
@@ -202,7 +247,7 @@ class PersonnelComptabiliteController extends Controller
 
         Depense::create($validated + ['tenant_id' => auth()->user()->tenant_id]);
 
-        return back()->with('success', 'Dépense enregistrée avec succès.');
+        return back()->with('success', 'DÃ©pense enregistrÃ©e avec succÃ¨s.');
     }
 
     public function updateDepense(Request $request, Depense $depense)
@@ -210,7 +255,7 @@ class PersonnelComptabiliteController extends Controller
         $this->authorizeDepense($depense);
         $depense->update($this->validateDepense($request));
 
-        return back()->with('success', 'Dépense mise à jour avec succès.');
+        return back()->with('success', 'DÃ©pense mise Ã  jour avec succÃ¨s.');
     }
 
     public function destroyDepense(Depense $depense)
@@ -218,7 +263,7 @@ class PersonnelComptabiliteController extends Controller
         $this->authorizeDepense($depense);
         $depense->delete();
 
-        return back()->with('success', 'Dépense supprimée avec succès.');
+        return back()->with('success', 'DÃ©pense supprimÃ©e avec succÃ¨s.');
     }
 
     private function validateDepense(Request $request): array
@@ -236,4 +281,3 @@ class PersonnelComptabiliteController extends Controller
         abort_unless($depense->tenant_id === auth()->user()->tenant_id, 403);
     }
 }
-

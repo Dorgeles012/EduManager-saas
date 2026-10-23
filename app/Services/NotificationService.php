@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Enseignant;
 use App\Models\SystemNotification;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -48,7 +49,14 @@ class NotificationService
             'clients' => $query->whereRaw('LOWER(role) = ?', ['client'])->get(),
             'parents' => $query->whereRaw('LOWER(role) = ?', ['parent'])->get(),
             'personnel' => $query->whereRaw('LOWER(role) = ?', ['personnel'])->get(),
-            'enseignants' => $query->whereRaw('LOWER(role) = ?', ['enseignant'])->get(),
+            'enseignants' => Enseignant::query()
+                ->where('tenant_id', $sender->tenant_id)
+                ->whereNotNull('user_id')
+                ->with('user')
+                ->get()
+                ->pluck('user')
+                ->filter()
+                ->values(),
             'users' => $query->whereIn('id', $recipientIds)->get(),
             default => $query->get(),
         };

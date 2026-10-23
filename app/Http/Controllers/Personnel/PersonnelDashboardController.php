@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AnneeAcademique, Bulletin, Classe, Eleve, Etablissement, Matiere, Niveau, Series, User};
+use App\Models\{AnneeAcademique, Bulletin, Classe, Eleve, Enseignant, Etablissement, Matiere, Niveau, Series, User, Versement};
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -24,7 +24,7 @@ class PersonnelDashboardController extends Controller
         return view('personnel.dashboard.index', [
             'counts' => [
                 'eleves' => $forSchool(Eleve::where('tenant_id', $tenantId))->count(),
-                'enseignants' => $forSchool(User::where('tenant_id', $tenantId)->whereRaw('LOWER(role) = ?', ['enseignant']))->count(),
+                'enseignants' => $forSchool(Enseignant::where('tenant_id', $tenantId))->count(),
                 'personnels' => $forSchool(User::where('tenant_id', $tenantId)->whereRaw('LOWER(role) = ?', ['personnel']))->count(),
                 'parents' => $forSchool(User::where('tenant_id', $tenantId)->whereRaw('LOWER(role) = ?', ['parent']))->count(),
                 'classes' => $forSchool(Classe::where('tenant_id', $tenantId))->count(),
@@ -35,8 +35,15 @@ class PersonnelDashboardController extends Controller
                 'bulletins' => $forSchool(Bulletin::where('tenant_id', $tenantId))->count(),
                 'notifications' => DB::table('notifications')->where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))->count(),
                 'depenses' => DB::table('depense')->where('tenant_id', $tenantId)->count(),
-                'revenu_total' => DB::table('scolarites')->where('tenant_id', $tenantId)->sum('montant_paye') ?: 0,
-                'factures_impayees' => DB::table('scolarites')->where('tenant_id', $tenantId)->where('reste', '>', 0)->count(),
+                'revenu_total' => Versement::query()->where('tenant_id', $tenantId)->where('statut', 'valide')
+                    ->whereHas('scolarite.eleve', fn ($q) => $q->when($schoolId, fn ($sq) => $sq->where('etablissement_id', $schoolId)))
+                    ->sum('montant'),
+                'paiements_valides' => Versement::query()->where('tenant_id', $tenantId)->where('statut', 'valide')
+                    ->whereHas('scolarite.eleve', fn ($q) => $q->when($schoolId, fn ($sq) => $sq->where('etablissement_id', $schoolId)))
+                    ->count(),
+                'factures_impayees' => DB::table('scolarites')->join('eleves', 'eleves.id', '=', 'scolarites.eleve_id')
+                    ->where('scolarites.tenant_id', $tenantId)->where('scolarites.reste', '>', 0)
+                    ->when($schoolId, fn ($q) => $q->where('eleves.etablissement_id', $schoolId))->count(),
             ],
             'activeYear' => $forSchool(AnneeAcademique::where('tenant_id', $tenantId)->where('statut', 'active'))->orderByDesc('date_debut')->first(),
         ]);

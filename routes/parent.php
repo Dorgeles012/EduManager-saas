@@ -50,6 +50,7 @@ Route::middleware(['auth', 'status', 'role:parent', 'must.change.password', 'sub
 
         // Notifications
         Route::get('/notifications', [ParentNotificationController::class, 'index'])->name('notifications');
+        Route::delete('/notifications/all', [ParentNotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
         Route::post('/notifications/{notificationRecipient}/read', [ParentNotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [ParentNotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::delete('/notifications/{notificationRecipient}', [ParentNotificationController::class, 'destroy'])->name('notifications.destroy');
