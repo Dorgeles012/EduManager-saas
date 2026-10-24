@@ -7,31 +7,45 @@
         <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Système de Comptabilité</h2>
         <p class="text-sm text-gray-500 mt-1">Gérez les finances de votre établissement avec précision et clarté.</p>
     </div>
-    <div class="flex items-center gap-2 flex-wrap">
-        <button class="flex items-center gap-1.5 bg-success-green text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalScolarite')">
-            <span class="material-symbols-outlined text-[18px]">add_circle</span>
-            Paiement
+    <div class="relative" id="actionsDropdownWrapper">
+        <button type="button"
+                id="actionsDropdownBtn"
+                onclick="toggleActionsDropdown(event)"
+                class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-label-md shadow-lg hover:brightness-110 active:scale-95 transition-all">
+    
+            <span class="material-symbols-outlined text-[20px] transition-transform duration-200" id="actionsDropdownIcon">add</span><span>Faire une action</span>
         </button>
-        <button class="flex items-center gap-1.5 bg-alert-red text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalDepense')">
-            <span class="material-symbols-outlined text-[18px]">payments</span>
-            Dépense
-        </button>
-        <button class="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" onclick="openModal('modalFrais')">
-            <span class="material-symbols-outlined text-[18px]">tune</span>
-            Frais
-        </button>
+
+        <!-- Menu déroulant -->
+        <div id="actionsDropdownMenu"
+             class="hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-2xl overflow-hidden z-50">
+            <button type="button"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-left font-label-md text-on-surface hover:bg-surface-container-low transition-colors"
+                    onclick="openActionModal('modalScolarite')">
+                <span class="material-symbols-outlined text-[20px] text-success-green">add_circle</span>
+                Paiement
+            </button>
+            <button type="button"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-left font-label-md text-on-surface hover:bg-surface-container-low transition-colors"
+                    onclick="openActionModal('modalDepense')">
+                <span class="material-symbols-outlined text-[20px] text-alert-red">payments</span>
+                Dépense
+            </button>
+            <button type="button"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-left font-label-md text-on-surface hover:bg-surface-container-low transition-colors"
+                    onclick="openActionModal('modalFrais')">
+                <span class="material-symbols-outlined text-[20px] text-primary">tune</span>
+                Frais
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Solde actuel</p><p class="font-headline-md text-headline-md text-primary mt-1">{{ number_format($currentBalance ?? 0, 0, ',', ' ') }} FCFA</p></div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Total encaissé</p><p class="font-headline-md text-headline-md text-success-green mt-1">{{ number_format($totalIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
     <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Total dépensé</p><p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalExpense ?? 0, 0, ',', ' ') }} FCFA</p></div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Paiements valides</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ $paymentCount ?? 0 }}</p></div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Frais restant à recouvrer</p><p class="font-headline-md text-headline-md text-alert-red mt-1">{{ number_format($totalOutstanding ?? 0, 0, ',', ' ') }} FCFA</p></div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Inscriptions encaissées</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ number_format($registrationIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
-    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant"><p class="text-label-sm text-on-surface-variant">Scolarité encaissée</p><p class="font-headline-md text-headline-md text-on-surface mt-1">{{ number_format($tuitionIncome ?? 0, 0, ',', ' ') }} FCFA</p></div>
+    
 </div>
 <!-- Recherche par matricule -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mb-8">
@@ -384,6 +398,44 @@
 @push('scripts')
 <script>
     const searchRoute = @json(route('client.comptabilite.search'));
+
+    // ============================================================
+    // MENU DÉROULANT DES ACTIONS (Faire une action +, Paiement, Dépense, Frais)
+    // ============================================================
+    function toggleActionsDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('actionsDropdownMenu');
+        const icon = document.getElementById('actionsDropdownIcon');
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden');
+        if (icon) icon.style.transform = isHidden ? 'rotate(45deg)' : 'rotate(0deg)';
+    }
+
+    function openActionModal(modalId) {
+        closeActionsDropdown();
+        openModal(modalId);
+    }
+
+    function closeActionsDropdown() {
+        const menu = document.getElementById('actionsDropdownMenu');
+        const icon = document.getElementById('actionsDropdownIcon');
+        if (menu) menu.classList.add('hidden');
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+
+    // Ferme le menu si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('actionsDropdownWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            closeActionsDropdown();
+        }
+    });
+
+    // Ferme aussi avec la touche Échap
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeActionsDropdown();
+    });
 
     function searchEleve() {
         const matricule = document.getElementById('matriculeSearch').value.trim();

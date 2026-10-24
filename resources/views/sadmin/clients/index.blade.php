@@ -56,7 +56,7 @@
             </thead>
             <tbody class="divide-y divide-surface-subtle">
             @forelse($clients as $client)
-                <tr class="hover:bg-background transition-colors">
+                <tr>
 
                     <td class="px-4 py-3">
                         <div class="font-label-md text-[13px] text-on-surface">{{ $client->nom }} {{ $client->prenom }}</div>
