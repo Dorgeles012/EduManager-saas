@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/edumanager-logo.svg') }}">
-    <title>@yield('title', 'EduManager - Tableau de bord')</title>
+    <title>@yield('title', 'EduManager  Tableau de bord')</title>
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -423,14 +423,14 @@
 <body class="font-body-md text-body-md overflow-x-hidden">
 
 {{-- ============ SIDEBAR ============ --}}
-<aside class="fixed left-0 top-0 h-screen w-[250px] bg-white flex flex-col border-r border-gray-100 z-50">
-    <div class="p-4 flex-shrink-0 flex items-center gap-2.5 border-b border-gray-100">
-        <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-11 h-11 object-contain">
-        <div>
-            <h1 class="font-headline-lg text-headline-md font-bold text-indigo-600 tracking-tight">EduManager</h1>
-            <p class="text-sm text-gray-400 tracking-wider font-semibold">Espace client</p>
+<aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest flex flex-col border-r border-outline-variant z-50">
+     <div class="p-6 flex-shrink-0 flex items-center gap-3">
+            <img src="{{ asset('images/edumanager-logo.svg') }}" alt="EduManager" class="w-10 h-10 object-contain">
+            <div>
+                <h1 class="font-headline-lg text-headline-md font-bold text-primary tracking-tight">EduManager</h1>
+                <p class="text-xs text-gray-400 tracking-wider font-semibold">Espace client</p>
+            </div>
         </div>
-    </div>
 
     <nav class="sidebar-nav py-3">
         @php

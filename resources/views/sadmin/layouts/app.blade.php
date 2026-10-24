@@ -24,8 +24,7 @@
     <!-- Polices -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lexend:wght@400;600;700&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Lexend:wght@600;700;800&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
     <!-- Font Awesome pour les icônes supplémentaires -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -106,15 +105,15 @@
                         "gutter-desktop": "24px"
                     },
                     "fontFamily": {
-                        "body-sm": ["Inter"],
-                        "body-md": ["Inter"],
-                        "body-lg": ["Inter"],
-                        "headline-lg-mobile": ["Lexend"],
-                        "headline-md": ["Lexend"],
                         "headline-lg": ["Lexend"],
+                        "headline-md": ["Lexend"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
                         "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Lexend"],
                         "headline-xl": ["Lexend"],
-                        "label-sm": ["Inter"]
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
                     },
                     "fontSize": {
                         "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
@@ -133,6 +132,13 @@
     </script>
 
     <style>
+        body {
+            color: #111c2d;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+        }
+
         /* Styles de base */
         .sidebar-shadow { box-shadow: 4px 0 12px rgba(55,48,163,0.04); }
         .card-shadow { box-shadow: 0 4px 12px rgba(55,48,163,0.04); }

@@ -4,12 +4,12 @@
 
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Ã‰lÃ¨ves</h2>
-        <p class="text-sm text-gray-500 mt-1">GÃ©rez l'ensemble des Ã©lÃ¨ves inscrits dans votre Ã©tablissement</p>
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Gestion des Élèves</h2>
+        <p class="text-sm text-gray-500 mt-1">Gérez l'ensemble des élèves inscrits dans votre établissement</p>
     </div>
     <button onclick="openModal('modal-standard')" type="button" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
         <span class="material-symbols-outlined text-sm">person_add</span>
-        Nouvel Ã©lÃ¨ve
+        Nouvel élève
     </button>
 </div>
 
@@ -22,7 +22,7 @@
             <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Inscrits</span>
         </div>
         <h3 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $totalStudents ?? 0 }}</h3>
-        <p class="text-xs text-gray-500 mt-0.5">Ã‰lÃ¨ves au total</p>
+        <p class="text-xs text-gray-500 mt-0.5">Élèves au total</p>
     </div>
 
     <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -43,8 +43,8 @@
             <span class="material-symbols-outlined text-base">list_alt</span>
         </div>
         <div>
-            <h3 class="text-sm font-semibold text-gray-900">Liste des Ã©lÃ¨ves</h3>
-            <p class="text-[11px] text-gray-500">{{ $students->total() ?? 0 }} Ã©lÃ¨ve(s) enregistrÃ©(s)</p>
+            <h3 class="text-sm font-semibold text-gray-900">Liste des élèves</h3>
+            <p class="text-[11px] text-gray-500">{{ $students->total() ?? 0 }} élève(s) enregistré(s)</p>
         </div>
     </div>
 
@@ -59,7 +59,7 @@
                 @endforeach
             </select>
             <select name="id_serie" class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
-                <option value="">Toutes les sÃ©ries</option>
+                <option value="">Toutes les séries</option>
                 @foreach($series ?? [] as $serie)
                 <option value="{{ $serie->id }}" @selected((string) request('id_serie') === (string) $serie->id)>{{ $serie->nom_serie }}</option>
                 @endforeach
@@ -82,21 +82,21 @@
             <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                 <span class="material-symbols-outlined text-2xl text-gray-300">school</span>
             </div>
-            <p class="text-sm font-semibold text-gray-700">Aucun Ã©lÃ¨ve enregistrÃ©</p>
-            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre premier Ã©lÃ¨ve.</p>
+            <p class="text-sm font-semibold text-gray-700">Aucun élève enregistré</p>
+            <p class="text-xs text-gray-400 mt-1">Commencez par ajouter votre premier élève.</p>
         </div>
     @else
         <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50/50">
-                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">NÂ°</th>
-                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom & PrÃ©noms</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">N°</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nom & Prénoms</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Matricule</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Sexe</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Classe</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Niveau</th>
-                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">SÃ©rie</th>
+                        <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Série</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Naissance</th>
                         <th class="px-4 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                     </tr>
@@ -106,7 +106,7 @@
                     @php
                         $sexe = strtolower(trim($student['sexe'] ?? ''));
                         if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) { $badge = 'bg-blue-50 text-blue-700'; $label = 'Masculin'; }
-                        elseif (in_array($sexe, ['f', 'fÃ©minin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'FÃ©minin'; }
+                        elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'Féminin'; }
                         else { $badge = 'bg-gray-100 text-gray-600'; $label = 'N/A'; }
                     @endphp
                     <tr class="hover:bg-gray-50/50 transition-colors">
@@ -127,7 +127,7 @@
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-700 uppercase">{{ $student['level'] }}</span>
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-600">{{ $student['serie'] ?? 'â€”' }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-600">{{ $student['serie'] ?? '—' }}</td>
                         <td class="px-4 py-3 text-xs text-gray-600">{{ $student['birthdate'] }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center justify-end gap-1.5">
@@ -163,7 +163,7 @@
             @php
                 $sexe = strtolower(trim($student['sexe'] ?? ''));
                 if (in_array($sexe, ['m', 'masculin', 'male', 'homme', 'h'])) { $badge = 'bg-blue-50 text-blue-700'; $label = 'M'; }
-                elseif (in_array($sexe, ['f', 'fÃ©minin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'F'; }
+                elseif (in_array($sexe, ['f', 'féminin', 'feminin', 'female', 'femme'])) { $badge = 'bg-pink-50 text-pink-700'; $label = 'F'; }
                 else { $badge = 'bg-gray-100 text-gray-600'; $label = '?'; }
             @endphp
             <div class="p-4 space-y-3">
@@ -174,7 +174,7 @@
                         </div>
                         <div class="min-w-0">
                             <p class="text-sm font-semibold text-gray-900 truncate">{{ $student['lastname'] }} {{ $student['firstname'] }}</p>
-                            <p class="text-[11px] text-gray-500 truncate">{{ $student['matricule'] ?? 'N/A' }} â€” {{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</p>
+                            <p class="text-[11px] text-gray-500 truncate">{{ $student['matricule'] ?? 'N/A' }} — {{ $student['classe'] ?? $student['class'] ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $badge }} flex-shrink-0">{{ $label }}</span>
@@ -221,8 +221,8 @@
                     <span class="material-symbols-outlined text-base">person_add</span>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-gray-900">Ajouter un Ã©lÃ¨ve</h3>
-                    <p class="text-[11px] text-gray-500">Enregistrez un nouvel Ã©lÃ¨ve et son parent</p>
+                    <h3 class="text-base font-bold text-gray-900">Ajouter un élève</h3>
+                    <p class="text-[11px] text-gray-500">Enregistrez un nouvel élève et son parent</p>
                 </div>
             </div>
             <button type="button" onclick="closeModal('modal-standard')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
@@ -253,7 +253,7 @@
                         <div class="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
                             <span class="material-symbols-outlined text-sm">person</span>
                         </div>
-                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations Ã©lÃ¨ve</h4>
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations élève</h4>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -263,7 +263,7 @@
                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">PrÃ©nom <span class="text-rose-500">*</span></label>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom <span class="text-rose-500">*</span></label>
                             <input id="stdFirstname" type="text" required
                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                         </div>
@@ -286,10 +286,10 @@
                                 </div>
                             </label>
                             <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="sexe" value="FÃ©minin" class="peer sr-only">
+                                <input type="radio" name="sexe" value="Féminin" class="peer sr-only">
                                 <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
                                     <span class="material-symbols-outlined text-sm">female</span>
-                                    FÃ©minin
+                                    Féminin
                                 </div>
                             </label>
                         </div>
@@ -302,7 +302,7 @@
                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                             <p class="hidden text-[10px] text-rose-600 mt-1 flex items-center gap-1" id="age-warning-std">
                                 <span class="material-symbols-outlined text-[12px]">warning</span>
-                                Ã‚ge minimum : 5 ans.
+                                Âge minimum : 5 ans.
                             </p>
                         </div>
                         <div>
@@ -313,10 +313,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">NationalitÃ© <span class="text-rose-500">*</span></label>
-                        <select id="nationalite" name="nationalite" placeholder="SÃ©lectionner une nationalitÃ©"
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nationalité <span class="text-rose-500">*</span></label>
+                        <select id="nationalite" name="nationalite" placeholder="Sélectionner une nationalité"
                                 class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition ts-wrapper-custom">
-                            <option value="">SÃ©lectionner une nationalitÃ©</option>
+                            <option value="">Sélectionner une nationalité</option>
                             @foreach(config('nationalities') as $nationalite)
                             <option value="{{ $nationalite }}">{{ $nationalite }}</option>
                             @endforeach
@@ -333,7 +333,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">AffectÃ© <span class="text-rose-500">*</span></label>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Affecté <span class="text-rose-500">*</span></label>
                             <select id="stdAffecte" name="affecte" required
                                     class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                                 <option value="1" @selected(old('affecte') === '1')>Oui</option>
@@ -347,7 +347,7 @@
                             <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
                             <select id="stdLevel"
                                     class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
-                                <option value="">SÃ©lectionner un niveau</option>
+                                <option value="">Sélectionner un niveau</option>
                                 @foreach($levels ?? [] as $level)
                                 <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                                 @endforeach
@@ -363,10 +363,10 @@
                     </div>
 
                     <div id="stdSerieWrapper">
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SÃ©rie</label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série</label>
                         <select id="stdSerie" name="id_serie"
                                 class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
-                            <option value="">Aucune sÃ©rie</option>
+                            <option value="">Aucune série</option>
                         </select>
                     </div>
 
@@ -383,7 +383,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'Ã©lÃ¨ve</label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'élève</label>
                         <div class="flex items-center gap-3">
                             <div id="photo-preview-std" class="w-16 h-16 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                                 <span class="material-symbols-outlined text-2xl text-gray-400">photo_camera</span>
@@ -391,7 +391,7 @@
                             <div class="flex-1 min-w-0">
                                 <input id="stdPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-std')"
                                        class="w-full text-[11px] text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 file:cursor-pointer">
-                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF â€” max 2 MB</p>
+                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF — max 2 MB</p>
                             </div>
                         </div>
                     </div>
@@ -412,7 +412,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">PrÃ©nom du parent <span class="text-rose-500">*</span></label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom du parent <span class="text-rose-500">*</span></label>
                         <input id="parentFirstname" type="text" required
                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
@@ -422,11 +422,11 @@
                         <div class="flex gap-2">
                             <label class="flex-1 cursor-pointer">
                                 <input type="radio" name="parent_type" value="pere" class="peer sr-only">
-                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">PÃ¨re</div>
+                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">Père</div>
                             </label>
                             <label class="flex-1 cursor-pointer">
                                 <input type="radio" name="parent_type" value="mere" class="peer sr-only">
-                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">MÃ¨re</div>
+                                <div class="text-center py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">Mère</div>
                             </label>
                             <label class="flex-1 cursor-pointer">
                                 <input type="radio" name="parent_type" value="tuteur" class="peer sr-only" checked>
@@ -436,7 +436,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">TÃ©lÃ©phone <span class="text-rose-500">*</span></label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone <span class="text-rose-500">*</span></label>
                         <input id="parentPhone" type="tel" required placeholder="00 00 00 00"
                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
                     </div>
@@ -457,7 +457,7 @@
                 <button type="submit"
                         class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition shadow-sm">
                     <span class="material-symbols-outlined text-sm">save</span>
-                    Enregistrer l'Ã©lÃ¨ve
+                    Enregistrer l'élève
                 </button>
             </div>
         </form>
@@ -475,8 +475,8 @@
                     <span class="material-symbols-outlined text-base">badge</span>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-gray-900">Fiche Ã©lÃ¨ve</h3>
-                    <p class="text-[11px] text-gray-500">DÃ©tails et informations personnelles</p>
+                    <h3 class="text-base font-bold text-gray-900">Fiche élève</h3>
+                    <p class="text-[11px] text-gray-500">Détails et informations personnelles</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -498,7 +498,7 @@
                 </div>
                 <div class="flex-1 text-center sm:text-left">
                     <h3 class="text-lg font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-1.5" id="viewStudentFullName">
-                        â€”
+                        —
                         <span class="material-symbols-outlined text-indigo-500 text-base">verified</span>
                     </h3>
                     <div class="flex flex-wrap gap-2 justify-center sm:justify-start mt-2">
@@ -548,8 +548,8 @@
                             <span class="material-symbols-outlined text-base">category</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">SÃ©rie</p>
-                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentSerie">â€”</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Série</p>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentSerie">—</p>
                         </div>
                     </div>
 
@@ -578,7 +578,7 @@
                             <span class="material-symbols-outlined text-base">flag</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">NationalitÃ©</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Nationalité</p>
                             <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentNationalite">-</p>
                         </div>
                     </div>
@@ -598,7 +598,7 @@
                             <span class="material-symbols-outlined text-base">assignment_turned_in</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">AffectÃ©</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Affecté</p>
                             <p class="text-xs font-semibold text-gray-900 mt-0.5 truncate" id="viewStudentAffecte">-</p>
                         </div>
                     </div>
@@ -609,7 +609,7 @@
                         </div>
                         <div class="min-w-0">
                             <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Montant d'inscription</p>
-                            <p class="text-xs font-bold text-emerald-700 mt-0.5 truncate" id="viewStudentMontantInscription">â€”</p>
+                            <p class="text-xs font-bold text-emerald-700 mt-0.5 truncate" id="viewStudentMontantInscription">—</p>
                         </div>
                     </div>
                 </div>
@@ -630,11 +630,11 @@
                             <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentLastname">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">PrÃ©nom</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Prénom</p>
                             <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentFirstname">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">TÃ©lÃ©phone</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Téléphone</p>
                             <p class="text-xs font-semibold text-gray-900 mt-0.5" id="viewStudentParentPhone">-</p>
                         </div>
                         <div>
@@ -650,11 +650,11 @@
             <div class="flex items-center gap-3 text-[10px] text-gray-500">
                 <span class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-[14px]">event_note</span>
-                    CrÃ©Ã© : <span id="viewStudentCreatedAt" class="text-gray-700 font-medium">-</span>
+                    Créé : <span id="viewStudentCreatedAt" class="text-gray-700 font-medium">-</span>
                 </span>
                 <span class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-[14px]">update</span>
-                    ModifiÃ© : <span id="viewStudentUpdatedAt" class="text-gray-700 font-medium">-</span>
+                    Modifié : <span id="viewStudentUpdatedAt" class="text-gray-700 font-medium">-</span>
                 </span>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -684,8 +684,8 @@
                     <span class="material-symbols-outlined text-base">edit</span>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-gray-900">Modifier l'Ã©lÃ¨ve</h3>
-                    <p class="text-[11px] text-gray-500">Mettre Ã  jour les informations</p>
+                    <h3 class="text-base font-bold text-gray-900">Modifier l'élève</h3>
+                    <p class="text-[11px] text-gray-500">Mettre à jour les informations</p>
                 </div>
             </div>
             <button type="button" onclick="closeModal('modal-edit')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
@@ -718,7 +718,7 @@
                         <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
                             <span class="material-symbols-outlined text-sm">person</span>
                         </div>
-                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations Ã©lÃ¨ve</h4>
+                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informations élève</h4>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -728,7 +728,7 @@
                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">PrÃ©nom <span class="text-rose-500">*</span></label>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom <span class="text-rose-500">*</span></label>
                             <input id="editFirstname" type="text" required
                                    class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                         </div>
@@ -751,10 +751,10 @@
                                 </div>
                             </label>
                             <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="edit_sexe" value="FÃ©minin" class="peer sr-only">
+                                <input type="radio" name="edit_sexe" value="Féminin" class="peer sr-only">
                                 <div class="flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
                                     <span class="material-symbols-outlined text-sm">female</span>
-                                    FÃ©minin
+                                    Féminin
                                 </div>
                             </label>
                         </div>
@@ -774,10 +774,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">NationalitÃ©</label>
-                        <select id="editNationalite" name="nationalite" placeholder="SÃ©lectionner une nationalitÃ©"
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Nationalité</label>
+                        <select id="editNationalite" name="nationalite" placeholder="Sélectionner une nationalité"
                                 class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition ts-wrapper-custom">
-                            <option value="">SÃ©lectionner une nationalitÃ©</option>
+                            <option value="">Sélectionner une nationalité</option>
                             @foreach(config('nationalities') as $nationalite)
                             <option value="{{ $nationalite }}">{{ $nationalite }}</option>
                             @endforeach
@@ -794,7 +794,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">AffectÃ© <span class="text-rose-500">*</span></label>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Affecté <span class="text-rose-500">*</span></label>
                             <select id="editAffecte" name="affecte" required
                                     class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                                 <option value="1">Oui</option>
@@ -808,7 +808,7 @@
                             <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Niveau</label>
                             <select id="editLevel"
                                     class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
-                                <option value="">SÃ©lectionner un niveau</option>
+                                <option value="">Sélectionner un niveau</option>
                                 @foreach($levels ?? [] as $level)
                                 <option value="{{ $level['id'] }}">{{ $level['name'] }}</option>
                                 @endforeach
@@ -824,10 +824,10 @@
                     </div>
 
                     <div id="editSerieWrapper">
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SÃ©rie</label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Série</label>
                         <select id="editSerie" name="id_serie"
                                 class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
-                            <option value="">Aucune sÃ©rie</option>
+                            <option value="">Aucune série</option>
                         </select>
                     </div>
 
@@ -843,7 +843,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'Ã©lÃ¨ve</label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Photo de l'élève</label>
                         <div class="flex items-center gap-3">
                             <div id="photo-preview-edit" class="w-16 h-16 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0 text-xs font-bold text-gray-500">
                                 <span class="material-symbols-outlined text-2xl text-gray-400">photo_camera</span>
@@ -851,7 +851,7 @@
                             <div class="flex-1 min-w-0">
                                 <input id="editPhoto" name="photo" type="file" accept="image/*" onchange="previewPhoto(this, 'photo-preview-edit')"
                                        class="w-full text-[11px] text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-amber-50 file:text-amber-600 hover:file:bg-amber-100 file:cursor-pointer">
-                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF â€” max 2 MB</p>
+                                <p class="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF — max 2 MB</p>
                             </div>
                         </div>
                     </div>
@@ -872,13 +872,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">PrÃ©nom du parent <span class="text-rose-500">*</span></label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Prénom du parent <span class="text-rose-500">*</span></label>
                         <input id="editParentFirstname" type="text" required
                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">TÃ©lÃ©phone <span class="text-rose-500">*</span></label>
+                        <label class="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Téléphone <span class="text-rose-500">*</span></label>
                         <input id="editParentPhone" type="tel" required
                                class="w-full bg-white border border-gray-200 rounded-lg text-xs py-2.5 px-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition">
                     </div>
@@ -899,7 +899,7 @@
                 <button type="submit"
                         class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition shadow-sm">
                     <span class="material-symbols-outlined text-sm">save</span>
-                    Mettre Ã  jour
+                    Mettre à jour
                 </button>
             </div>
         </form>
@@ -956,7 +956,7 @@
         const select = document.getElementById(classSelectId);
         if (!select) return;
         const matching = availableClasses.filter(classe => String(classe.level_id) === String(levelId));
-        select.innerHTML = '<option value="">SÃ©lectionner une classe</option>' + matching.map(classe =>
+        select.innerHTML = '<option value="">Sélectionner une classe</option>' + matching.map(classe =>
             `<option value="${classe.id}">${classe.name}</option>`
         ).join('');
         select.disabled = !levelId || matching.length === 0;
@@ -970,7 +970,7 @@
         const wrapper = document.getElementById(wrapperId);
         if (!select || !wrapper) return;
         const matching = availableSeries.filter(serie => (serie.class_ids ?? []).map(String).includes(String(classId)));
-        select.innerHTML = `<option value="">${matching.length ? 'SÃ©lectionner une sÃ©rie' : 'Aucune sÃ©rie pour cette classe'}</option>` + matching.map(serie =>
+        select.innerHTML = `<option value="">${matching.length ? 'Sélectionner une série' : 'Aucune série pour cette classe'}</option>` + matching.map(serie =>
             `<option value="${serie.id}">${serie.nom_serie}</option>`
         ).join('');
         wrapper.classList.remove('hidden');
@@ -1001,7 +1001,7 @@
             create: false,
             sortField: { field: 'text', direction: 'asc' },
             searchField: ['text'],
-            placeholder: 'SÃ©lectionner une nationalitÃ©',
+            placeholder: 'Sélectionner une nationalité',
             render: {
                 option: function(data, escape) {
                     return '<div class="flex items-center justify-between gap-3"><span>' + escape(data.text) + '</span></div>';
@@ -1087,7 +1087,7 @@
         if (!frais) {
             resetMontantState(inputId, feedbackId);
             if (frais === null) {
-                setMontantInfo(inputId, feedbackId, '<span class="material-symbols-outlined text-[11px] align-middle">info</span> Aucun tarif configurÃ© pour ce niveau.');
+                setMontantInfo(inputId, feedbackId, '<span class="material-symbols-outlined text-[11px] align-middle">info</span> Aucun tarif configuré pour ce niveau.');
             }
             return;
         }
@@ -1101,7 +1101,7 @@
 
         if (val < min) {
             setMontantError(inputId, feedbackId,
-                `Ce montant est infÃ©rieur au minimum autorisÃ© pour ce niveau. <br> Montant minimum : ${formatFcfa(min)}.`);
+                `Ce montant est inférieur au minimum autorisé pour ce niveau. <br> Montant minimum : ${formatFcfa(min)}.`);
         } else {
             setMontantValid(inputId, feedbackId,
                 `Montant conforme pour l'inscription : ${formatFcfa(frais.inscription)}`);
@@ -1123,9 +1123,9 @@
             checkMontant(montant, frais, montantInputId, feedbackId);
         } else if (frais) {
             setMontantInfo(montantInputId, feedbackId,
-                `Tarif d'inscription configurÃ© pour ce niveau : <strong>${formatFcfa(frais.inscription)}</strong>. Montant autorisÃ© : de <strong>${formatFcfa(frais.montant_min)}</strong> Ã  <strong>${formatFcfa(frais.montant_max)}</strong>.`);
+                `Tarif d'inscription configuré pour ce niveau : <strong>${formatFcfa(frais.inscription)}</strong>. Montant autorisé : de <strong>${formatFcfa(frais.montant_min)}</strong> à <strong>${formatFcfa(frais.montant_max)}</strong>.`);
         } else if (frais === null) {
-            setMontantInfo(montantInputId, feedbackId, 'Aucun tarif configurÃ© pour ce niveau.');
+            setMontantInfo(montantInputId, feedbackId, 'Aucun tarif configuré pour ce niveau.');
         }
     }
 
@@ -1140,7 +1140,7 @@
         checkMontant(montant, frais, montantInputId, feedbackId);
     }
 
-    // Bloque la saisie en dessous du minimum autorisÃ©
+    // Bloque la saisie en dessous du minimum autorisé
     function clampMontantInput(inputId, min) {
         const input = document.getElementById(inputId);
         if (!input || min === null || min === undefined) return;
@@ -1229,7 +1229,7 @@
                 document.getElementById('parentPhoneHidden').value = document.getElementById('parentPhone').value;
                 document.getElementById('parentEmailHidden').value = document.getElementById('parentEmail').value;
 
-                // VÃ©rifier le montant avant soumission
+                // Vérifier le montant avant soumission
                 const niveauId = document.getElementById('stdLevel').value;
                 const montantVal = Number(document.getElementById('stdMontantInscription').value || 0);
                 if (niveauId) {
@@ -1241,7 +1241,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Montant invalide',
-                                html: `Le montant doit Ãªtre <strong>${formatFcfa(max)}</strong> pour ce niveau.`,
+                                html: `Le montant doit être <strong>${formatFcfa(max)}</strong> pour ce niveau.`,
                                 confirmButtonColor: '#4f46e5',
                                 confirmButtonText: 'OK'
                             });
@@ -1289,7 +1289,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Montant invalide',
-                                html: `Le montant doit Ãªtre compris entre <strong>${formatFcfa(min)}</strong> et <strong>${formatFcfa(max)}</strong> pour ce niveau.`,
+                                html: `Le montant doit être compris entre <strong>${formatFcfa(min)}</strong> et <strong>${formatFcfa(max)}</strong> pour ce niveau.`,
                                 confirmButtonColor: '#4f46e5',
                                 confirmButtonText: 'OK'
                             });
@@ -1320,7 +1320,7 @@
             Swal.fire({
                 customClass: { popup: 'rounded-2xl', title: 'text-base font-semibold', htmlContainer: 'text-xs text-gray-500' },
                 buttonsStyling: false,
-                icon: 'success', title: 'SuccÃ¨s', text: @json(session('success')),
+                icon: 'success', title: 'Succès', text: @json(session('success')),
                 timer: 2500, showConfirmButton: false, position: 'center'
             });
         @endif
@@ -1358,7 +1358,7 @@
         document.getElementById('viewStudentBirthplace').textContent = student.birthplace ?? 'N/A';
         document.getElementById('viewStudentClasse').textContent = student.classe ?? student.class ?? 'N/A';
         document.getElementById('viewStudentNiveau').textContent = student.level ?? 'N/A';
-        document.getElementById('viewStudentSerie').textContent = student.serie ?? 'â€”';
+        document.getElementById('viewStudentSerie').textContent = student.serie ?? '—';
         document.getElementById('viewStudentNationalite').textContent = student.nationalite ?? '-';
         document.getElementById('viewStudentInterne').textContent = student.interne ? 'Oui' : 'Non';
         document.getElementById('viewStudentAffecte').textContent = student.affecte ? 'Oui' : 'Non';
@@ -1371,17 +1371,17 @@
             } else if (montant === 0 || montant === '0') {
                 montantEl.textContent = '0 FCFA';
             } else {
-                montantEl.textContent = 'Non renseignÃ©';
+                montantEl.textContent = 'Non renseigné';
             }
         }
 
         const sexeRaw = (student.sexe ?? '').toString().trim();
         const sexeLower = sexeRaw.toLowerCase();
-        let sexeDisplay = 'Non renseignÃ©';
+        let sexeDisplay = 'Non renseigné';
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
-        const femininValues = ['f', 'fÃ©minin', 'feminin', 'female', 'femme'];
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme'];
         if (masculinValues.includes(sexeLower)) sexeDisplay = 'Masculin';
-        else if (femininValues.includes(sexeLower)) sexeDisplay = 'FÃ©minin';
+        else if (femininValues.includes(sexeLower)) sexeDisplay = 'Féminin';
         document.getElementById('viewStudentSexeDetail').textContent = sexeDisplay;
 
         const parentLastname = student.parent_lastname ?? null;
@@ -1401,7 +1401,7 @@
         if (photoUrl) {
             const image = document.createElement('img');
             image.src = photoUrl;
-            image.alt = `Photo de ${fullName || 'lâ€™Ã©lÃ¨ve'}`;
+            image.alt = `Photo de ${fullName || 'l’élève'}`;
             image.className = 'w-full h-full object-cover object-center';
             image.addEventListener('error', () => {
                 photoContainer.innerHTML = `<span class="text-3xl font-bold text-indigo-600">${initials}</span>`;
@@ -1430,11 +1430,11 @@
         const sexe = student.sexe ?? '';
         const sexeLower = sexe.toLowerCase();
         const masculinValues = ['m', 'masculin', 'male', 'homme', 'h'];
-        const femininValues = ['f', 'fÃ©minin', 'feminin', 'female', 'femme'];
+        const femininValues = ['f', 'féminin', 'feminin', 'female', 'femme'];
         if (masculinValues.includes(sexeLower) || sexe === 'Masculin') {
             document.querySelector('input[name="edit_sexe"][value="Masculin"]').checked = true;
-        } else if (femininValues.includes(sexeLower) || sexe === 'FÃ©minin') {
-            document.querySelector('input[name="edit_sexe"][value="FÃ©minin"]').checked = true;
+        } else if (femininValues.includes(sexeLower) || sexe === 'Féminin') {
+            document.querySelector('input[name="edit_sexe"][value="Féminin"]').checked = true;
         }
         document.getElementById('editLastnameHidden').value = student.lastname ?? '';
         document.getElementById('editFirstnameHidden').value = student.firstname ?? '';
